@@ -1,0 +1,24 @@
+{
+  "version": "3.2.4",
+  "compilerOptions": {
+    "compileOnSave": true,
+    "target": "es5",
+    "module": "commonjs",
+    "sourceMap": false,
+    "emitDecoratorMetadata": false,
+    "experimentalDecorators": false,
+    "moduleName": "window",
+    "outDir": "staged/js/",
+    "rootDir": "src/ts/",
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules/three/src/Three.d.ts",
+      "node_modules/kmljs/src"
+    ]
+  },
+  "files": [
+    "src/ts/main.ts"
+  ]
+}

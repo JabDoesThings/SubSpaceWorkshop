@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+
+<head>
+    <script type="module">
+
+        // JS libraries.
+        const remote = require('electron');
+        const THREE = window.THREE = require('three');
+        const fs = require('fs');
+        window.$ = window.jQuery = require('jquery');
+
+        // Project JS files.
+        const main = require("./assets/js/main.js");
+
+        $(function () {
+            main.start();
+            // Start application.
+        });
+
+    </script>
+    <link rel="stylesheet" href="assets/css/project.min.css"/>
+    <title>JCME</title>
+</head>
+<body>
+</body>
+</html>
