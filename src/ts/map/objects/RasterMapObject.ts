@@ -1,5 +1,6 @@
 import { MapObject } from './MapObject';
 import { MapUtils } from '../MapUtils';
+import { TileUtils } from '../TileUtils';
 
 /**
  * The <i>RasterMapObject</i>. TODO: Document.
@@ -32,7 +33,14 @@ export class RasterMapObject extends MapObject {
                 this.tiles[x][y] = 0;
             }
         }
+
     }
+
+    // @Override
+    protected onUpdate(): void {
+
+    }
+
 
     /**
      * Clears all map tiles by filling them as '0'.
@@ -68,7 +76,7 @@ export class RasterMapObject extends MapObject {
         MapUtils.validateRanges(startX, startY, endX, endY);
 
         // Make sure that the tile-value is a unsigned byte.
-        MapUtils.validateTileId(value);
+        TileUtils.validateTileId(value);
 
         // Check to make sure that the value is a whole integer.
         value = Math.floor(value);
@@ -141,7 +149,7 @@ export class RasterMapObject extends MapObject {
     public setTile(x: number, y: number, value: number): boolean {
 
         // Make sure that the tile ID is proper.
-        MapUtils.validateTileId(value);
+        TileUtils.validateTileId(value);
 
         // Make sure that the object contains the point to set.
         if (MapUtils.contains(x, y, 0, 0, this.getWidth() - 1, this.getHeight() - 1)) {

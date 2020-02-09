@@ -5,7 +5,7 @@ import { DataObject } from './DataObject';
  *
  * @author Jab
  */
-export class DirtyDataObject extends DataObject {
+export abstract class DirtyDataObject extends DataObject {
 
     private dirty: boolean;
 
@@ -15,9 +15,24 @@ export class DirtyDataObject extends DataObject {
      * @param name The name of the object.
      * @param id THe ID of the object.
      */
-    constructor(name: string, id: string = null) {
+    protected constructor(name: string, id: string = null) {
         super(name, id);
         this.dirty = false;
+    }
+
+    /**
+     * Call this to update the object.
+     *
+     * <p><b>NOTE:</b> The object will only update when it is dirty.
+     */
+    public update(): void {
+
+        // Update the object only if it is dirty.
+        if (this.isDirty()) {
+            this.onUpdate();
+            this.setDirty(false);
+        }
+
     }
 
     /**
@@ -35,5 +50,10 @@ export class DirtyDataObject extends DataObject {
     public setDirty(flag: boolean): void {
         this.dirty = flag;
     }
+
+    /**
+     * Fired when the object updates from being dirty.
+     */
+    protected abstract onUpdate(): void;
 
 }

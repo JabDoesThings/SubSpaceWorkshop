@@ -1,11 +1,12 @@
 import { DataObject } from '../DataObject';
+import { DirtyDataObject } from '../DirtyDataObject';
 
 /**
  * The <i>MapObject</i>. TODO: Document.
  *
  * @author Jab
  */
-export class MapObject extends DataObject {
+export abstract class MapObject extends DirtyDataObject {
 
     private parent: MapObject;
     private children: MapObject[];

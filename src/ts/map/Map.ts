@@ -10,6 +10,12 @@ export class Map extends DataObject {
 
     private layers: MapLayer[];
 
+    /**
+     * Main constructor.
+     *
+     * @param name The name of the map.
+     * @param id The ID of the map.
+     */
     constructor(name: string, id: string = null) {
         super(name, id);
         this.clear();

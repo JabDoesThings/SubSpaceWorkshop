@@ -11,6 +11,14 @@ export class Tileset extends DirtyDataObject {
     private image: HTMLImageElement;
     private readonly tiles: HTMLImageElement[];
 
+    /**
+     * Main constructor.
+     *
+     * @param image The tileset image.
+     * @param name The tileset name.
+     * @param id The ID of the tileset. If the ID is null, a UUID is generated
+     *   in its place.
+     */
     constructor(image: HTMLImageElement, name: string, id: string = null) {
 
         super(name, id);
@@ -55,16 +63,8 @@ export class Tileset extends DirtyDataObject {
 
     }
 
-    /**
-     * Updates the Tileset image if dirty.
-     */
-    public update(): void {
-
-        // Make sure that the tileset is dirty before redrawing to prevent wasteful
-        //  cpu time.
-        if (!this.isDirty()) {
-            return;
-        }
+    // @Override
+    protected onUpdate(): void {
 
         // Create the canvas element for the updated tileset image.
         let canvas: HTMLCanvasElement = new HTMLCanvasElement();
@@ -97,9 +97,6 @@ export class Tileset extends DirtyDataObject {
         // Set the compiled tileset image's source to the canvas.
         this.image = new HTMLImageElement();
         this.image.src = canvas.toDataURL();
-
-        // Set the dirty flag false so that we know that the tileset is updated.
-        this.setDirty(false);
 
     }
 
