@@ -73,19 +73,6 @@ export class MapUtils {
     }
 
     /**
-     * Tests whether or not a tile is a unsigned byte value between 0 and 255.
-     * @param value The value to test.
-     *
-     * @throws RangeError Thrown if the value is less than 0 or greater than 255.
-     */
-    public static validateTileId(value: number): void {
-        if (value < 0 || value > 255) {
-            throw new RangeError("The tile-value given is out of range. " +
-                "Tile values can only be between 0 and 255. (" + value + " given)");
-        }
-    }
-
-    /**
      * Tests whether the 'src' range is completely outside of the 'dst' range.
      *
      * @param srcStartX The minimum 'x' coordinate of the 'src' range.
@@ -120,7 +107,7 @@ export class MapUtils {
      *
      * @return Returns 'true' if the 'x' and 'y' coordinate are within the range given.
      */
-    static contains(x: number, y: number, startX: number, startY: number, endX: number, endY: number) {
+    public static contains(x: number, y: number, startX: number, startY: number, endX: number, endY: number) {
         return x >= startX && x <= endX && y >= startY && y <= endY;
     }
 }
