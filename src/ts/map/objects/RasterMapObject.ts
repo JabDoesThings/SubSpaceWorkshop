@@ -1,12 +1,12 @@
 import { MapObject } from './MapObject';
-import { MapUtils } from './MapUtils';
+import { MapUtils } from '../MapUtils';
 
 /**
- * The <i>RasterObject</i>. TODO: Document.
+ * The <i>RasterMapObject</i>. TODO: Document.
  *
  * @author Jab
  */
-export class RasterObject extends MapObject {
+export class RasterMapObject extends MapObject {
 
     private readonly tiles: number[][];
 
@@ -60,7 +60,7 @@ export class RasterObject extends MapObject {
      * @return Returns the amount of tiles set.
      *
      * @throws RangeError Thrown if the tile-value given is not an unsigned byte,
-     *   or the range given is out of range for the RasterObject.
+     *   or the range given is out of range for the RasterMapObject.
      */
     fill(startX: number, startY: number, endX: number, endY: number, value: number): number {
 

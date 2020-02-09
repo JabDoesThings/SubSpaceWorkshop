@@ -1,5 +1,5 @@
-import { MapLayer } from './MapLayer';
-import { DataObject } from './DataObject';
+import { MapLayer } from '../MapLayer';
+import { DataObject } from '../DataObject';
 
 /**
  * The <i>MapObject</i>. TODO: Document.

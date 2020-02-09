@@ -1,4 +1,4 @@
-import { MapObject } from './MapObject';
+import { MapObject } from './objects/MapObject';
 import { DataObject } from './DataObject';
 
 /**
