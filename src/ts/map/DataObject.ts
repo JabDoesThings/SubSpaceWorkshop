@@ -5,7 +5,7 @@ import uuid = require('uuid');
  *
  * @author Jab.
  */
-export class DataObject {
+export abstract class DataObject {
 
     private id: string;
     private name: string;
@@ -16,7 +16,7 @@ export class DataObject {
      * @param name The decorative name of the object.
      * @param id The internal ID of the object. If not provided, a UUID V4 is generated.
      */
-    constructor(name: string, id: string = null) {
+    protected constructor(name: string, id: string = null) {
         this.name = name;
         if (id == null) {
             this.id = uuid.v4();
