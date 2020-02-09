@@ -6,7 +6,6 @@
 export class MapUtils {
 
     public static readonly MAP_LENGTH = 1024;
-    public static readonly MAX_TILE_INDEX = 1023;
 
     /**
      * Tests 'x' and 'y' coordinates to be between the given start and end coordinate ranges.

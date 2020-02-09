@@ -86,11 +86,11 @@ export class RasterObject extends MapObject {
         if (startY < 0) {
             startY = 0;
         }
-        if (endX > MapUtils.MAX_TILE_INDEX) {
-            endX = MapUtils.MAX_TILE_INDEX;
+        if (endX > width - 1) {
+            endX = width - 1;
         }
-        if (endY > MapUtils.MAX_TILE_INDEX) {
-            endY = MapUtils.MAX_TILE_INDEX;
+        if (endY > height - 1) {
+            endY = height - 1;
         }
 
         // This will store how many tiles are set.
