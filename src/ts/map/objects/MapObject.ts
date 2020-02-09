@@ -1,4 +1,3 @@
-import { MapLayer } from '../MapLayer';
 import { DataObject } from '../DataObject';
 
 /**
@@ -11,7 +10,6 @@ export class MapObject extends DataObject {
     private parent: MapObject;
     private children: MapObject[];
 
-    private layer: MapLayer;
     private width: number;
     private height: number;
 
@@ -30,26 +28,34 @@ export class MapObject extends DataObject {
         this.children = [];
     }
 
-    public getLayer(): MapLayer {
-        return this.layer;
-    }
-
-    public setLayer(layer: MapLayer): void {
-        this.layer = layer;
-    }
-
+    /**
+     * @return Returns the width of the object.
+     */
     public getWidth(): number {
         return this.width;
     }
 
+    /**
+     * Sets the width of the object.
+     *
+     * @param value The value to set.
+     */
     public setWidth(value: number): void {
         this.width = value;
     }
 
+    /**
+     * @return Returns the height of the object.
+     */
     public getHeight(): number {
         return this.height;
     }
 
+    /**
+     * Sets the height of the object.
+     *
+     * @param value The value to set.
+     */
     public setHeight(value: number): void {
         this.height = value;
     }
@@ -58,18 +64,38 @@ export class MapObject extends DataObject {
     // PARENT CODE //
     /////////////////
 
+    /**
+     * @return Returns 'true' if the object has a parent.
+     */
     public hasParent(): boolean {
         return this.parent != null;
     }
 
+    /**
+     * Checks if the object given is the parent.
+     *
+     * @param object The object to test.
+     *
+     * @return Returns 'true' if the object given is the parent.
+     */
     public isParent(object: MapObject): boolean {
         return this.parent != null && this.parent.equals(object);
     }
 
+    /**
+     * @return Returns the parent of the object.
+     */
     public getParent(): MapObject {
         return this.parent;
     }
 
+    /**
+     * Sets the parent of the object.
+     *
+     * @param object The object to set.
+     *
+     * @throws Error Thrown if the object is already the parent.
+     */
     public setParent(object: MapObject): void {
 
         if (this.parent != null) {
@@ -102,18 +128,26 @@ export class MapObject extends DataObject {
     // CHILDREN CODE //
     ///////////////////
 
+    /**
+     * @return Returns 'true' if the object has children.
+     */
     public hasChildren(): boolean {
         return this.children.length != 0;
     }
 
     /**
+     * Tests if the object given is a child.
      *
-     * @param object
+     * @param object The object to test.
+     *
+     * @return Returns 'true' if the object is a child.
+     *
+     * @throws Error Thrown if the object given is null or undefined.
      */
     public isChild(object: MapObject): boolean {
 
         // Make sure the object given is not null.
-        if(object == null) {
+        if (object == null) {
             throw new Error("The object given is null or undefined.");
         }
 
@@ -138,10 +172,17 @@ export class MapObject extends DataObject {
         return false;
     }
 
+    /**
+     * Adds the object as a child.
+     *
+     * @param object The object to add.
+     *
+     * @throws Error Thrown if the object given is null, undefined, or is already a child.
+     */
     public addChild(object: MapObject): void {
 
         // Make sure the object given is not null.
-        if(object == null) {
+        if (object == null) {
             throw new Error("The object given is null or undefined.");
         }
 
@@ -170,10 +211,17 @@ export class MapObject extends DataObject {
 
     }
 
+    /**
+     * Removes the object as a child.
+     *
+     * @param object The object to remove.
+     *
+     * @throws Error Thrown if the object given is null, undefined, or is not a child.
+     */
     public removeChild(object: MapObject): void {
 
         // Make sure the object given is not null.
-        if(object == null) {
+        if (object == null) {
             throw new Error("The object given is null or undefined.");
         }
 
@@ -219,6 +267,9 @@ export class MapObject extends DataObject {
 
     }
 
+    /**
+     * @return Returns the children of the object.
+     */
     public getChildren(): MapObject[] {
         return this.children;
     }
