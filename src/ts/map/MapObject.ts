@@ -1,34 +1,37 @@
-import uuid = require('uuid');
+import { MapLayer } from './MapLayer';
+import { DataObject } from './DataObject';
 
 /**
  * The <i>MapObject</i>. TODO: Document.
  *
  * @author Jab
  */
-export class MapObject {
+export class MapObject extends DataObject {
 
-    private name: string;
+    private layer: MapLayer;
     private width: number;
     private height: number;
-    private id: string;
 
     /**
      * Main constructor.
      *
-     * @param name The name of the MapObject.
-     * @param width The width of the MapObject.
-     * @param height The height of the MapObject.
+     * @param width The width of the object.
+     * @param height The height of the object.
+     * @param name The name of the object.
+     * @param id The ID of the object.
      */
-    constructor(name: string, width: number, height: number) {
-
-        // Generate a new ID.
-        this.id = uuid.v4();
-
-        // Set the fields.
-        this.name = name;
+    constructor(width: number, height: number, name: string, id: string = null) {
+        super(name, id);
         this.width = width;
         this.height = height;
+    }
 
+    public getLayer(): MapLayer {
+        return this.layer;
+    }
+
+    public setLayer(layer: MapLayer): void {
+        this.layer = layer;
     }
 
     public getWidth(): number {
@@ -45,22 +48,6 @@ export class MapObject {
 
     public setHeight(value: number): void {
         this.height = value;
-    }
-
-    public getName(): string {
-        return this.name;
-    }
-
-    public setName(name: string): void {
-        this.name = name;
-    }
-
-    public getId(): string {
-        return this.id;
-    }
-
-    protected setId(id: string): void {
-        this.id = id;
     }
 
 }

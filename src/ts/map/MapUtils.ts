@@ -5,7 +5,7 @@
  */
 export class MapUtils {
 
-    public static readonly MAP_LENGTH = 1024;
+    public static readonly MAP_LENGTH: number = 1024;
 
     /**
      * Tests 'x' and 'y' coordinates to be between the given start and end coordinate ranges.

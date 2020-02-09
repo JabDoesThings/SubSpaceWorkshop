@@ -2,7 +2,7 @@ import { MapObject } from './MapObject';
 import { MapUtils } from './MapUtils';
 
 /**
- * The <i>RasterizedObject</i>. TODO: Document.
+ * The <i>RasterObject</i>. TODO: Document.
  *
  * @author Jab
  */
@@ -13,13 +13,14 @@ export class RasterObject extends MapObject {
     /**
      * Main constructor.
      *
-     * @param name The name of the MapObject.
-     * @param width The width of the MapObject.
-     * @param height The height of the MapObject.
+     * @param width The width of the object.
+     * @param height The height of the object.
+     * @param name The name of the object.
+     * @param id The ID of the object.
      */
-    constructor(name: string, width: number, height: number) {
+    constructor(width: number, height: number, name: string, id: string = null) {
 
-        super(name, width, height);
+        super(width, height, name, id);
 
         // Create the raster tile array.
         this.tiles = [];
@@ -50,15 +51,16 @@ export class RasterObject extends MapObject {
     /**
      * Fills a range with the given tile-value.
      *
-     * @param startX
-     * @param startY
-     * @param endX
-     * @param endY
-     * @param value
+     * @param startX The starting 'x' coordinate to fill.
+     * @param startY The starting 'y' coordinate to fill.
+     * @param endX The ending 'x' coordinate to fill.
+     * @param endY The ending 'y' coordinate to fill.
+     * @param value The tile-value to fill.
      *
      * @return Returns the amount of tiles set.
      *
-     * @throws RangeError Thrown if the tile-value given is not an unsigned byte.
+     * @throws RangeError Thrown if the tile-value given is not an unsigned byte,
+     *   or the range given is out of range for the RasterObject.
      */
     fill(startX: number, startY: number, endX: number, endY: number, value: number): number {
 
@@ -141,13 +143,21 @@ export class RasterObject extends MapObject {
         // Make sure that the tile ID is proper.
         MapUtils.validateTileId(value);
 
+        // Make sure that the object contains the point to set.
         if (MapUtils.contains(x, y, 0, 0, this.getWidth() - 1, this.getHeight() - 1)) {
+
+            // Make sure the pre-set value isn't the same as the one to set.
             if (this.tiles[x][y] != value) {
+
                 this.tiles[x][y] = value;
+
+                // Return true to note the value has been set successfully
                 return true;
             }
+
         }
 
+        // Return false if the value is not set.
         return false;
     }
 
