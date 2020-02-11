@@ -1,12 +1,12 @@
 import { MapLayer } from './MapLayer';
-import { DataObject } from './DataObject';
+import { UniqueObject } from '../util/UniqueObject';
 
 /**
  * The <i>Map</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Map extends DataObject {
+export class Map extends UniqueObject {
 
     private layers: MapLayer[];
 
@@ -16,7 +16,7 @@ export class Map extends DataObject {
      * @param name The name of the map.
      * @param id The ID of the map.
      */
-    constructor(name: string, id: string = null) {
+    public constructor(name: string, id: string = null) {
         super(name, id);
         this.clear();
     }

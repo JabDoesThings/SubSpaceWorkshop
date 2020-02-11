@@ -1,11 +1,12 @@
 import uuid = require('uuid');
+import { Unique } from './Unique';
 
 /**
- * The <i>DataObject</i> class. TODO: Document.
+ * The <i>UniqueObject</i> class. TODO: Document.
  *
  * @author Jab.
  */
-export abstract class DataObject {
+export abstract class UniqueObject implements Unique {
 
     private id: string;
     private name: string;
@@ -25,45 +26,29 @@ export abstract class DataObject {
         }
     }
 
-    /**
-     * Simplified method for comparing two DataObjects by their respective ID's.
-     *
-     * @param other The other DataObject to compare.
-     *
-     * @return Returns 'true' if the DataObject's ID equals this ID.
-     */
-    public equals(other: DataObject): boolean {
-        return other != null && other.id === this.id;
+    // @Override
+    public equals(other: Unique): boolean {
+        return other != null
+            && other instanceof UniqueObject
+            && other.getId() === this.getId();
     }
 
-    /**
-     * @return Returns the decorative name of the object.
-     */
+    // @Override
     public getName(): string {
         return this.name;
     }
 
-    /**
-     * Sets the decorative name of the object.
-     *
-     * @param name The name to set.
-     */
+    // @Override
     public setName(name: string): void {
         this.name = name;
     }
 
-    /**
-     * @return Returns the internal ID of the object.
-     */
+    // @Override
     public getId(): string {
         return this.id;
     }
 
-    /**
-     * Sets the internal ID of the object.
-     *
-     * @param id The ID to set.
-     */
+    // @Override
     public setId(id: string): void {
         this.id = id;
     }

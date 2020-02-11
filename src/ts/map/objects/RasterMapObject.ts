@@ -37,10 +37,9 @@ export class RasterMapObject extends MapObject {
     }
 
     // @Override
-    protected onUpdate(): void {
-
+    public onUpdate(): boolean {
+        return true;
     }
-
 
     /**
      * Clears all map tiles by filling them as '0'.

@@ -1,11 +1,12 @@
-import { DataObject } from './DataObject';
+import { UniqueObject } from './UniqueObject';
+import { Dirtable } from './Dirtable';
 
 /**
  * The <i>DirtyDataObject</i> class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class DirtyDataObject extends DataObject {
+export abstract class DirtyDataObject extends UniqueObject implements Dirtable {
 
     private dirty: boolean;
 
@@ -13,7 +14,7 @@ export abstract class DirtyDataObject extends DataObject {
      * Main constructor.
      *
      * @param name The name of the object.
-     * @param id THe ID of the object.
+     * @param id The ID of the object.
      */
     protected constructor(name: string, id: string = null) {
         super(name, id);
@@ -35,18 +36,12 @@ export abstract class DirtyDataObject extends DataObject {
 
     }
 
-    /**
-     * @return Returns 'true' if the object is dirty.
-     */
+    // @Override
     public isDirty(): boolean {
         return this.dirty;
     }
 
-    /**
-     * Sets the object's dirty state.
-     *
-     * @param flag The flag to set.
-     */
+    // @Override
     public setDirty(flag: boolean): void {
         this.dirty = flag;
     }
