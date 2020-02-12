@@ -10,6 +10,8 @@ const Stats = require("stats.js");
 export class MapViewer extends UpdatedObject {
 
     private renderBaseGrid: boolean = true;
+    private renderBorderLines: boolean = true;
+    private renderAxisLines: boolean = true;
 
     private htmlContainer: HTMLElement;
     private camera: MapCamera;
@@ -121,7 +123,7 @@ export class MapViewer extends UpdatedObject {
 
             let baseGrid = new PIXI.Graphics();
 
-            baseGrid.lineStyle(1, 0x444444, 0.5);
+            baseGrid.lineStyle(1, 0x444444, 0.33);
 
             // Move it to the beginning of the line.
             baseGrid.position.set(0, 0);
@@ -143,23 +145,69 @@ export class MapViewer extends UpdatedObject {
             this.gridContainer.addChild(baseGrid);
         }
 
-        let centerLines = new PIXI.Graphics();
-        centerLines.lineStyle(1, 0x7777ff, 1);
+        if (this.renderAxisLines) {
 
-        let drawCenterX = screenCenterX > 0 && screenCenterX <= sw;
-        let drawCenterY = screenCenterY > 0 && screenCenterY <= sh;
+            let centerLines = new PIXI.Graphics();
+            centerLines.lineStyle(1, 0x7777ff, 1);
 
-        if (drawCenterX) {
-            centerLines.moveTo(Math.floor(screenCenterX), 0);
-            centerLines.lineTo(Math.floor(screenCenterX), sh);
+            let drawCenterX = screenCenterX > 0 && screenCenterX <= sw;
+            let drawCenterY = screenCenterY > 0 && screenCenterY <= sh;
+
+            if (drawCenterX) {
+                centerLines.moveTo(Math.floor(screenCenterX), 0);
+                centerLines.lineTo(Math.floor(screenCenterX), sh);
+            }
+
+            if (drawCenterY) {
+                centerLines.moveTo(0, Math.floor(screenCenterY));
+                centerLines.lineTo(sw, Math.floor(screenCenterY));
+            }
+
+            this.gridContainer.addChild(centerLines);
+
         }
 
-        if (drawCenterY) {
-            centerLines.moveTo(0, Math.floor(screenCenterY));
-            centerLines.lineTo(sw, Math.floor(screenCenterY));
+        if (this.renderBorderLines) {
+
+            let left = -x1;
+            let top = -y1;
+            let right = (1023 * 16) - x1;
+            let bottom = (1023 * 16) - y1;
+
+            let leftWidth = sw;
+
+            let borderLines = new PIXI.Graphics();
+
+            borderLines.lineStyle(1.5, 0x7777ff, 1);
+
+            let drawLeft = left > 0 && left <= sw;
+            let drawTop = top > 0 && top <= sh;
+            let drawRight = right > 0 && right <= sw;
+            let drawBottom = bottom > 0 && bottom <= sh;
+
+            if (drawLeft) {
+                borderLines.moveTo(Math.floor(left), Math.max(0, top));
+                borderLines.lineTo(Math.floor(left), Math.min(sh, bottom));
+            }
+
+            if (drawTop) {
+                borderLines.moveTo(Math.max(0, left), Math.floor(top));
+                borderLines.lineTo(Math.min(right, sw), Math.floor(top));
+            }
+
+            if (drawRight) {
+                borderLines.moveTo(Math.floor(right), Math.max(0, top));
+                borderLines.lineTo(Math.floor(right), Math.min(sh, bottom));
+            }
+
+            if (drawBottom) {
+                borderLines.moveTo(Math.max(0, left), Math.floor(bottom));
+                borderLines.lineTo(Math.min(right, sw), Math.floor(bottom));
+            }
+
+            this.gridContainer.addChild(borderLines);
         }
 
-        this.gridContainer.addChild(centerLines);
         this.gridContainer.updateTransform();
 
     }

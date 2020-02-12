@@ -27,15 +27,47 @@ export class MapCamera extends UpdatedObject {
         this.setRequireDirtyToUpdate(false);
 
         let center: number = (MapUtils.MAP_LENGTH) / 2;
+        let cx: number = 0;
+        let cy: number = 0;
 
         // Set the initial position to be the center of the map with the default scale.
-        this.position = new Vector2(center, center);
+        this.position = new Vector2(cx, cy);
         this.scale = 1.0;
 
         this.upArrowListener = new KeyListener("ArrowUp");
         this.downArrowListener = new KeyListener("ArrowDown");
         this.leftArrowListener = new KeyListener("ArrowLeft");
         this.rightArrowListener = new KeyListener("ArrowRight");
+
+        let oneListener = new KeyListener("1", () => {
+            this.position.x = 0;
+            this.position.y = 0;
+            this.setDirty(true);
+        });
+
+        let twoListener = new KeyListener("2", () => {
+            this.position.x = 1023;
+            this.position.y = 0;
+            this.setDirty(true);
+        });
+
+        let threeListener = new KeyListener("3", () => {
+            this.position.x = 0;
+            this.position.y = 1023;
+            this.setDirty(true);
+        });
+
+        let fourListener = new KeyListener("4", () => {
+            this.position.x = 1023;
+            this.position.y = 1023;
+            this.setDirty(true);
+        });
+
+        let fiveListener = new KeyListener("5", () => {
+            this.position.x = 512;
+            this.position.y = 512;
+            this.setDirty(true);
+        });
 
     }
 
