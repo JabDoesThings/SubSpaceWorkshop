@@ -8,7 +8,7 @@ import { DirtyDataObject } from '../util/DirtyDataObject';
  *
  * @author Jab
  */
-export class Tileset extends DirtyDataObject {
+export class TileSet extends DirtyDataObject {
 
     private image: PIXI.Texture;
     private readonly tiles: PIXI.Texture[];
@@ -29,7 +29,7 @@ export class Tileset extends DirtyDataObject {
         // Make sure the image is a valid tileset.
         // TileUtils.validateTilesetImage(image);
 
-        this.image = PIXI.Texture.from('assets/media/default_tileset.bmp');
+        this.image = PIXI.Texture.from(image);
 
         this.tileCoordinates = [];
         this.tiles = [];
@@ -47,6 +47,14 @@ export class Tileset extends DirtyDataObject {
 
                 // Push the next ID to the stack.
                 this.tiles.push(tile);
+            }
+        }
+
+        for (let y = 0; y < 4; y++) {
+            for (let x = 0; x < 19; x++) {
+                let tx = 16 * x;
+                let ty = 16 * y;
+                this.tileCoordinates.push([tx, ty]);
             }
         }
 

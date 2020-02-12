@@ -1,6 +1,7 @@
 import { Map } from './Map';
 import * as fs from 'fs';
 import { RasterMapObject } from './objects/RasterMapObject';
+import { TileSet } from './TileSet';
 
 /**
  * The <i>MapUtils</i> class. TODO: Document.
@@ -116,6 +117,10 @@ export class MapUtils {
     }
 
     public static read(map: Map, path: string): void {
+
+        let tileset: TileSet = new TileSet(path, path);
+        map.setTileset(tileset);
+
         let buffer = fs.readFileSync(path);
 
         let length = buffer.length;
@@ -144,18 +149,14 @@ export class MapUtils {
             let tile = (i >> 24 & 0x00ff);
             let y = (i >> 12) & 0x03FF;
             let x = i & 0x03FF;
-            if(tile != 0) {
-                console.log("tiles[" + x + "][" + y + "] = " + tile);
-            }
             tiles[x][y] = tile;
             tileCount++;
         }
-
-        console.log("Tile Count: " + tileCount);
 
         let raster = new RasterMapObject(map, 1024, 1024, path, path);
         raster.setTiles(tiles);
 
         map.addLayer(raster);
+
     }
 }

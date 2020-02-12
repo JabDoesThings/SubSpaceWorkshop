@@ -1,5 +1,5 @@
 import { DirtyDataObject } from './util/DirtyDataObject';
-import { Tileset } from './map/Tileset';
+import { TileSet } from './map/TileSet';
 import { MapLayer } from './map/MapLayer';
 
 /**
@@ -11,7 +11,7 @@ export class Project extends DirtyDataObject {
 
     private layers: MapLayer[];
 
-    private tileset: Tileset;
+    private tileset: TileSet;
 
     /**
      * Main constructor.

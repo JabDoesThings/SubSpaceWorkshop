@@ -1,6 +1,6 @@
 import { RasterMapObject } from './objects/RasterMapObject';
 import { MapObject } from './objects/MapObject';
-import { Tileset } from './Tileset';
+import { TileSet } from './TileSet';
 import { TileUtils } from './TileUtils';
 import { UpdatedObject } from '../util/UpdatedObject';
 
@@ -11,14 +11,9 @@ import { UpdatedObject } from '../util/UpdatedObject';
  */
 export class Map extends UpdatedObject {
 
-    addLayer(layer: MapObject): any {
-        this.layers.push(layer);
-        this.setDirty(true);
-    }
-
     private layers: MapObject[];
 
-    private tileset: Tileset;
+    private tileset: TileSet;
 
     /**
      * Main constructor.
@@ -34,7 +29,8 @@ export class Map extends UpdatedObject {
 
         this.layers = [];
 
-        this.setDirty(true);
+        // this.setRequireDirtyToUpdate(false);
+
     }
 
     public onUpdate(delta: number): boolean {
@@ -44,7 +40,9 @@ export class Map extends UpdatedObject {
 
             // Grab the next layer in the map and update it.
             let value = this.layers[key];
-            value.update(delta);
+            if (value.isDirty()) {
+                value.update(delta);
+            }
 
         }
 
@@ -78,8 +76,13 @@ export class Map extends UpdatedObject {
         return this.layers.length == 0;
     }
 
-    public getTileset(): Tileset {
+    public getTileset(): TileSet {
         return this.tileset;
+    }
+
+    public setTileset(tileset: TileSet): void {
+        this.tileset = tileset;
+        this.setDirty(true);
     }
 
     /**
@@ -87,6 +90,10 @@ export class Map extends UpdatedObject {
      */
     public getLayers(): MapObject[] {
         return this.layers;
+    }
 
+    addLayer(layer: MapObject): any {
+        this.layers.push(layer);
+        this.setDirty(true);
     }
 }

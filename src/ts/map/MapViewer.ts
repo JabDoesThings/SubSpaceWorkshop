@@ -4,6 +4,7 @@ import { MapCamera } from './MapCamera';
 import { UpdatedObject } from '../util/UpdatedObject';
 import { MapUtils } from './MapUtils';
 import { RasterMapObject } from './objects/RasterMapObject';
+import { TileUtils } from './TileUtils';
 
 const Stats = require("stats.js");
 
@@ -20,6 +21,8 @@ export class MapViewer extends UpdatedObject {
     private gridContainer: PIXI.Container;
     private mapContainer: PIXI.Container;
     private stats: Stats;
+
+    private specialsTileMap: any;
 
     public constructor(htmlContainer: HTMLElement, map: Map) {
 
@@ -218,13 +221,17 @@ export class MapViewer extends UpdatedObject {
 
             if (raster != null) {
                 let tilemap = raster.getTileMap();
+                let animTileMap = raster.getAnimTileMap();
 
                 // @ts-ignore
-                tilemap.x = -x1;
-                tilemap.y = -y1;
+                animTileMap.x = tilemap.x = -x1;
+                animTileMap.y = tilemap.y = -y1;
+
+
 
                 // console.log("tilemap.x = " + tilemap.x + " tilemap.y = " + tilemap.y);
 
+                this.gridContainer.addChild(animTileMap);
                 this.gridContainer.addChild(tilemap);
             }
 
@@ -284,6 +291,7 @@ export class MapViewer extends UpdatedObject {
             this.stats.begin();
 
             this.camera.update(delta);
+            this.map.update(delta);
 
             // let value = (Math.PI * 2.0) * (tick++ / 300);
             // let offsetX = Math.cos(value) * 8;
@@ -301,8 +309,22 @@ export class MapViewer extends UpdatedObject {
 
         let ctx = this;
 
+        let tileAnimationTick = 0;
+        let tileAnim = 0;
+
         // Resize function window
         function resize() {
+
+            // @ts-ignore
+            ctx.app.renderer.plugins.tilemap.tileAnim[0] = tileAnim * 16;
+            if (tick > tileAnimationTick) {
+                tileAnimationTick = tick + 300;
+
+                tileAnim = tileAnim + 1;
+                if (tileAnim >= 10) {
+                    tileAnim = 0;
+                }
+            }
 
             let parent = ctx.htmlContainer;
             // Resize the renderer
@@ -335,7 +357,7 @@ export class MapViewer extends UpdatedObject {
     //     app.stage.addChild(container);
     //
     //     // Create a new texture
-    //     let texture = PIXI.Texture.from('assets/media/default_tileset.bmp');
+    //     let texture = PIXI.Texture.from('assets/media/tiles.bmp');
     //
     //     let sprite = new PIXI.Sprite(texture);
     //     sprite.anchor.set(0);

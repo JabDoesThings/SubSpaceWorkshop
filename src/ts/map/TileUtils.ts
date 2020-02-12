@@ -3,13 +3,24 @@
  *
  * @author Jab
  */
-import { Tileset } from './Tileset';
+import { TileSet } from './TileSet';
+import * as PIXI from "pixi.js";
 
 export class TileUtils {
 
     public static readonly TILESET_DIMENSIONS: number[] = [306, 160];
 
-    public static  DEFAULT_TILESET: Tileset = new Tileset("/assets/media/default_tileset.bmp", "default", "default_tileset");
+    public static DEFAULT_TILESET: TileSet = new TileSet("/assets/media/tiles.bmp", "default", "default_tileset");
+
+    public static FLAG_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/flag.png");
+    public static GOAL_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/goal.png");
+    public static PRIZES_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/prizes.png");
+    public static OVER1_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over1.png");
+    public static OVER2_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over2.png");
+    public static OVER3_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over3.png");
+    public static OVER4_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over4.png");
+    public static OVER5_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over5.png");
+    public static EXTRAS_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/extras.bmp");
 
     /**
      * Tests whether the image given is null or the dimensions given are invalid.
