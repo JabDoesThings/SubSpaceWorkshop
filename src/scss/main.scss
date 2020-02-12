@@ -1,3 +1,27 @@
 #test {
   display: none;
 }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#map-viewer-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+
+  canvas {
+    margin: 0;
+    padding: 0;
+  }
+}

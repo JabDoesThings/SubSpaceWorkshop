@@ -1,31 +1,29 @@
 import { Vector2 } from 'three';
+import { DirtyObject } from '../util/DirtyObject';
+import { MapUtils } from './MapUtils';
 
-export class MapCamera {
+/**
+ * The <i>MapCamera</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class MapCamera extends DirtyObject {
 
     private position: Vector2;
-
-    private dirty: boolean;
-
-    constructor() {
-        this.position = new Vector2(512.0, 512.0);
-        this.dirty = false;
-    }
+    private scale: number;
 
     /**
-     *
-     * @param x The x-coordinate to set. (Can also be a Vector2 to set)
-     * @param y The y-coordinate to set.
+     * Main constructor.
      */
-    public setPosition(x: [number, Vector2], y: number = 0): void {
-        if (typeof x === 'number') {
-            this.position.x = x;
-            this.position.y = y;
-            this.dirty = true;
-        } else if (x instanceof Vector2) {
-            this.position.x = x.x;
-            this.position.y = x.y;
-            this.dirty = true;
-        }
+    constructor() {
+
+        super();
+
+        let center: number = (MapUtils.MAP_LENGTH) / 2;
+
+        // Set the initial position to be the center of the map with the default scale.
+        this.position = new Vector2(center, center);
+        this.scale = 1.0;
     }
 
     /**
@@ -35,4 +33,33 @@ export class MapCamera {
     public getPosition(): Vector2 {
         return new Vector2(this.position.x, this.position.y);
     }
+
+    /**
+     *
+     * @param x The x-coordinate to set.
+     * @param y The y-coordinate to set.
+     */
+    public setPosition(x: number, y: number): void {
+        this.position.x = x; // Math.floor(x);
+        this.position.y = y; // Math.floor(y);
+        this.setDirty(true);
+    }
+
+    /**
+     * @return Returns the scale of the camera.
+     */
+    public getScale(): number {
+        return this.scale;
+    }
+
+    /**
+     * Sets the scale of the camera.
+     *
+     * @param value The value to set.
+     */
+    public setScale(value: number): void {
+        this.scale = value;
+        this.setDirty(true);
+    }
+
 }

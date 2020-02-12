@@ -1,12 +1,13 @@
 import { UniqueObject } from './UniqueObject';
 import { Dirtable } from './Dirtable';
+import { Updatable } from './Updatable';
 
 /**
  * The <i>DirtyDataObject</i> class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class DirtyDataObject extends UniqueObject implements Dirtable {
+export abstract class DirtyDataObject extends UniqueObject implements Dirtable, Updatable {
 
     private dirty: boolean;
 
@@ -21,17 +22,15 @@ export abstract class DirtyDataObject extends UniqueObject implements Dirtable {
         this.dirty = false;
     }
 
-    /**
-     * Call this to update the object.
-     *
-     * <p><b>NOTE:</b> The object will only update when it is dirty.
-     */
-    public update(): void {
+    // @Override
+    public update(delta: number): void {
 
         // Update the object only if it is dirty.
         if (this.isDirty()) {
-            this.onUpdate();
-            this.setDirty(false);
+            let result = this.onUpdate(delta);
+            if (result) {
+                this.setDirty(false);
+            }
         }
 
     }
@@ -46,9 +45,6 @@ export abstract class DirtyDataObject extends UniqueObject implements Dirtable {
         this.dirty = flag;
     }
 
-    /**
-     * Fired when the object updates from being dirty.
-     */
-    protected abstract onUpdate(): void;
-
+    // @Override
+    abstract onUpdate(delta: number): boolean;
 }

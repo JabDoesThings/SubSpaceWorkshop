@@ -36,12 +36,12 @@ export abstract class UpdatedObject extends UniqueObject implements Dirtable {
      *
      * <p><b>NOTE:</b> The object will only update when it is dirty.
      */
-    public update(): void {
+    public update(delta: number): void {
 
         // Update the object only if it is dirty.
         if (this.isDirty()) {
 
-            let result: boolean = this.onUpdate();
+            let result: boolean = this.onUpdate(delta);
 
             // Reset the dirty state of the object after updating successfully.
             this.setDirty(!result);
@@ -55,6 +55,6 @@ export abstract class UpdatedObject extends UniqueObject implements Dirtable {
      *
      * @return Return 'true' if the update is successful.
      */
-    protected abstract onUpdate(): boolean;
+    protected abstract onUpdate(delta: number): boolean;
 
 }

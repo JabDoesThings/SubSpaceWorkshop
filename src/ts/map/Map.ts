@@ -1,5 +1,7 @@
 import { MapLayer } from './MapLayer';
 import { UniqueObject } from '../util/UniqueObject';
+import { RasterMapObject } from './objects/RasterMapObject';
+import { MapObject } from './objects/MapObject';
 
 /**
  * The <i>Map</i> class. TODO: Document.
@@ -8,7 +10,7 @@ import { UniqueObject } from '../util/UniqueObject';
  */
 export class Map extends UniqueObject {
 
-    private layers: MapLayer[];
+    private layers: MapObject[];
 
     /**
      * Main constructor.
@@ -18,7 +20,9 @@ export class Map extends UniqueObject {
      */
     public constructor(name: string, id: string = null) {
         super(name, id);
-        this.clear();
+
+        this.layers = [];
+        this.layers.push(new RasterMapObject(1024, 1024, "basic"));
     }
 
     /**
@@ -38,6 +42,10 @@ export class Map extends UniqueObject {
 
         return true;
 
+    }
+
+    public getLayer(index: number): MapObject {
+        return this.layers[index];
     }
 
     public isEmpty(): boolean {

@@ -26,16 +26,18 @@ export class MapLayer extends DirtyDataObject {
     }
 
     // @Override
-    protected onUpdate(): void {
+    public onUpdate(delta: number): boolean {
 
         // Go through all objects to update them.
         for (let key in this.objects) {
 
             let value = this.objects[key];
 
-            value.update();
+            value.update(delta);
 
         }
+
+        return true;
 
     }
 

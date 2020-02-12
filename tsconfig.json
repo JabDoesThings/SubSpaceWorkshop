@@ -15,7 +15,10 @@
     "typeRoots": [
       "node_modules/@types",
       "node_modules/three/src/Three.d.ts",
-      "node_modules/kmljs/src"
+      "node_modules/kmljs/src",
+      "node_modules/pixi.js/pixi.js.d.ts",
+      "node_modules/pixi-tilemap/dist/pixi-tilemap.d.ts",
+      "node_modules/@types/stats/index.d.ts"
     ]
   },
   "files": [
