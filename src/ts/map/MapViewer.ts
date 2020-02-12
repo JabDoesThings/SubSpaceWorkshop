@@ -72,6 +72,11 @@ export class MapViewer extends UpdatedObject {
         let screenCenterX = center - x1;
         let screenCenterY = center - y1;
 
+        let left = -x1;
+        let top = -y1;
+        let right = (1023 * 16) - x1;
+        let bottom = (1023 * 16) - y1;
+
         let startX = Math.floor(x1);
         let startY = Math.floor(y1);
         let endX = Math.ceil(x2);
@@ -128,17 +133,17 @@ export class MapViewer extends UpdatedObject {
             // Move it to the beginning of the line.
             baseGrid.position.set(0, 0);
 
-            for (let y = startY; y <= endY + 16; y += 16) {
+            for (let y = Math.max(-offsetY, startY); y <= Math.min(1023 * 16, endY + 16); y += 16) {
 
-                baseGrid.moveTo(0, Math.floor((y - y1) + offsetY));
-                baseGrid.lineTo(sw, Math.floor((y - y1) + offsetY));
+                baseGrid.moveTo(Math.max(0, left), Math.floor((y - y1) + offsetY));
+                baseGrid.lineTo(Math.min(right, sw), Math.floor((y - y1) + offsetY));
 
             }
 
-            for (let x = startX; x <= endX + 16; x += 16) {
+            for (let x = Math.max(-offsetX, startX); x <= Math.min(1023 * 16, endX + 16); x += 16) {
 
-                baseGrid.moveTo(Math.floor((x - x1) + offsetX), 0);
-                baseGrid.lineTo(Math.floor((x - x1) + offsetX), sh);
+                baseGrid.moveTo(Math.floor((x - x1) + offsetX), Math.max(0, top));
+                baseGrid.lineTo(Math.floor((x - x1) + offsetX), Math.min(sh, bottom));
 
             }
 
@@ -154,13 +159,13 @@ export class MapViewer extends UpdatedObject {
             let drawCenterY = screenCenterY > 0 && screenCenterY <= sh;
 
             if (drawCenterX) {
-                centerLines.moveTo(Math.floor(screenCenterX), 0);
-                centerLines.lineTo(Math.floor(screenCenterX), sh);
+                centerLines.moveTo(Math.floor(screenCenterX), Math.max(0, top));
+                centerLines.lineTo(Math.floor(screenCenterX), Math.min(sh, bottom));
             }
 
             if (drawCenterY) {
-                centerLines.moveTo(0, Math.floor(screenCenterY));
-                centerLines.lineTo(sw, Math.floor(screenCenterY));
+                centerLines.moveTo(Math.max(0, left), Math.floor(screenCenterY));
+                centerLines.lineTo(Math.min(right, sw), Math.floor(screenCenterY));
             }
 
             this.gridContainer.addChild(centerLines);
@@ -168,13 +173,6 @@ export class MapViewer extends UpdatedObject {
         }
 
         if (this.renderBorderLines) {
-
-            let left = -x1;
-            let top = -y1;
-            let right = (1023 * 16) - x1;
-            let bottom = (1023 * 16) - y1;
-
-            let leftWidth = sw;
 
             let borderLines = new PIXI.Graphics();
 
