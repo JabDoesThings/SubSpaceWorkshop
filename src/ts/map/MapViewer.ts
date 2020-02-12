@@ -36,6 +36,7 @@ export class MapViewer extends UpdatedObject {
     protected onUpdate(delta: number): boolean {
         this.map.update(delta);
         this.draw();
+        this.camera.setDirty(false);
         return true;
     }
 
@@ -205,9 +206,7 @@ export class MapViewer extends UpdatedObject {
                 tilemap.x = -x1;
                 tilemap.y = -y1;
 
-                console.log("tilemap.x = " + tilemap.x + " tilemap.y = " + tilemap.y);
-
-                // raster.transform.set(cx, cy);
+                // console.log("tilemap.x = " + tilemap.x + " tilemap.y = " + tilemap.y);
 
                 this.mapContainer.addChild(tilemap);
             }
@@ -261,6 +260,7 @@ export class MapViewer extends UpdatedObject {
 
             this.stats.begin();
 
+            this.camera.update(delta);
 
             // let value = (Math.PI * 2.0) * (tick++ / 300);
             // let offsetX = Math.cos(value) * 8;
@@ -295,6 +295,10 @@ export class MapViewer extends UpdatedObject {
         window.addEventListener('resize', resize);
 
         resize();
+    }
+
+    isDirty(): boolean {
+        return super.isDirty() || this.camera.isDirty();
     }
 
     // public constructor() {
