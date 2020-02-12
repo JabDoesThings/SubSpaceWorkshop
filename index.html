@@ -15,15 +15,14 @@
         const stats = require("stats.js");
         const uuid = require('uuid');
 
+
+        const PIXI = window.PIXI = require("pixi.js");
+        require("pixi-tilemap");
+
         console.log(stats);
 
         window.$ = window.jQuery = require('jquery');
 
-        // new customTitlebar.Titlebar({
-        //     backgroundColor: customTitlebar.Color.fromHex('#444'),
-        //     shadow: true,
-        //     unfocusEffect: false,
-        // });
 
         // Project JS files.
         const main = require("./assets/js/main.js");
@@ -34,6 +33,7 @@
         });
 
     </script>
+
     <link rel="stylesheet" href="assets/css/project.min.css"/>
 </head>
 <body>

@@ -3,9 +3,13 @@
  *
  * @author Jab
  */
+import { Tileset } from './Tileset';
+
 export class TileUtils {
 
     public static readonly TILESET_DIMENSIONS: number[] = [306, 160];
+
+    public static  DEFAULT_TILESET: Tileset = new Tileset("/assets/media/default_tileset.bmp", "default", "default_tileset");
 
     /**
      * Tests whether the image given is null or the dimensions given are invalid.
@@ -49,7 +53,7 @@ export class TileUtils {
      * @throws Error Thrown if the image is null, or the width or height of the image is
      *   not 16 pixels.
      */
-    public static validateTileImage(image: HTMLImageElement) {
+    public static validateTileImage(image: PIXI.Texture) {
 
         // First, make sure the image is not null or undefined.
         if (image == null) {

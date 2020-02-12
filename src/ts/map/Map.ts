@@ -1,16 +1,24 @@
-import { MapLayer } from './MapLayer';
-import { UniqueObject } from '../util/UniqueObject';
 import { RasterMapObject } from './objects/RasterMapObject';
 import { MapObject } from './objects/MapObject';
+import { Tileset } from './Tileset';
+import { TileUtils } from './TileUtils';
+import { UpdatedObject } from '../util/UpdatedObject';
 
 /**
  * The <i>Map</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Map extends UniqueObject {
+export class Map extends UpdatedObject {
+
+    addLayer(layer: MapObject): any {
+        this.layers.push(layer);
+        this.setDirty(true);
+    }
 
     private layers: MapObject[];
+
+    private tileset: Tileset;
 
     /**
      * Main constructor.
@@ -19,10 +27,28 @@ export class Map extends UniqueObject {
      * @param id The ID of the map.
      */
     public constructor(name: string, id: string = null) {
+
         super(name, id);
 
+        this.tileset = TileUtils.DEFAULT_TILESET;
+
         this.layers = [];
-        this.layers.push(new RasterMapObject(1024, 1024, "basic"));
+
+        this.setDirty(true);
+    }
+
+    public onUpdate(delta: number): boolean {
+
+        // Go through each layer and update it.
+        for (let key in this.layers) {
+
+            // Grab the next layer in the map and update it.
+            let value = this.layers[key];
+            value.update(delta);
+
+        }
+
+        return true;
     }
 
     /**
@@ -50,5 +76,17 @@ export class Map extends UniqueObject {
 
     public isEmpty(): boolean {
         return this.layers.length == 0;
+    }
+
+    public getTileset(): Tileset {
+        return this.tileset;
+    }
+
+    /**
+     * @return Returns all layers in the map.
+     */
+    public getLayers(): MapObject[] {
+        return this.layers;
+
     }
 }

@@ -1,3 +1,5 @@
+import * as PIXI from 'pixi.js';
+
 import { TileUtils } from './TileUtils';
 import { DirtyDataObject } from '../util/DirtyDataObject';
 
@@ -8,8 +10,9 @@ import { DirtyDataObject } from '../util/DirtyDataObject';
  */
 export class Tileset extends DirtyDataObject {
 
-    private image: HTMLImageElement;
-    private readonly tiles: HTMLImageElement[];
+    private image: PIXI.Texture;
+    private readonly tiles: PIXI.Texture[];
+    private readonly tileCoordinates: number[][];
 
     /**
      * Main constructor.
@@ -19,16 +22,35 @@ export class Tileset extends DirtyDataObject {
      * @param id The ID of the tileset. If the ID is null, a UUID is generated
      *   in its place.
      */
-    constructor(image: HTMLImageElement, name: string, id: string = null) {
+    constructor(image: string, name: string, id: string = null) {
 
         super(name, id);
 
         // Make sure the image is a valid tileset.
-        TileUtils.validateTilesetImage(image);
+        // TileUtils.validateTilesetImage(image);
 
-        this.image = image;
+        this.image = PIXI.Texture.from('assets/media/default_tileset.bmp');
+
+        this.tileCoordinates = [];
         this.tiles = [];
+        this.tiles.push(null);
 
+        for (let y = 0; y < 10; y++) {
+            for (let x = 0; x < 19; x++) {
+
+                let tx = 16 * x;
+                let ty = 16 * y;
+                this.tileCoordinates.push([tx, ty]);
+                // Grab the section of the tileset for the tile and turn it into its own texture.
+                let rect = new PIXI.Rectangle(tx, ty, 16, 16);
+                let tile = new PIXI.Texture(this.image.baseTexture, rect);
+
+                // Push the next ID to the stack.
+                this.tiles.push(tile);
+            }
+        }
+
+        /*
         let canvas = new HTMLCanvasElement();
         canvas.width = 16;
         canvas.height = 16;
@@ -61,10 +83,15 @@ export class Tileset extends DirtyDataObject {
             }
         }
 
+         */
+
     }
 
     // @Override
-    protected onUpdate(): void {
+    public onUpdate(): boolean {
+
+        return true;
+        /*
 
         // Create the canvas element for the updated tileset image.
         let canvas: HTMLCanvasElement = new HTMLCanvasElement();
@@ -97,6 +124,7 @@ export class Tileset extends DirtyDataObject {
         // Set the compiled tileset image's source to the canvas.
         this.image = new HTMLImageElement();
         this.image.src = canvas.toDataURL();
+         */
 
     }
 
@@ -108,7 +136,7 @@ export class Tileset extends DirtyDataObject {
      *
      * @throws RangeError Thrown if the ID given is below 0 or above 190.
      */
-    public getTile(tile: number): HTMLImageElement {
+    public getTile(tile: number): PIXI.Texture {
 
         // Check to make sure that the tile is within range.
         if (!TileUtils.inTilesetRange(tile)) {
@@ -131,7 +159,7 @@ export class Tileset extends DirtyDataObject {
      * @throws RangeError Thrown if the tile ID given is out of the tileset's range of 1 to 190.
      * @throws Error Thrown if the image given is null or is not 16x16 in size.
      */
-    public setTile(tile: number, image: HTMLImageElement) {
+    public setTile(tile: number, image: PIXI.Texture) {
 
         // Check to make sure that the tile is within range.
         if (!TileUtils.inTilesetRange(tile)) {
@@ -150,16 +178,16 @@ export class Tileset extends DirtyDataObject {
 
         // Sets the tileset as 'dirty' to be updated.
         this.setDirty(true);
-
-        // Update the tileset image.
-        this.update();
     }
 
     /**
      * @return Returns the source image of the entire tileset.
      */
-    public getImage(): HTMLImageElement {
+    public getTexture(): PIXI.Texture {
         return this.image;
     }
 
+    public getTileCoordinates(tile: number): number[] {
+        return this.tileCoordinates[tile - 1];
+    }
 }

@@ -11,8 +11,10 @@ export let start = function () {
 
     let map = new Map("Map");
 
-    let layer: RasterMapObject = <RasterMapObject> map.getLayer(0);
-    layer.setTile(512, 512, 1);
+    let object = new RasterMapObject(map, 1024, 1024, "basic");
+    object.setTile(512, 512, 170);
+    object.setTile(512, 513, 171);
+    map.addLayer(object);
 
     let htmlContainer: HTMLElement = document.getElementById("map-viewer-container");
     mapViewer = new MapViewer(htmlContainer, map);

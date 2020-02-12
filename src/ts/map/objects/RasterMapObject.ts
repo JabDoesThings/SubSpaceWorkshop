@@ -1,6 +1,7 @@
 import { MapObject } from './MapObject';
 import { MapUtils } from '../MapUtils';
 import { TileUtils } from '../TileUtils';
+import { Map } from "../Map";
 
 /**
  * The <i>RasterMapObject</i>. TODO: Document.
@@ -10,18 +11,23 @@ import { TileUtils } from '../TileUtils';
 export class RasterMapObject extends MapObject {
 
     private readonly tiles: number[][];
+    private readonly map: Map;
+    private tilemap: any;
 
     /**
      * Main constructor.
      *
+     * @param map The Map instance.
      * @param width The width of the object.
      * @param height The height of the object.
      * @param name The name of the object.
      * @param id The ID of the object.
      */
-    constructor(width: number, height: number, name: string, id: string = null) {
+    constructor(map: Map, width: number, height: number, name: string, id: string = null) {
 
         super(width, height, name, id);
+
+        this.map = map;
 
         // Create the raster tile array.
         this.tiles = [];
@@ -38,6 +44,42 @@ export class RasterMapObject extends MapObject {
 
     // @Override
     public onUpdate(): boolean {
+
+        console.log("update map: " + this.map);
+
+        let tileset = this.map.getTileset();
+        let tilesetTexture = tileset.getTexture();
+
+        console.log("CREATING TILEMAP");
+
+        // @ts-ignore
+        this.tilemap = new PIXI.tilemap.CompositeRectTileLayer(0, [tilesetTexture]);
+
+        // Go through each tile position on the raster and add tiles when present.
+        for (let x = 0; x < this.getWidth(); x++) {
+            for (let y = 0; y < this.getHeight(); y++) {
+
+                // Grab the next tile.
+                let tileId = this.tiles[x][y];
+
+                // If the tile is empty, ignore drawing it.
+                if (tileId == 0) {
+                    continue;
+                }
+
+                let tileCoordinates = tileset.getTileCoordinates(tileId);
+                let tu = tileCoordinates[0];
+                let tv = tileCoordinates[1];
+
+                console.log("tileId: " + tileId + " tu : " + tu + " tv: " + tv);
+
+                // @ts-ignore
+                this.tilemap.addRect(0, tu, tv, x * 16, y * 16, 16, 16);
+            }
+        }
+
+        console.log(this.tilemap);
+
         return true;
     }
 
@@ -118,6 +160,8 @@ export class RasterMapObject extends MapObject {
             }
         }
 
+        this.setDirty(true);
+
         // Return the total amount of tiles changed.
         return changed;
     }
@@ -158,6 +202,8 @@ export class RasterMapObject extends MapObject {
 
                 this.tiles[x][y] = value;
 
+                this.setDirty(true);
+
                 // Return true to note the value has been set successfully
                 return true;
             }
@@ -168,4 +214,7 @@ export class RasterMapObject extends MapObject {
         return false;
     }
 
+    getTileMap(): any {
+        return this.tilemap;
+    }
 }
