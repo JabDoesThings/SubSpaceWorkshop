@@ -1,3 +1,7 @@
+import { Map } from './Map';
+import * as fs from 'fs';
+import { RasterMapObject } from './objects/RasterMapObject';
+
 /**
  * The <i>MapUtils</i> class. TODO: Document.
  *
@@ -109,5 +113,49 @@ export class MapUtils {
      */
     public static contains(x: number, y: number, startX: number, startY: number, endX: number, endY: number) {
         return x >= startX && x <= endX && y >= startY && y <= endY;
+    }
+
+    public static read(map: Map, path: string): void {
+        let buffer = fs.readFileSync(path);
+
+        let length = buffer.length;
+
+        // Create blank map tile array.
+        let tiles: number[][] = [];
+        for (let x = 0; x < 1024; x++) {
+            tiles[x] = [];
+            for (let y = 0; y < 1024; y++) {
+                tiles[x][y] = 0;
+            }
+        }
+
+        // Skip tileset bitmap image.
+        let offset = 2;
+        let readInSize = buffer.readInt32LE(offset);
+        offset += readInSize - 2;
+
+        console.log("offset: " + offset + " length: " + length);
+
+        let tileCount = 0;
+
+        while (offset <= length - 4) {
+            let i = buffer.readInt32LE(offset);
+            offset += 4;
+            let tile = (i >> 24 & 0x00ff);
+            let y = (i >> 12) & 0x03FF;
+            let x = i & 0x03FF;
+            if(tile != 0) {
+                console.log("tiles[" + x + "][" + y + "] = " + tile);
+            }
+            tiles[x][y] = tile;
+            tileCount++;
+        }
+
+        console.log("Tile Count: " + tileCount);
+
+        let raster = new RasterMapObject(map, 1024, 1024, path, path);
+        raster.setTiles(tiles);
+
+        map.addLayer(raster);
     }
 }

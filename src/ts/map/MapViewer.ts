@@ -107,22 +107,23 @@ export class MapViewer extends UpdatedObject {
         offsetX = Math.floor(offsetX);
         offsetY = Math.floor(offsetY);
 
-        console.log("GRID STATS:");
-        console.log("\tSCREEN:");
-        console.log("\t\tWIDTH: " + sw);
-        console.log("\t\tHEIGHT: " + sh);
-        console.log("\t\tTOP_LEFT:");
-        console.log("\t\t\tX: " + x1);
-        console.log("\t\t\tY: " + y1);
-        console.log("\t\tBOTTOM_RIGHT:");
-        console.log("\t\t\tX: " + x2);
-        console.log("\t\t\tY: " + y2);
-        console.log("\tOFFSET:");
-        console.log("\t\tX: " + offsetX);
-        console.log("\t\tY: " + offsetY);
-        console.log("\tCAMERA:");
-        console.log("\t\tX: " + cx);
-        console.log("\t\tY: " + cy);
+        // DEBUG CODE
+        // console.log("GRID STATS:");
+        // console.log("\tSCREEN:");
+        // console.log("\t\tWIDTH: " + sw);
+        // console.log("\t\tHEIGHT: " + sh);
+        // console.log("\t\tTOP_LEFT:");
+        // console.log("\t\t\tX: " + x1);
+        // console.log("\t\t\tY: " + y1);
+        // console.log("\t\tBOTTOM_RIGHT:");
+        // console.log("\t\t\tX: " + x2);
+        // console.log("\t\t\tY: " + y2);
+        // console.log("\tOFFSET:");
+        // console.log("\t\tX: " + offsetX);
+        // console.log("\t\tY: " + offsetY);
+        // console.log("\tCAMERA:");
+        // console.log("\t\tX: " + cx);
+        // console.log("\t\tY: " + cy);
 
         if (this.renderBaseGrid) {
 
@@ -130,21 +131,16 @@ export class MapViewer extends UpdatedObject {
 
             baseGrid.lineStyle(1, 0x444444, 0.33);
 
-            // Move it to the beginning of the line.
-            baseGrid.position.set(0, 0);
-
+            // Horizontal lines.
             for (let y = Math.max(-offsetY, startY); y <= Math.min(1023 * 16, endY + 16); y += 16) {
-
                 baseGrid.moveTo(Math.max(0, left), Math.floor((y - y1) + offsetY));
                 baseGrid.lineTo(Math.min(right, sw), Math.floor((y - y1) + offsetY));
-
             }
 
-            for (let x = Math.max(-offsetX, startX); x <= Math.min(1023 * 16, endX + 16); x += 16) {
-
+            // Vertical lines.
+            for (let x = Math.max(-offsetX, startX); x <= Math.min(1022 * 16, endX); x += 16) {
                 baseGrid.moveTo(Math.floor((x - x1) + offsetX), Math.max(0, top));
                 baseGrid.lineTo(Math.floor((x - x1) + offsetX), Math.min(sh, bottom));
-
             }
 
             this.gridContainer.addChild(baseGrid);
@@ -206,30 +202,6 @@ export class MapViewer extends UpdatedObject {
             this.gridContainer.addChild(borderLines);
         }
 
-        this.gridContainer.updateTransform();
-
-    }
-
-    private drawMap() {
-
-        // Grab the dimensions of the app view.
-        let sw = Math.floor(this.app.view.width);
-        let sh = Math.floor(this.app.view.height);
-        let sw2 = sw / 2;
-        let sh2 = sh / 2;
-
-        // Grab the camera's position on the app view.
-        let camPos = this.camera.getPosition();
-        let cx = camPos.x * 16.0;
-        let cy = camPos.y * 16.0;
-
-        // Grab the edge coordinates of the view.
-        let x1 = Math.floor(cx - sw2);
-        let y1 = Math.floor(cy - sh2);
-
-        // Clean all items for the map side of the render.
-        this.mapContainer.removeChildren();
-
         let layers = this.map.getLayers();
 
         for (let key in layers) {
@@ -253,10 +225,16 @@ export class MapViewer extends UpdatedObject {
 
                 // console.log("tilemap.x = " + tilemap.x + " tilemap.y = " + tilemap.y);
 
-                this.mapContainer.addChild(tilemap);
+                this.gridContainer.addChild(tilemap);
             }
 
         }
+
+        this.gridContainer.updateTransform();
+
+    }
+
+    private drawMap() {
 
     }
 

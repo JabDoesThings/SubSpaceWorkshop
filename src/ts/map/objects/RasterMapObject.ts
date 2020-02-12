@@ -10,8 +10,8 @@ import { Map } from "../Map";
  */
 export class RasterMapObject extends MapObject {
 
-    private readonly tiles: number[][];
     private readonly map: Map;
+    private tiles: number[][];
     private tilemap: any;
 
     /**
@@ -63,7 +63,7 @@ export class RasterMapObject extends MapObject {
                 let tileId = this.tiles[x][y];
 
                 // If the tile is empty, ignore drawing it.
-                if (tileId == 0) {
+                if (tileId == 0 || tileId > 190) {
                     continue;
                 }
 
@@ -216,5 +216,19 @@ export class RasterMapObject extends MapObject {
 
     getTileMap(): any {
         return this.tilemap;
+    }
+
+    setTiles(tiles: number[][]) {
+
+        this.tiles = tiles;
+
+        this.setWidth(tiles.length);
+        if (tiles.length != 0) {
+            this.setHeight(tiles[0].length);
+        } else {
+            this.setHeight(0);
+        }
+
+        this.setDirty(true);
     }
 }
