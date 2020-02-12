@@ -78,19 +78,49 @@ export class MapViewer extends UpdatedObject {
         let offsetX = screenCenterX;
         let offsetY = screenCenterY;
 
-        while (offsetX >= 0) {
-            offsetX -= 16;
+        if (screenCenterX > 0) {
+            while (offsetX >= 0) {
+                offsetX -= 16;
+            }
+        } else if (screenCenterX < 0) {
+            while (offsetX <= 0) {
+                offsetX += 16;
+            }
         }
-
-        while (offsetY >= 0) {
-            offsetY -= 16;
+        if (screenCenterY > 0) {
+            while (offsetY >= 0) {
+                offsetY -= 16;
+            }
+        } else if (screenCenterY < 0) {
+            while (offsetY <= 0) {
+                offsetY += 16;
+            }
         }
 
         offsetX = Math.floor(offsetX);
         offsetY = Math.floor(offsetY);
 
+        console.log("GRID STATS:");
+        console.log("\tSCREEN:");
+        console.log("\t\tWIDTH: " + sw);
+        console.log("\t\tHEIGHT: " + sh);
+        console.log("\t\tTOP_LEFT:");
+        console.log("\t\t\tX: " + x1);
+        console.log("\t\t\tY: " + y1);
+        console.log("\t\tBOTTOM_RIGHT:");
+        console.log("\t\t\tX: " + x2);
+        console.log("\t\t\tY: " + y2);
+        console.log("\tOFFSET:");
+        console.log("\t\tX: " + offsetX);
+        console.log("\t\tY: " + offsetY);
+        console.log("\tCAMERA:");
+        console.log("\t\tX: " + cx);
+        console.log("\t\tY: " + cy);
+
         if (this.renderBaseGrid) {
+
             let baseGrid = new PIXI.Graphics();
+
             baseGrid.lineStyle(1, 0x444444, 0.5);
 
             // Move it to the beginning of the line.
@@ -150,40 +180,9 @@ export class MapViewer extends UpdatedObject {
         // Grab the edge coordinates of the view.
         let x1 = Math.floor(cx - sw2);
         let y1 = Math.floor(cy - sh2);
-        let x2 = Math.floor(cx + sw2);
-        let y2 = Math.floor(cy + sh2);
-
-        let center = 512 * 16;
-        let screenCenterX = center - x1;
-        let screenCenterY = center - y1;
-
-        let startX = Math.floor(x1);
-        let startY = Math.floor(y1);
-        let endX = Math.ceil(x2);
-        let endY = Math.ceil(y2);
-
-        let offsetX = screenCenterX;
-        let offsetY = screenCenterY;
-
-        while (offsetX >= 0) {
-            offsetX -= 16;
-        }
-
-        while (offsetY >= 0) {
-            offsetY -= 16;
-        }
-
-        offsetX = Math.floor(offsetX);
-        offsetY = Math.floor(offsetY);
 
         // Clean all items for the map side of the render.
         this.mapContainer.removeChildren();
-
-        // let tileset = this.map.getTileset();
-        // let sprite = new PIXI.Sprite(tileset.getTile(170));
-        //
-        // sprite.x = 32;
-        // sprite.y = 32;
 
         let layers = this.map.getLayers();
 
