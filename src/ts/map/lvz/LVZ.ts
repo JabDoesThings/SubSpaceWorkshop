@@ -1,8 +1,15 @@
-import { LVZ_IO } from './LVZ_IO';
+import { LVZ, LVZErrorStatus } from './LVZUtils';
 import { Printable } from '../../util/Printable';
 import * as zlib from "zlib";
+import { Validatable } from '../../util/Validatable';
+import * as fs from 'fs';
 
-export class LVZCollection extends Printable {
+/**
+ * The <i>LVZCollection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class LVZCollection extends Printable implements Validatable {
 
     private mapObjects: LVZMapObject[];
     private screenObjects: LVZScreenObject[];
@@ -13,6 +20,14 @@ export class LVZCollection extends Printable {
 
         this.mapObjects = [];
         this.screenObjects = [];
+    }
+
+    public getMapObjects(): LVZMapObject[] {
+        return this.mapObjects;
+    }
+
+    public getScreenObjects(): LVZScreenObject[] {
+        return this.screenObjects;
     }
 
     // @Override
@@ -28,6 +43,22 @@ export class LVZCollection extends Printable {
         console.log(prefix + "\tSCREEN OBJECTS: (" + this.screenObjects.length + ")");
         for (let index = 0; index < this.screenObjects.length; index++) {
             this.screenObjects[index].print(prefix + "\t\t");
+        }
+    }
+
+    // @Override
+    public validate(): void {
+
+        // Validate all Map Objects.
+        for (let key in this.mapObjects) {
+            let value = this.mapObjects[key];
+            value.validate();
+        }
+
+        // Validate all Screen Objects.
+        for (let key in this.screenObjects) {
+            let value = this.screenObjects[key];
+            value.validate();
         }
     }
 
@@ -281,13 +312,254 @@ export class LVZCollection extends Printable {
 }
 
 /**
- * The <i>LVZCompressedPackage</i> class. TODO: Document.
+ * The <i>LVZPackage</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LVZCompressedPackage extends Printable {
+export class LVZPackage extends Printable implements Validatable {
 
-    public sections: LVZCompressedSection[];
+    public resources: LVZResource[];
+    public images: CompiledLVZImage[];
+    public mapObjects: CompiledLVZMapObject[];
+    public screenObjects: CompiledLVZScreenObject[];
+
+    public name: string;
+
+    /**
+     * Main constructor.
+     *
+     * @param name The name of the package. (The name of the LVZ file)
+     */
+    public constructor(name: string) {
+
+        super();
+
+        this.name = name;
+        this.resources = [];
+        this.images = [];
+        this.mapObjects = [];
+        this.screenObjects = [];
+    }
+
+    // @Override
+    protected onPrint(prefix: string): void {
+
+        console.log(prefix + "LVZ DECOMPRESSED PACKAGE (" + this.name + ")");
+
+        console.log(prefix + "\tFILES: (" + this.resources.length + ")");
+        for (let index = 0; index < this.resources.length; index++) {
+            this.resources[index].print(prefix + "\t\t");
+        }
+
+        console.log(prefix + "\tIMAGES: (" + this.images.length + ")");
+        for (let index = 0; index < this.images.length; index++) {
+            this.images[index].print(prefix + "\t\t");
+        }
+
+        console.log(prefix + "\tMAP OBJECTS: (" + this.mapObjects.length + ")");
+        for (let index = 0; index < this.mapObjects.length; index++) {
+            this.mapObjects[index].print(prefix + "\t\t");
+        }
+
+        console.log(prefix + "\tSCREEN OBJECTS: (" + this.screenObjects.length + ")");
+        for (let index = 0; index < this.screenObjects.length; index++) {
+            this.screenObjects[index].print(prefix + "\t\t");
+        }
+    }
+
+    // @Override
+    public validate(): void {
+
+        for (let index = 0; index < this.resources.length; index++) {
+            this.resources[index].validate();
+        }
+
+        for (let index = 0; index < this.images.length; index++) {
+            this.images[index].validate();
+        }
+
+        for (let index = 0; index < this.mapObjects.length; index++) {
+            this.mapObjects[index].validate(this);
+        }
+
+        for (let index = 0; index < this.screenObjects.length; index++) {
+            this.screenObjects[index].validate(this);
+        }
+    }
+
+    public collect(): LVZCollection {
+
+        let collection = new LVZCollection();
+
+        let unpackedImages: LVZImage[] = [];
+
+        let getResourceByName = (name: string): LVZResource => {
+            for (let index = 0; index < this.resources.length; index++) {
+                if (this.resources[index].name === name) {
+                    return this.resources[index];
+                }
+            }
+            return null;
+        };
+
+        let unpackImage = (compiledImage: CompiledLVZImage): LVZImage => {
+            let resource = getResourceByName(compiledImage.fileName);
+            return new LVZImage(resource, compiledImage.xFrames, compiledImage.yFrames, compiledImage.animationTime);
+        };
+
+        for (let index = 0; index < this.images.length; index++) {
+            unpackedImages.push(unpackImage(this.images[index]));
+        }
+
+        for (let index = 0; index < this.mapObjects.length; index++) {
+
+            let next = this.mapObjects[index];
+
+            let image = unpackedImages[next.image];
+            let x = next.x;
+            let y = next.y;
+            let id = next.id;
+            let layer = next.layer;
+            let mode = next.mode;
+            let time = next.time;
+
+            let decompiled = new LVZMapObject(image, x, y, id, layer, mode, time);
+
+            collection.addMapObject(decompiled);
+        }
+
+        for (let index = 0; index < this.screenObjects.length; index++) {
+
+            let next = this.screenObjects[index];
+
+            let image = unpackedImages[next.image];
+            let x = next.x;
+            let y = next.y;
+            let id = next.id;
+            let time = next.time;
+            let layer = next.layer;
+            let xType = next.xType;
+            let yType = next.yType;
+            let mode = next.mode;
+
+            let decompiled = new LVZScreenObject(image, x, y, id, time, layer, xType, yType, mode);
+
+            collection.addScreenObject(decompiled);
+        }
+
+        return collection;
+    }
+
+    apply(collection: LVZCollection): void {
+
+        collection.validate();
+
+        let processResource = (resource: LVZResource): void => {
+            for (let index = 0; index < this.resources.length; index++) {
+                if (this.resources[index].equals(resource)) {
+                    return;
+                }
+            }
+            this.resources.push(resource);
+        };
+
+        let compileImage = (image: LVZImage): CompiledLVZImage => {
+            processResource(image.resource);
+            return new CompiledLVZImage(image.resource.name, image.xFrames, image.yFrames, image.animationTime);
+        };
+
+        let getImageIndex = (image: LVZImage): number => {
+            let resultIndex = -1;
+            for (let index = 0; index < this.images.length; index++) {
+                if (this.images[index].equals(image)) {
+                    resultIndex = index;
+                    break;
+                }
+            }
+            if (resultIndex == -1) {
+                resultIndex = this.images.length;
+                this.images.push(compileImage(image));
+            }
+            return resultIndex;
+        };
+
+        let mapObjects = collection.getMapObjects();
+        let screenObjects = collection.getScreenObjects();
+
+        for (let index = 0; index < mapObjects.length; index++) {
+            let next = mapObjects[index];
+            let image = getImageIndex(next.image);
+
+            let compiledMapObject = new CompiledLVZMapObject(
+                next.id,
+                next.x,
+                next.y,
+                image,
+                next.layer,
+                next.time,
+                next.mode
+            );
+
+            this.mapObjects.push(compiledMapObject);
+        }
+
+        for (let index = 0; index < screenObjects.length; index++) {
+            let next = screenObjects[index];
+            let image = getImageIndex(next.image);
+
+            let compiledScreenObject = new CompiledLVZScreenObject(
+                next.id,
+                next.xType,
+                next.x,
+                next.yType,
+                next.y,
+                image,
+                next.layer,
+                next.time,
+                next.mode
+            );
+
+            this.screenObjects.push(compiledScreenObject);
+        }
+    }
+
+    public pack(): CompressedLVZPackage {
+        return LVZ.compress(this);
+    }
+
+    public addResource(file: LVZResource): void {
+        this.resources.push(file);
+    }
+
+    public addImage(image: CompiledLVZImage): void {
+        this.images.push(image);
+    }
+
+    public addMapObject(object: CompiledLVZMapObject): void {
+        this.mapObjects.push(object);
+    }
+
+    public addScreenObject(object: CompiledLVZScreenObject): void {
+        this.screenObjects.push(object);
+    }
+
+    public getMapObjects(): CompiledLVZMapObject[] {
+        return this.mapObjects;
+    }
+
+    public getScreenObjects(): CompiledLVZScreenObject[] {
+        return this.screenObjects;
+    }
+}
+
+/**
+ * The <i>CompressedLVZPackage</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class CompressedLVZPackage extends Printable {
+
+    public sections: CompressedLVZSection[];
     public name: string;
 
     /**
@@ -314,8 +586,8 @@ export class LVZCompressedPackage extends Printable {
         }
     }
 
-    public deflate(): LVZPackage {
-        return LVZ_IO.decompress(this);
+    public inflate(): LVZPackage {
+        return LVZ.decompress(this);
     }
 
     /**
@@ -325,7 +597,7 @@ export class LVZCompressedPackage extends Printable {
      *
      * @return Returns 'true' if the section is registered in the package.
      */
-    public hasSection(section: LVZCompressedSection): boolean {
+    public hasSection(section: CompressedLVZSection): boolean {
 
         // Make sure we have registered sections first.
         if (this.sections.length === 0) {
@@ -355,7 +627,7 @@ export class LVZCompressedPackage extends Printable {
      *
      * @throws Error Thrown if the section given is null, undefined, or already registered to the package.
      */
-    public addSection(section: LVZCompressedSection): void {
+    public addSection(section: CompressedLVZSection): void {
 
         // Make sure the section isn't null or undefined.
         if (section == null) {
@@ -385,7 +657,7 @@ export class LVZCompressedPackage extends Printable {
      *
      * @throws Error Thrown if the section given is null, undefined, or is not registered to the package.
      */
-    public removeSection(section: LVZCompressedSection): void {
+    public removeSection(section: CompressedLVZSection): void {
 
         // Make sure the section isn't null or undefined.
         if (section == null) {
@@ -405,7 +677,7 @@ export class LVZCompressedPackage extends Printable {
         }
 
         // We must now make a new array to process the old one and remove the section.
-        let newArray: LVZCompressedSection[] = [];
+        let newArray: CompressedLVZSection[] = [];
 
         // Keep track of the position on the array as it will not always be the same as
         //   the iterated index of the old array.
@@ -435,7 +707,7 @@ export class LVZCompressedPackage extends Printable {
     /**
      * @return Returns all registered sections in the compressed package.
      */
-    public getSections(): LVZCompressedSection[] {
+    public getSections(): CompressedLVZSection[] {
         return this.sections;
     }
 
@@ -448,132 +720,72 @@ export class LVZCompressedPackage extends Printable {
 }
 
 /**
- * The <i>LVZDecompressedPackage</i> class. TODO: Document.
+ * The <i>CompressedLVZSection</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LVZPackage extends Printable {
+export class CompressedLVZSection extends Printable {
 
-    public files: LVZFile[];
-    public images: LVZImage[];
-    public mapObjects: LVZCompiledMapObject[];
-    public screenObjects: LVZCompiledScreenObject[];
-
-    public name: string;
+    public readonly decompressSize: number;
+    public readonly fileTime: number;
+    public readonly compressSize: number;
+    public readonly fileName: string;
+    public readonly data: Buffer;
 
     /**
      * Main constructor.
      *
-     * @param name The name of the package. (The name of the LVZ file)
+     * @param decompressSize
+     * @param fileTime
+     * @param compressSize
+     * @param fileName
+     * @param data
      */
-    public constructor(name: string) {
+    constructor(decompressSize: number, fileTime: number, compressSize: number, fileName: string, data: Buffer) {
 
         super();
 
-        this.name = name;
-        this.files = [];
-        this.images = [];
-        this.mapObjects = [];
-        this.screenObjects = [];
+        this.decompressSize = decompressSize;
+        this.fileTime = fileTime;
+        this.compressSize = compressSize;
+        this.fileName = fileName;
+        this.data = data;
     }
 
     // @Override
     protected onPrint(prefix: string): void {
 
-        console.log(prefix + "LVZ DECOMPRESSED PACKAGE (" + this.name + ")");
-
-        console.log(prefix + "\tFILES: (" + this.files.length + ")");
-        for (let index = 0; index < this.files.length; index++) {
-            this.files[index].print(prefix + "\t\t");
+        // Make sure that Object-Data sections have a label.
+        let fileName = this.fileName;
+        if (fileName == null || fileName.length === 0) {
+            fileName = "[OBJECT DATA SECTION]";
         }
 
-        console.log(prefix + "\tIMAGES: (" + this.images.length + ")");
-        for (let index = 0; index < this.images.length; index++) {
-            this.images[index].print(prefix + "\t\t");
-        }
-
-        console.log(prefix + "\tMAP OBJECTS: (" + this.mapObjects.length + ")");
-        for (let index = 0; index < this.mapObjects.length; index++) {
-            this.mapObjects[index].print(prefix + "\t\t");
-        }
-
-        console.log(prefix + "\tSCREEN OBJECTS: (" + this.screenObjects.length + ")");
-        for (let index = 0; index < this.screenObjects.length; index++) {
-            this.screenObjects[index].print(prefix + "\t\t");
-        }
+        console.log(prefix + "COMPRESSED_SECTION: ");
+        console.log(prefix + "\tDECOMPRESS_SIZE: " + this.decompressSize);
+        console.log(prefix + "\tFILE_TIME: " + this.fileTime);
+        console.log(prefix + "\tCOMPRESS_SIZE: " + this.compressSize);
+        console.log(prefix + "\tFILE_NAME: " + fileName);
+        console.log(prefix + "\tFILE_DATA: " + this.data.length + " byte(s).");
+        console.log(prefix + " ");
     }
 
-    public decompile(): LVZCollection {
-
-        let collection = new LVZCollection();
-
-        for (let index = 0; index < this.mapObjects.length; index++) {
-
-            let next = this.mapObjects[index];
-
-            let image = this.images[next.image];
-            let x = next.x;
-            let y = next.y;
-            let id = next.id;
-            let layer = next.layer;
-            let mode = next.mode;
-            let time = next.time;
-
-            let decompiled = new LVZMapObject(image, x, y, id, layer, mode, time);
-
-            collection.addMapObject(decompiled);
-        }
-
-        for (let index = 0; index < this.screenObjects.length; index++) {
-
-            let next = this.screenObjects[index];
-
-            let image = this.images[next.image];
-            let x = next.x;
-            let y = next.y;
-            let id = next.id;
-            let time = next.time;
-            let layer = next.layer;
-            let xType = next.xType;
-            let yType = next.yType;
-            let mode = next.mode;
-
-            let decompiled = new LVZScreenObject(image, x, y, id, time, layer, xType, yType, mode);
-
-            collection.addScreenObject(decompiled);
-        }
-
-        return collection;
+    /**
+     * Inflates the compressed LVZ data section to parsable data.
+     */
+    public inflate(): DecompressedLVZSection {
+        let zlib = require('zlib');
+        let data: Buffer = zlib.inflateSync(this.data);
+        return new DecompressedLVZSection(this.decompressSize, this.fileTime, this.compressSize, this.fileName, data);
     }
-
-    public pack(): LVZCompressedPackage {
-        return LVZ_IO.compress(this);
-    }
-
-    public addFile(file: LVZFile): void {
-        this.files.push(file);
-    }
-
-    public addImage(image: LVZImage): void {
-        this.images.push(image);
-    }
-
-    public addMapObject(object: LVZCompiledMapObject): void {
-        this.mapObjects.push(object);
-    }
-
-    public addScreenObject(object: LVZCompiledScreenObject): void {
-        this.screenObjects.push(object);
-    }
-
 }
 
 /**
- * The <i>LVZDecompressedSection</i> class. TODO: Document.
+ * The <i>DecompressedLVZSection</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LVZDecompressedSection extends Printable {
+export class DecompressedLVZSection extends Printable {
 
     public readonly decompressSize: number;
     public readonly fileTime: number;
@@ -624,7 +836,7 @@ export class LVZDecompressedSection extends Printable {
     /**
      * Compresses the LVZ data section to a writable data block.
      */
-    public deflate(): LVZCompressedSection {
+    public deflate(): CompressedLVZSection {
 
         let fileName = this.fileName;
         let fileTime = this.fileTime;
@@ -632,78 +844,17 @@ export class LVZDecompressedSection extends Printable {
         let compressedData = zlib.deflateSync(this.data);
         let compressSize = compressedData.length;
 
-        return new LVZCompressedSection(decompressSize, fileTime, compressSize, fileName, compressedData);
+        return new CompressedLVZSection(decompressSize, fileTime, compressSize, fileName, compressedData);
     }
 
 }
 
 /**
- * The <i>LVZCompressedSection</i> class. TODO: Document.
+ * The <i>LVZResource</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LVZCompressedSection extends Printable {
-
-    public readonly decompressSize: number;
-    public readonly fileTime: number;
-    public readonly compressSize: number;
-    public readonly fileName: string;
-    public readonly data: Buffer;
-
-    /**
-     * Main constructor.
-     *
-     * @param decompressSize
-     * @param fileTime
-     * @param compressSize
-     * @param fileName
-     * @param data
-     */
-    constructor(decompressSize: number, fileTime: number, compressSize: number, fileName: string, data: Buffer) {
-
-        super();
-
-        this.decompressSize = decompressSize;
-        this.fileTime = fileTime;
-        this.compressSize = compressSize;
-        this.fileName = fileName;
-        this.data = data;
-    }
-
-    // @Override
-    protected onPrint(prefix: string): void {
-
-        // Make sure that Object-Data sections have a label.
-        let fileName = this.fileName;
-        if (fileName == null || fileName.length === 0) {
-            fileName = "[OBJECT DATA SECTION]";
-        }
-
-        console.log(prefix + "COMPRESSED_SECTION: ");
-        console.log(prefix + "\tDECOMPRESS_SIZE: " + this.decompressSize);
-        console.log(prefix + "\tFILE_TIME: " + this.fileTime);
-        console.log(prefix + "\tCOMPRESS_SIZE: " + this.compressSize);
-        console.log(prefix + "\tFILE_NAME: " + fileName);
-        console.log(prefix + "\tFILE_DATA: " + this.data.length + " byte(s).");
-        console.log(prefix + " ");
-    }
-
-    /**
-     * Inflates the compressed LVZ data section to parsable data.
-     */
-    public inflate(): LVZDecompressedSection {
-        let zlib = require('zlib');
-        let data: Buffer = zlib.inflateSync(this.data);
-        return new LVZDecompressedSection(this.decompressSize, this.fileTime, this.compressSize, this.fileName, data);
-    }
-}
-
-/**
- * The <i>LVZFile</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class LVZFile extends Printable {
+export class LVZResource extends Printable implements Validatable {
 
     public readonly name: string;
     public readonly time: number;
@@ -716,13 +867,39 @@ export class LVZFile extends Printable {
      * @param time
      * @param data
      */
-    constructor(name: string, time: number, data: Buffer) {
+    constructor(nameOrPath: string, data: Buffer = null, time: number = null) {
 
         super();
 
-        this.name = name;
-        this.time = time;
-        this.data = data;
+        // If the data is not defined, assume the name is actually a file path to read.
+        if (data == null) {
+
+            // Make sure the file exists before loading it.
+            if (!fs.existsSync(nameOrPath)) {
+                throw new Error("The file does not exist: " + nameOrPath);
+            }
+
+            // Attempt to read the file.
+            this.data = fs.readFileSync(nameOrPath);
+
+            // Allow for overriding file time.
+            if (time == null) {
+                time = fs.statSync(nameOrPath).mtime.getUTCMilliseconds();
+            }
+
+        }
+        // If the data is defined, then the name is a name and data is the file data to set.
+        else {
+            this.name = nameOrPath;
+            this.data = data;
+        }
+
+        if (time != null) {
+            this.time = time;
+        } else {
+            // Ensure that the file time is set.
+            this.time = Date.now();
+        }
     }
 
     // @Override
@@ -732,14 +909,56 @@ export class LVZFile extends Printable {
         console.log(prefix + "\tTIME: " + this.time);
         console.log(prefix + "\tDATA: " + this.data.length + " BYTE(S).");
     }
+
+    // @Override
+    public validate(): void {
+
+        let status = LVZ.validateResource(this);
+
+        if (status == LVZErrorStatus.SUCCESS) {
+            return;
+        }
+
+        let message = "Error Code: " + status;
+        if (status == LVZErrorStatus.RESOURCE_DATA_NULL) {
+            message = "The LVZResource does not have a data buffer.";
+        } else if (status == LVZErrorStatus.RESOURCE_NAME_NULL) {
+            message = "The LVZResource name is null or undefined.";
+        } else if (status == LVZErrorStatus.RESOURCE_NAME_EMPTY) {
+            message = "The LVZResource name is empty.";
+        } else if (status == LVZErrorStatus.RESOURCE_TIME_NEGATIVE) {
+            message = "The LVZResource timestamp is negative.";
+        }
+
+        console.log(message);
+        this.print("\t");
+        throw new EvalError(message);
+    }
+
+    public compress(): CompressedLVZSection {
+        let compressedData = zlib.deflateSync(this.data);
+        let compressSize = compressedData.length;
+        return new CompressedLVZSection(this.data.length, this.time, compressSize, this.name, compressedData);
+    }
+
+    public equals(other: any): boolean {
+
+        if (other instanceof LVZResource) {
+            return other.data === this.data
+                && other.name === this.name
+                && other.time === this.time;
+        }
+
+        return false;
+    }
 }
 
 /**
- * The <i>LVZImage</i> class. TODO: Document.
+ * The <i>CompiledLVZImage</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LVZImage extends Printable {
+export class CompiledLVZImage extends Printable {
 
     public fileName: string;
     public animationTime: number;
@@ -772,14 +991,131 @@ export class LVZImage extends Printable {
         console.log(prefix + "\tY FRAMES: " + this.yFrames);
         console.log(prefix + "\tANIMATION TIME: " + this.animationTime);
     }
+
+    public validate(): void {
+
+        let status = LVZ.validateCompiledImage(this);
+
+        if (status == LVZErrorStatus.SUCCESS) {
+            return;
+        }
+
+        let message = "Error Code: " + status;
+        console.log(message);
+        this.print("\t");
+        throw new EvalError(message);
+    }
+
+    equals(other: any) {
+
+        if (other instanceof LVZImage) {
+
+            return other.resource.name == this.fileName
+                && other.xFrames == this.xFrames
+                && other.yFrames == this.yFrames
+                && other.animationTime == this.animationTime;
+
+        } else if (other instanceof CompiledLVZImage) {
+
+            return other.fileName == this.fileName
+                && other.xFrames == this.xFrames
+                && other.yFrames == this.yFrames
+                && other.animationTime == this.animationTime;
+
+        }
+
+        return false;
+    }
 }
 
 /**
- * The <i>LVZCompiledMapObject</i> class. TODO: Document.
+ * The <i>LVZImage</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LVZCompiledMapObject extends Printable {
+export class LVZImage extends Printable implements Validatable {
+
+    public resource: LVZResource;
+    public animationTime: number;
+    public xFrames: number;
+    public yFrames: number;
+
+    /**
+     * Main constructor.
+     *
+     * @param file
+     * @param xFrames
+     * @param yFrames
+     * @param animationTime
+     */
+    constructor(file: LVZResource, xFrames: number = 1, yFrames: number = 1, animationTime: number = 0) {
+
+        super();
+
+        this.resource = file;
+        this.animationTime = animationTime;
+        this.xFrames = xFrames;
+        this.yFrames = yFrames;
+    }
+
+    // @Override
+    protected onPrint(prefix: string) {
+        console.log(prefix + "LVZ IMAGE:");
+        console.log(prefix + "\tFILE NAME: " + this.resource);
+        console.log(prefix + "\tX FRAMES: " + this.xFrames);
+        console.log(prefix + "\tY FRAMES: " + this.yFrames);
+        console.log(prefix + "\tANIMATION TIME: " + this.animationTime);
+    }
+
+    public validate(): void {
+
+        let status = LVZ.validateImage(this);
+
+        if (status == LVZErrorStatus.SUCCESS) {
+            return;
+        }
+
+        let message;
+        if (status == LVZErrorStatus.IMAGE_RESOURCE_NULL) {
+            message = "The LVZImage resource is null.";
+        } else if (status == LVZErrorStatus.ANIMATION_TIME_OUT_OF_RANGE) {
+            message =
+                "The LVZImage animationTime is out of range. The range is between "
+                + LVZ.IMAGE_ANIMATION_TIME_MIN
+                + " and "
+                + LVZ.IMAGE_ANIMATION_TIME_MAX
+                + ".";
+        } else if (status == LVZErrorStatus.X_FRAME_COUNT_OUT_OF_RANGE) {
+            message = "The LVZImage xFrames is out of range. The range is between "
+                + LVZ.IMAGE_FRAME_COUNT_MIN
+                + " and "
+                + LVZ.IMAGE_FRAME_COUNT_MAX
+                + ". (Value is "
+                + this.xFrames
+                + ")";
+        } else if (status == LVZErrorStatus.Y_FRAME_COUNT_OUT_OF_RANGE) {
+            message = "The LVZImage yFrames is out of range. The range is between "
+                + LVZ.IMAGE_FRAME_COUNT_MIN
+                + " and "
+                + LVZ.IMAGE_FRAME_COUNT_MAX
+                + ". (Value is "
+                + this.yFrames
+                + ")";
+        }
+
+        console.log(message);
+        this.print("\t");
+        throw new EvalError(message);
+
+    }
+}
+
+/**
+ * The <i>CompiledLVZMapObject</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class CompiledLVZMapObject extends Printable {
 
     public id: number;
     public x: number;
@@ -824,86 +1160,37 @@ export class LVZCompiledMapObject extends Printable {
         console.log(prefix + "\tTIME: " + this.time);
         console.log(prefix + "\tMODE: " + this.mode);
     }
+
+    public validate(dpkg: LVZPackage): void {
+
+        let status = LVZ.validateDecompressedMapObject(dpkg, this);
+
+        if (status == LVZErrorStatus.SUCCESS) {
+            return;
+        }
+
+        let message = "Error Code: " + status;
+
+        console.log(message);
+        this.print("\t");
+        throw new EvalError(message);
+    }
 }
 
 /**
- * The <i>LVZCompiledScreenObject</i> class. TODO: Document.
+ * The <i>LVZMapObject</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LVZCompiledScreenObject extends Printable {
+export class LVZMapObject extends Printable implements Validatable {
 
-    public id: number;
-    public xType: number;
+    public image: LVZImage;
     public x: number;
-    public yType: number;
     public y: number;
-    public image: number;
-    public layer: number;
+    public id: number;
+    public layer: LVZRenderLayer;
+    public mode: LVZDisplayMode;
     public time: number;
-    public mode: number;
-
-    /**
-     * Main constructor.
-     *
-     * @param id
-     * @param xType
-     * @param x
-     * @param yType
-     * @param y
-     * @param image
-     * @param layer
-     * @param time
-     * @param mode
-     */
-    constructor(
-        id: number,
-        xType: number,
-        x: number,
-        yType: number,
-        y: number,
-        image: number,
-        layer: number,
-        time: number,
-        mode: number) {
-
-        super();
-
-        this.id = id;
-        this.xType = xType;
-        this.x = x;
-        this.yType = yType;
-        this.y = y;
-        this.image = image;
-        this.layer = layer;
-        this.time = time;
-        this.mode = mode;
-    }
-
-    // @Override
-    protected onPrint(prefix: string) {
-        console.log(prefix + "SCREEN OBJECT:");
-        console.log(prefix + "\tID: " + this.id);
-        console.log(prefix + "\tX TYPE: " + this.xType);
-        console.log(prefix + "\tX: " + this.x);
-        console.log(prefix + "\tY TYPE: " + this.yType);
-        console.log(prefix + "\tY: " + this.y);
-        console.log(prefix + "\tIMAGE: " + this.image);
-        console.log(prefix + "\tLAYER: " + this.layer);
-        console.log(prefix + "\tTIME: " + this.time);
-        console.log(prefix + "\tMODE: " + this.mode);
-    }
-}
-
-export class LVZMapObject extends Printable {
-
-    private image: LVZImage;
-    private x: number;
-    private y: number;
-    private id: number;
-    private layer: LVZRenderLayer;
-    private mode: LVZDisplayMode;
-    private time: number;
 
     /**
      * Main constructor.
@@ -950,6 +1237,67 @@ export class LVZMapObject extends Printable {
         console.log(prefix + "\tLAYER: " + this.layer);
         console.log(prefix + "\tMODE: " + this.mode);
         console.log(prefix + "\tTIME: " + this.time);
+    }
+
+    // @Override
+    public validate(): void {
+        let state = LVZ.validateMapObject(this);
+
+        if (state == LVZErrorStatus.SUCCESS) {
+            return;
+        }
+
+        let message = null;
+
+        if (state == LVZErrorStatus.IMAGE_NOT_DEFINED) {
+            message = "The LVZMapObject does not have a image.";
+        } else if (state == LVZErrorStatus.OBJECT_ID_OUT_OF_RANGE) {
+            message = "The LVZMapObject's Object ID is out of range."
+                + " Object IDs can be between "
+                + LVZ.OBJECT_ID_MIN
+                + " and "
+                + LVZ.OBJECT_ID_MAX
+                + ". (" + this.id + " given)";
+        } else if (state == LVZErrorStatus.X_COORDINATE_OUT_OF_RANGE) {
+            message = "The LVZMapObject X coordinate is out of range."
+                + " Coordinates can be between "
+                + LVZ.MAP_OBJECT_COORDINATE_MIN
+                + " and "
+                + LVZ.MAP_OBJECT_COORDINATE_MAX
+                + ". (" + this.x + " given)";
+        } else if (state == LVZErrorStatus.Y_COORDINATE_OUT_OF_RANGE) {
+            message = "The LVZMapObject Y coordinate is out of range."
+                + " Coordinates can be between "
+                + LVZ.MAP_OBJECT_COORDINATE_MIN
+                + " and "
+                + LVZ.MAP_OBJECT_COORDINATE_MAX
+                + ". (" + this.y + " given)";
+        } else if (state == LVZErrorStatus.DISPLAY_MODE_OUT_OF_RANGE) {
+            message = "The LVZMapObject's 'display mode' is out of range."
+                + " Display modes can be between "
+                + LVZ.DISPLAY_MODE_MIN
+                + " and "
+                + LVZ.DISPLAY_MODE_MAX
+                + ". (" + this.mode + " given)";
+        } else if (state == LVZErrorStatus.RENDER_LAYER_OUT_OF_RANGE) {
+            message = "The LVZMapObject's 'render mode' is out of range."
+                + " Render layers can be between "
+                + LVZ.RENDER_LAYER_MIN
+                + " and "
+                + LVZ.RENDER_LAYER_MAX
+                + ". (" + this.layer + " given)";
+        } else if (state == LVZErrorStatus.DISPLAY_TIME_OUT_OF_RANGE) {
+            message = "The LVZMapObject's 'display time' is out of range."
+                + " Display times can be between "
+                + LVZ.DISPLAY_TIME_MIN
+                + " and "
+                + LVZ.DISPLAY_TIME_MAX
+                + ". (" + this.time + " given)";
+        }
+
+        console.warn(message);
+        this.print("\t");
+        throw new Error(message);
     }
 
     /**
@@ -1067,7 +1415,97 @@ export class LVZMapObject extends Printable {
     }
 }
 
-export class LVZScreenObject extends Printable {
+/**
+ * The <i>CompiledLVZScreenObject</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class CompiledLVZScreenObject extends Printable {
+
+    public id: number;
+    public xType: number;
+    public x: number;
+    public yType: number;
+    public y: number;
+    public image: number;
+    public layer: number;
+    public time: number;
+    public mode: number;
+
+    /**
+     * Main constructor.
+     *
+     * @param id
+     * @param xType
+     * @param x
+     * @param yType
+     * @param y
+     * @param image
+     * @param layer
+     * @param time
+     * @param mode
+     */
+    constructor(
+        id: number,
+        xType: number,
+        x: number,
+        yType: number,
+        y: number,
+        image: number,
+        layer: number,
+        time: number,
+        mode: number) {
+
+        super();
+
+        this.id = id;
+        this.xType = xType;
+        this.x = x;
+        this.yType = yType;
+        this.y = y;
+        this.image = image;
+        this.layer = layer;
+        this.time = time;
+        this.mode = mode;
+    }
+
+    // @Override
+    protected onPrint(prefix: string) {
+        console.log(prefix + "SCREEN OBJECT:");
+        console.log(prefix + "\tID: " + this.id);
+        console.log(prefix + "\tX TYPE: " + this.xType);
+        console.log(prefix + "\tX: " + this.x);
+        console.log(prefix + "\tY TYPE: " + this.yType);
+        console.log(prefix + "\tY: " + this.y);
+        console.log(prefix + "\tIMAGE: " + this.image);
+        console.log(prefix + "\tLAYER: " + this.layer);
+        console.log(prefix + "\tTIME: " + this.time);
+        console.log(prefix + "\tMODE: " + this.mode);
+    }
+
+    public validate(dpkg: LVZPackage): void {
+
+        let status = LVZ.validateDecompressedScreenObject(dpkg, this);
+
+        if (status == LVZErrorStatus.SUCCESS) {
+            return;
+        }
+
+        let message = "Error Code: " + status;
+
+        console.log(message);
+        this.print("\t");
+        throw new EvalError(message);
+
+    }
+}
+
+/**
+ * The <i>LVZScreenObject</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class LVZScreenObject extends Printable implements Validatable {
 
     public image: LVZImage;
     public x: number;
@@ -1132,6 +1570,11 @@ export class LVZScreenObject extends Printable {
         console.log(prefix + "\tLAYER: " + this.layer);
         console.log(prefix + "\tMODE: " + this.mode);
         console.log(prefix + "\tTIME: " + this.time);
+    }
+
+    // @Override
+    public validate(): void {
+
     }
 
     /**
