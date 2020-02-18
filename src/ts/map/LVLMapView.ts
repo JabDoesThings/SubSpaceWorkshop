@@ -343,6 +343,7 @@ export class LVLGridRenderer extends PIXI.Container {
     renderBaseGrid: boolean;
     renderAxisLines: boolean;
     renderBorderLines: boolean;
+    renderChunkLines: boolean;
 
     constructor(view: LVLMapView) {
 
@@ -352,6 +353,7 @@ export class LVLGridRenderer extends PIXI.Container {
         this.renderBaseGrid = true;
         this.renderAxisLines = true;
         this.renderBorderLines = true;
+        this.renderChunkLines = true;
     }
 
     draw() {
@@ -433,6 +435,35 @@ export class LVLGridRenderer extends PIXI.Container {
             }
 
             this.addChild(baseGrid);
+        }
+
+        if (this.renderChunkLines) {
+
+            let chunkGrid = new PIXI.Graphics();
+
+            chunkGrid.lineStyle(1, 0xff4444, 0.33);
+
+            for (let z = 64 * 16; z < 1024 * 16; z += 64 * 16) {
+
+                if (y1 <= z && y2 >= z) {
+                    let y = z - y1;
+                    let xMin = Math.max(left, 0);
+                    let xMax = Math.min(right, sw);
+                    chunkGrid.moveTo(xMin, y);
+                    chunkGrid.lineTo(xMax, y);
+                }
+
+                if (x1 <= z && x2 >= z) {
+                    let x = z - x1;
+                    let yMin = Math.max(top, 0);
+                    let yMax = Math.min(bottom, sh);
+                    chunkGrid.moveTo(x, yMin);
+                    chunkGrid.lineTo(x, yMax);
+                }
+
+            }
+
+            this.addChild(chunkGrid);
         }
 
         if (this.renderAxisLines) {
