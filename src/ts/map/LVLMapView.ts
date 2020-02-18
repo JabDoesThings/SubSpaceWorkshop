@@ -87,7 +87,7 @@ export class LVLMapView extends UpdatedObject {
 
             this.stats.begin();
 
-            this.grid.draw();
+            // this.grid.draw();
 
             this.camera.update(delta);
             // this.map.update(delta);
@@ -135,7 +135,9 @@ export class LVLMapView extends UpdatedObject {
     //@Override
     public onUpdate(delta: number): boolean {
 
+        this.app.stage.removeChildren();
         this.grid.draw();
+        this.app.stage.addChild(this.grid);
 
         return true;
     }
@@ -345,20 +347,43 @@ export class LVLGridRenderer extends PIXI.Container {
     renderBorderLines: boolean;
     renderChunkLines: boolean;
 
+    private baseGrid: PIXI.Graphics;
+    private chunkGrid: PIXI.Graphics;
+    private centerLines: PIXI.Graphics;
+    private borderLines: PIXI.Graphics;
+
     constructor(view: LVLMapView) {
 
         super();
+
+        this.cacheAsBitmap = false;
 
         this.view = view;
         this.renderBaseGrid = true;
         this.renderAxisLines = true;
         this.renderBorderLines = true;
         this.renderChunkLines = true;
+
+        this.baseGrid = new PIXI.Graphics();
+        this.chunkGrid = new PIXI.Graphics();
+        this.centerLines = new PIXI.Graphics();
+        this.borderLines = new PIXI.Graphics();
+
+        this.addChild(this.baseGrid);
+        this.addChild(this.chunkGrid);
+        this.addChild(this.centerLines);
+        this.addChild(this.borderLines);
     }
 
     draw() {
 
-        this.removeChildren();
+        // for (let key in this.children) {
+        //     let child = this.children[key];
+        //     if (child instanceof PIXI.Graphics) {
+        //         child.destroy();
+        //     }
+        // }
+        // this.removeChildren();
 
         // Grab the dimensions of the app view.
         let sw = Math.floor(this.view.app.view.width);
@@ -418,30 +443,26 @@ export class LVLGridRenderer extends PIXI.Container {
 
         if (this.renderBaseGrid) {
 
-            let baseGrid = new PIXI.Graphics();
-
-            baseGrid.lineStyle(1, 0x444444, 0.33);
+            this.baseGrid.clear();
+            this.baseGrid.lineStyle(1, 0x444444, 0.33);
 
             // Horizontal lines.
             for (let y = Math.max(-offsetY, startY); y <= Math.min(1023 * 16, endY + 16); y += 16) {
-                baseGrid.moveTo(Math.max(0, left), Math.floor((y - y1) + offsetY));
-                baseGrid.lineTo(Math.min(right, sw), Math.floor((y - y1) + offsetY));
+                this.baseGrid.moveTo(Math.max(0, left), Math.floor((y - y1) + offsetY));
+                this.baseGrid.lineTo(Math.min(right, sw), Math.floor((y - y1) + offsetY));
             }
 
             // Vertical lines.
             for (let x = Math.max(-offsetX, startX); x <= Math.min(1022 * 16, endX); x += 16) {
-                baseGrid.moveTo(Math.floor((x - x1) + offsetX), Math.max(0, top));
-                baseGrid.lineTo(Math.floor((x - x1) + offsetX), Math.min(sh, bottom));
+                this.baseGrid.moveTo(Math.floor((x - x1) + offsetX), Math.max(0, top));
+                this.baseGrid.lineTo(Math.floor((x - x1) + offsetX), Math.min(sh, bottom));
             }
-
-            this.addChild(baseGrid);
         }
 
         if (this.renderChunkLines) {
 
-            let chunkGrid = new PIXI.Graphics();
-
-            chunkGrid.lineStyle(1, 0xff4444, 0.33);
+            this.chunkGrid.clear();
+            this.chunkGrid.lineStyle(1, 0xff4444, 0.33);
 
             for (let z = 64 * 16; z < 1024 * 16; z += 64 * 16) {
 
@@ -449,50 +470,44 @@ export class LVLGridRenderer extends PIXI.Container {
                     let y = z - y1;
                     let xMin = Math.max(left, 0);
                     let xMax = Math.min(right, sw);
-                    chunkGrid.moveTo(xMin, y);
-                    chunkGrid.lineTo(xMax, y);
+                    this.chunkGrid.moveTo(xMin, y);
+                    this.chunkGrid.lineTo(xMax, y);
                 }
 
                 if (x1 <= z && x2 >= z) {
                     let x = z - x1;
                     let yMin = Math.max(top, 0);
                     let yMax = Math.min(bottom, sh);
-                    chunkGrid.moveTo(x, yMin);
-                    chunkGrid.lineTo(x, yMax);
+                    this.chunkGrid.moveTo(x, yMin);
+                    this.chunkGrid.lineTo(x, yMax);
                 }
 
             }
-
-            this.addChild(chunkGrid);
         }
 
         if (this.renderAxisLines) {
 
-            let centerLines = new PIXI.Graphics();
-            centerLines.lineStyle(1, 0x7777ff, 1);
+            this.centerLines.clear();
+            this.centerLines.lineStyle(1, 0x7777ff, 1);
 
             let drawCenterX = screenCenterX > 0 && screenCenterX <= sw;
             let drawCenterY = screenCenterY > 0 && screenCenterY <= sh;
 
             if (drawCenterX) {
-                centerLines.moveTo(Math.floor(screenCenterX), Math.max(0, top));
-                centerLines.lineTo(Math.floor(screenCenterX), Math.min(sh, bottom));
+                this.centerLines.moveTo(Math.floor(screenCenterX), Math.max(0, top));
+                this.centerLines.lineTo(Math.floor(screenCenterX), Math.min(sh, bottom));
             }
 
             if (drawCenterY) {
-                centerLines.moveTo(Math.max(0, left), Math.floor(screenCenterY));
-                centerLines.lineTo(Math.min(right, sw), Math.floor(screenCenterY));
+                this.centerLines.moveTo(Math.max(0, left), Math.floor(screenCenterY));
+                this.centerLines.lineTo(Math.min(right, sw), Math.floor(screenCenterY));
             }
-
-            this.addChild(centerLines);
-
         }
 
         if (this.renderBorderLines) {
 
-            let borderLines = new PIXI.Graphics();
-
-            borderLines.lineStyle(1.5, 0x7777ff, 1);
+            this.borderLines.clear();
+            this.borderLines.lineStyle(1.5, 0x7777ff, 1);
 
             let drawLeft = left > 0 && left <= sw;
             let drawTop = top > 0 && top <= sh;
@@ -500,29 +515,22 @@ export class LVLGridRenderer extends PIXI.Container {
             let drawBottom = bottom > 0 && bottom <= sh;
 
             if (drawLeft) {
-                borderLines.moveTo(Math.floor(left), Math.max(0, top));
-                borderLines.lineTo(Math.floor(left), Math.min(sh, bottom));
+                this.borderLines.moveTo(Math.floor(left), Math.max(0, top));
+                this.borderLines.lineTo(Math.floor(left), Math.min(sh, bottom));
             }
-
             if (drawTop) {
-                borderLines.moveTo(Math.max(0, left), Math.floor(top));
-                borderLines.lineTo(Math.min(right, sw), Math.floor(top));
+                this.borderLines.moveTo(Math.max(0, left), Math.floor(top));
+                this.borderLines.lineTo(Math.min(right, sw), Math.floor(top));
             }
-
             if (drawRight) {
-                borderLines.moveTo(Math.floor(right), Math.max(0, top));
-                borderLines.lineTo(Math.floor(right), Math.min(sh, bottom));
+                this.borderLines.moveTo(Math.floor(right), Math.max(0, top));
+                this.borderLines.lineTo(Math.floor(right), Math.min(sh, bottom));
             }
-
             if (drawBottom) {
-                borderLines.moveTo(Math.max(0, left), Math.floor(bottom));
-                borderLines.lineTo(Math.min(right, sw), Math.floor(bottom));
+                this.borderLines.moveTo(Math.max(0, left), Math.floor(bottom));
+                this.borderLines.lineTo(Math.min(right, sw), Math.floor(bottom));
             }
-
-            this.addChild(borderLines);
         }
-
-        this.updateTransform();
     }
 
 }
