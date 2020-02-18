@@ -93,7 +93,21 @@ export class MapChunk extends UpdatedObject {
                         let tu = tileCoordinates[0];
                         let tv = tileCoordinates[1];
 
-                        if (tileId == 170) {
+                        if (tileId >= 162 && tileId <= 165) {
+                            this.tilesAnim.push({
+                                x: x * 16,
+                                y: y * 16,
+                                texture: 0,
+                                id: tileId
+                            });
+                        } else if (tileId >= 166 && tileId <= 169) {
+                            this.tilesAnim.push({
+                                x: x * 16,
+                                y: y * 16,
+                                texture: 0,
+                                id: tileId
+                            });
+                        } else if (tileId == 170) {
                             this.tilesAnim.push({
                                 x: x * 16,
                                 y: y * 16,
@@ -167,7 +181,11 @@ export class MapChunk extends UpdatedObject {
 
             let frame = null;
 
-            if (id == 170) {
+            if (id >= 162 && id <= 165) {
+                frame = this.view.mapSpriteDoor1.current;
+            } else if (id >= 166 && id <= 169) {
+                frame = this.view.mapSpriteDoor2.current;
+            } else if (id == 170) {
                 frame = this.view.mapSpriteFlag.current;
             } else if (id == 172) {
                 frame = this.view.mapSpriteGoal.current;

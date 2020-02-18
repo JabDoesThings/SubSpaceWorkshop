@@ -25,7 +25,7 @@ export class MapCamera extends UpdatedObject {
         this.setRequireDirtyToUpdate(false);
 
         this.coordinateMin = 0;
-        this.coordinateMax = LVL.MAP_LENGTH - 1;
+        this.coordinateMax = LVL.MAP_LENGTH;
 
         // Set the initial position to be the center of the map with the default scale.
         this.position = new Vector2(this.coordinateMax / 2, this.coordinateMax / 2);
