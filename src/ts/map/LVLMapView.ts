@@ -56,11 +56,8 @@ export class LVLMapView extends UpdatedObject {
 
         // Disable interpolation when scaling, will make texture be pixelated
         PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-
         PIXI.settings.ANISOTROPIC_LEVEL = 0;
-
         PIXI.settings.MIPMAP_TEXTURES = PIXI.MIPMAP_MODES.OFF;
-        // PIXI.settings.ROUND_PIXELS = true;
 
         this.app = new PIXI.Application({
             width: 800,
@@ -135,16 +132,16 @@ export class LVLMapView extends UpdatedObject {
     //@Override
     public onUpdate(delta: number): boolean {
 
-        this.app.stage.removeChildren();
-        this.grid.draw();
-        this.app.stage.addChild(this.grid);
+        if (this.camera.isDirty()) {
+            this.grid.draw();
+        }
 
         return true;
     }
 
     // @Override
     public isDirty(): boolean {
-        return super.isDirty() || this.camera.isDirty();
+        return super.isDirty() || this.camera.isDirty() || this.map.isDirty();
     }
 }
 
@@ -252,6 +249,9 @@ export class LVLCamera extends UpdatedObject {
             this.setDirty(true);
         });
 
+        // Make sure anything dependent on the camera being dirty renders on the first
+        // render call.
+        this.setDirty(true);
     }
 
     // @Override
@@ -376,14 +376,6 @@ export class LVLGridRenderer extends PIXI.Container {
     }
 
     draw() {
-
-        // for (let key in this.children) {
-        //     let child = this.children[key];
-        //     if (child instanceof PIXI.Graphics) {
-        //         child.destroy();
-        //     }
-        // }
-        // this.removeChildren();
 
         // Grab the dimensions of the app view.
         let sw = Math.floor(this.view.app.view.width);
