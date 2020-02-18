@@ -63,8 +63,8 @@ export class MapGrid extends PIXI.Container {
 
         let left = -x1;
         let top = -y1;
-        let right = (1023 * 16) - x1;
-        let bottom = (1023 * 16) - y1;
+        let right = (1024 * 16) - x1;
+        let bottom = (1024 * 16) - y1;
 
         let startX = Math.floor(x1);
         let startY = Math.floor(y1);
