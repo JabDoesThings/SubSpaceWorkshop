@@ -6,7 +6,6 @@ import { UpdatedObject } from '../util/UpdatedObject';
 import { MapSprite } from './MapSprite';
 import { MapGrid } from './MapGrid';
 import { MapCamera } from './MapCamera';
-import { Map } from './old/Map';
 
 const Stats = require("stats.js");
 

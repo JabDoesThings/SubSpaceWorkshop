@@ -1,13 +1,7 @@
-import { MapViewer } from './map/old/MapViewer';
-
-import { Map } from './map/old/Map';
-import { MapUtils } from './map/old/MapUtils';
-import { LVZ } from './map/lvz/LVZUtils';
-import { LVZPackage } from './map/lvz/LVZ';
 import { LVL } from './map/lvl/LVLUtils';
+import { LVZ } from './map/lvz/LVZUtils';
 import { MapView } from './map/MapView';
-
-let mapViewer: MapViewer;
+import { LVZPackage } from './map/lvz/LVZ';
 
 function debugLVL() {
 
@@ -17,11 +11,6 @@ function debugLVL() {
     let map = LVL.read(lvlFile);
 
     let mapViewer = new MapView(map, document.getElementById("map-viewer-container"));
-
-    // let tileset = map.tileset;
-
-    // document.body.appendChild(tileset.source);
-    // document.body.appendChild(LVL.DEFAULT_TILESET.source);
 
     // LVL.write(map, lvlFile2);
 }
@@ -53,16 +42,6 @@ function debugLVZ() {
 
     console.log("!!! Writing new LVZCompressedPackage.");
     LVZ.write(compressedPackage2, lvzFile2);
-}
-
-function debugEditor() {
-
-    let map = new Map("Map");
-    MapUtils.read(map, "assets/lvl/_bzw.lvl");
-
-    let htmlContainer: HTMLElement = document.getElementById("map-viewer-container");
-    mapViewer = new MapViewer(htmlContainer, map);
-
 }
 
 export let start = function () {

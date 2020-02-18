@@ -1,12 +1,6 @@
-import { MapUtils } from '../old/MapUtils';
-import { TileUtils } from '../old/TileUtils';
 import { Dirtable } from '../../util/Dirtable';
 import * as PIXI from "pixi.js";
 import { LVL } from './LVLUtils';
-import BitmapText = PIXI.BitmapText;
-import * as fs from 'fs';
-import BufferResource = PIXI.resources.BufferResource;
-import { CanvasTexture } from 'three';
 
 export class LVLMap implements Dirtable {
 
@@ -67,16 +61,16 @@ export class LVLMap implements Dirtable {
     fill(startX: number, startY: number, endX: number, endY: number, value: number): number {
 
         // Make sure that the ranges are not inverted.
-        MapUtils.validateRanges(startX, startY, endX, endY);
+        LVL.validateRanges(startX, startY, endX, endY);
 
         // Make sure that the tile-value is a unsigned byte.
-        TileUtils.validateTileId(value);
+        LVL.validateTileId(value);
 
         // Check to make sure that the value is a whole integer.
         value = Math.floor(value);
 
         // Make sure that at least a portion of the range will draw at all before proceeding.
-        if (MapUtils.isOutOfRange(startX, startY, endX, endY, 0, 0, 1023, 1023)) {
+        if (LVL.isOutOfRange(startX, startY, endX, endY, 0, 0, 1023, 1023)) {
             return 0;
         }
 
@@ -125,7 +119,7 @@ export class LVLMap implements Dirtable {
     public getTile(x: number, y: number): number {
 
         // Make sure that the coordinates are within bounds.
-        MapUtils.validateCoordinates(x, y, 0, 0, 1023, 1023);
+        LVL.validateCoordinates(x, y, 0, 0, 1023, 1023);
 
         // Grab the value stored in the tile array at the coordinates.
         return this.tiles[x][y];
@@ -142,10 +136,10 @@ export class LVLMap implements Dirtable {
     public setTile(x: number, y: number, value: number): boolean {
 
         // Make sure that the tile ID is proper.
-        TileUtils.validateTileId(value);
+        LVL.validateTileId(value);
 
         // Make sure that the object contains the point to set.
-        if (MapUtils.contains(x, y, 0, 0, 1023, 1023)) {
+        if (LVL.contains(x, y, 0, 0, 1023, 1023)) {
 
             // Make sure the pre-set value isn't the same as the one to set.
             if (this.tiles[x][y] != value) {
@@ -157,7 +151,6 @@ export class LVLMap implements Dirtable {
                 // Return true to note the value has been set successfully
                 return true;
             }
-
         }
 
         // Return false if the value is not set.
@@ -208,12 +201,6 @@ export class LVLTileSet implements Dirtable {
         this.source = canvas;
         this.texture = PIXI.Texture.from(canvas.toDataURL());
 
-        // let imgData = canvas.getContext("2d").getImageData(0, 0, 304, 160);
-        //
-        // let buffer = new Float32Array(imgData.data.buffer);
-        // this.texture = PIXI.Texture.fromBuffer(buffer, 304, 160);
-
-
         this.tileCoordinates = [];
         this.tiles = [];
         this.tiles.push(null);
@@ -255,7 +242,7 @@ export class LVLTileSet implements Dirtable {
     public getTile(tile: number): PIXI.Texture {
 
         // Check to make sure that the tile is within range.
-        if (!TileUtils.inTilesetRange(tile)) {
+        if (!LVL.inTilesetRange(tile)) {
             throw new RangeError(
                 "The id given is out of range. Id's can only be between 1 and 190. ("
                 + tile
@@ -278,7 +265,7 @@ export class LVLTileSet implements Dirtable {
     public setTile(tile: number, image: PIXI.Texture) {
 
         // Check to make sure that the tile is within range.
-        if (!TileUtils.inTilesetRange(tile)) {
+        if (!LVL.inTilesetRange(tile)) {
             throw new RangeError(
                 "The id given is out of range. Id's can only be between 1 and 190. ("
                 + tile
@@ -287,7 +274,7 @@ export class LVLTileSet implements Dirtable {
         }
 
         // Make sure that the tile image is properly sized before application.
-        TileUtils.validateTileImage(image);
+        LVL.validateTileImage(image);
 
         // Set the tile in the tiles array.
         this.tiles[tile] = image;
