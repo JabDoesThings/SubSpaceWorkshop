@@ -3,14 +3,12 @@ import * as PIXI from "pixi.js";
 import { TileUtils } from './old/TileUtils';
 import { Vector2 } from 'three';
 import { KeyListener } from '../util/KeyListener';
-import { MapUtils } from './old/MapUtils';
-import { Dirtable } from '../util/Dirtable';
-import { RasterMapObject } from './objects/RasterMapObject';
 import { LVL } from './lvl/LVLUtils';
+import { UpdatedObject } from '../util/UpdatedObject';
 
 const Stats = require("stats.js");
 
-export class LVLMapView implements Dirtable {
+export class LVLMapView extends UpdatedObject {
 
     readonly map: LVLMap;
     readonly container: HTMLElement;
@@ -21,10 +19,11 @@ export class LVLMapView implements Dirtable {
     private grid: LVLGridRenderer;
     private mapContainer: PIXI.Container;
 
-    private dirty: boolean;
     camera: LVLCamera;
 
     public constructor(map: LVLMap, container: HTMLElement) {
+
+        super();
 
         this.map = map;
         this.container = container;
@@ -90,10 +89,10 @@ export class LVLMapView implements Dirtable {
 
             this.grid.draw();
 
-            // this.camera.update(delta);
+            this.camera.update(delta);
             // this.map.update(delta);
 
-            // this.update(delta);
+            this.update(delta);
 
             this.stats.end();
         });
@@ -133,17 +132,21 @@ export class LVLMapView implements Dirtable {
         resize();
     }
 
+    //@Override
+    public onUpdate(delta: number): boolean {
+
+        this.grid.draw();
+
+        return true;
+    }
+
+    // @Override
     public isDirty(): boolean {
-        return this.dirty;
+        return super.isDirty() || this.camera.isDirty();
     }
-
-    public setDirty(flag: boolean): void {
-        this.dirty = flag;
-    }
-
 }
 
-export class LVLMapChunk {
+export class LVLMapChunk extends UpdatedObject {
 
     public static readonly LENGTH = 64;
 
@@ -153,6 +156,9 @@ export class LVLMapChunk {
     private readonly y: number;
 
     constructor(view: LVLMapView, x: number, y: number) {
+
+        super();
+
         this.view = view;
         this.x = x;
         this.y = y;
@@ -173,15 +179,15 @@ export class LVLMapChunk {
             ]
         );
 
-        this.view.map.tileset.texture;
     }
 
-    public onUpdate(): void {
-
+    // @Override
+    public onUpdate(delta: number): boolean {
+        return true;
     }
 }
 
-export class LVLCamera implements Dirtable {
+export class LVLCamera extends UpdatedObject {
 
     private position: Vector2;
     private scale: number;
@@ -190,19 +196,23 @@ export class LVLCamera implements Dirtable {
     private leftArrowListener: KeyListener;
     private rightArrowListener: KeyListener;
 
-    private dirty: boolean;
+    coordinateMin: number;
+    coordinateMax: number;
 
     /**
      * Main constructor.
      */
     constructor() {
 
-        let center: number = (LVL.MAP_LENGTH) / 2;
-        let cx: number = 0;
-        let cy: number = 0;
+        super();
+
+        this.setRequireDirtyToUpdate(false);
+
+        this.coordinateMin = 0;
+        this.coordinateMax = LVL.MAP_LENGTH - 1;
 
         // Set the initial position to be the center of the map with the default scale.
-        this.position = new Vector2(cx, cy);
+        this.position = new Vector2(this.coordinateMax / 2, this.coordinateMax / 2);
         this.scale = 1.0;
 
         this.upArrowListener = new KeyListener("ArrowUp");
@@ -210,39 +220,40 @@ export class LVLCamera implements Dirtable {
         this.leftArrowListener = new KeyListener("ArrowLeft");
         this.rightArrowListener = new KeyListener("ArrowRight");
 
-        let oneListener = new KeyListener("1", () => {
+        new KeyListener("1", () => {
             this.position.x = 0;
             this.position.y = 0;
             this.setDirty(true);
         });
 
-        let twoListener = new KeyListener("2", () => {
-            this.position.x = 1023;
+        new KeyListener("2", () => {
+            this.position.x = this.coordinateMax;
             this.position.y = 0;
             this.setDirty(true);
         });
 
-        let threeListener = new KeyListener("3", () => {
+        new KeyListener("3", () => {
             this.position.x = 0;
-            this.position.y = 1023;
+            this.position.y = this.coordinateMax;
             this.setDirty(true);
         });
 
-        let fourListener = new KeyListener("4", () => {
-            this.position.x = 1023;
-            this.position.y = 1023;
+        new KeyListener("4", () => {
+            this.position.x = this.coordinateMax;
+            this.position.y = this.coordinateMax;
             this.setDirty(true);
         });
 
-        let fiveListener = new KeyListener("5", () => {
-            this.position.x = 512;
-            this.position.y = 512;
+        new KeyListener("5", () => {
+            this.position.x = this.coordinateMax / 2;
+            this.position.y = this.coordinateMax / 2;
             this.setDirty(true);
         });
 
     }
 
-    public update(delta: number): boolean {
+    // @Override
+    public onUpdate(delta: number): boolean {
 
         if (this.upArrowListener.isDown != this.downArrowListener.isDown) {
 
@@ -254,6 +265,12 @@ export class LVLCamera implements Dirtable {
             if (this.downArrowListener.isDown) {
                 this.position.y += 1;
                 this.setDirty(true);
+            }
+
+            if (this.position.y <= this.coordinateMin) {
+                this.position.y = this.coordinateMin;
+            } else if (this.position.y >= this.coordinateMax) {
+                this.position.y = this.coordinateMax;
             }
 
         }
@@ -268,6 +285,12 @@ export class LVLCamera implements Dirtable {
             if (this.rightArrowListener.isDown) {
                 this.position.x += 1;
                 this.setDirty(true);
+            }
+
+            if (this.position.x <= this.coordinateMin) {
+                this.position.x = this.coordinateMin;
+            } else if (this.position.x >= this.coordinateMax) {
+                this.position.x = this.coordinateMax;
             }
 
         }
@@ -311,21 +334,15 @@ export class LVLCamera implements Dirtable {
         this.setDirty(true);
     }
 
-    isDirty(): boolean {
-        return this.dirty;
-    }
-
-    setDirty(flag: boolean): void {
-        this.dirty = flag;
-    }
 }
 
 export class LVLGridRenderer extends PIXI.Container {
 
     private view: LVLMapView;
-    private renderBaseGrid: boolean;
-    private renderAxisLines: boolean;
-    private renderBorderLines: boolean;
+
+    renderBaseGrid: boolean;
+    renderAxisLines: boolean;
+    renderBorderLines: boolean;
 
     constructor(view: LVLMapView) {
 

@@ -15,7 +15,7 @@ export abstract class UpdatedObject extends UniqueObject implements Dirtable {
     /**
      * Main constructor.
      */
-    protected constructor(name: string, id: string = null) {
+    protected constructor(name: string = null, id: string = null) {
 
         super(name, id);
 
