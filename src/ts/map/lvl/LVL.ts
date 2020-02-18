@@ -12,7 +12,7 @@ export class LVLMap implements Dirtable {
 
     tileset: LVLTileSet;
 
-    private readonly tiles: number[][];
+    readonly tiles: number[][];
 
     private dirty: boolean;
 
@@ -195,7 +195,6 @@ export class LVLMap implements Dirtable {
  */
 export class LVLTileSet implements Dirtable {
 
-    private image: PIXI.Texture;
     private readonly tiles: PIXI.Texture[];
     private readonly tileCoordinates: number[][];
 
@@ -214,7 +213,7 @@ export class LVLTileSet implements Dirtable {
         // let buffer = new Float32Array(imgData.data.buffer);
         // this.texture = PIXI.Texture.fromBuffer(buffer, 304, 160);
 
-        /*
+
         this.tileCoordinates = [];
         this.tiles = [];
         this.tiles.push(null);
@@ -229,7 +228,7 @@ export class LVLTileSet implements Dirtable {
 
                 // Grab the section of the tileset for the tile and turn it into its own texture.
                 let rect = new PIXI.Rectangle(tx, ty, 16, 16);
-                let tile = new PIXI.Texture(this.image.baseTexture, rect);
+                let tile = new PIXI.Texture(this.texture.baseTexture, rect);
 
                 // Push the next ID to the stack.
                 this.tiles.push(tile);
@@ -243,8 +242,6 @@ export class LVLTileSet implements Dirtable {
                 this.tileCoordinates.push([tx, ty]);
             }
         }
-
-        */
     }
 
     /**
@@ -303,7 +300,7 @@ export class LVLTileSet implements Dirtable {
      * @return Returns the source image of the entire tileset.
      */
     public getTexture(): PIXI.Texture {
-        return this.image;
+        return this.texture;
     }
 
     public getTileCoordinates(tile: number): number[] {

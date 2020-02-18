@@ -74,6 +74,12 @@ export class LVLMapView extends UpdatedObject {
         this.app.stage.addChild(this.mapContainer);
         this.app.stage.addChild(this.grid);
 
+        for (let x = 0; x < 16; x++) {
+            for (let y = 0; y < 16; y++) {
+                this.app.stage.addChild(this.chunks[x][y].tileMap);
+            }
+        }
+
         this.container.appendChild(this.app.view);
 
         this.setDirty(true);
@@ -81,14 +87,9 @@ export class LVLMapView extends UpdatedObject {
         let tick = 0;
 
         this.app.ticker.add((delta) => {
-
             this.stats.begin();
 
-            // this.grid.draw();
-
             this.camera.update(delta);
-            // this.map.update(delta);
-
             this.update(delta);
 
             this.stats.end();
@@ -136,6 +137,16 @@ export class LVLMapView extends UpdatedObject {
             this.grid.draw();
         }
 
+        for (let x = 0; x < 16; x++) {
+            for (let y = 0; y < 16; y++) {
+                if (this.chunks[x][y].isDirty()) {
+                    this.chunks[x][y].update(delta);
+                }
+            }
+        }
+
+        this.map.setDirty(false);
+
         return true;
     }
 
@@ -149,7 +160,7 @@ export class LVLMapChunk extends UpdatedObject {
 
     public static readonly LENGTH = 64;
 
-    private tileMap: any;
+    tileMap: any;
     private view: LVLMapView;
     private readonly x: number;
     private readonly y: number;
@@ -165,7 +176,7 @@ export class LVLMapChunk extends UpdatedObject {
         // @ts-ignore
         this.tileMap = new PIXI.tilemap.CompositeRectTileLayer(0,
             [
-                // tilesetTexture,
+                this.view.map.tileset.texture,
                 TileUtils.OVER1_TEXTURE,
                 TileUtils.OVER2_TEXTURE,
                 TileUtils.OVER3_TEXTURE,
@@ -178,10 +189,84 @@ export class LVLMapChunk extends UpdatedObject {
             ]
         );
 
+        this.setDirty(true);
+    }
+
+    // @Override
+    public isDirty(): boolean {
+        return super.isDirty() || this.view.camera.isDirty() || this.view.map.isDirty();
     }
 
     // @Override
     public onUpdate(delta: number): boolean {
+
+        let camera = this.view.camera;
+        let map = this.view.map;
+        let tiles = map.tiles;
+
+        let tileset = map.tileset;
+
+        if (camera.isDirty()) {
+            let sw = this.view.app.view.width;
+            let sh = this.view.app.view.height;
+            let cpos = camera.getPosition();
+            this.tileMap.x = (-1 + ((this.x * 64) - (cpos.x * 16) + sw / 2)) - (this.x * 64);
+            this.tileMap.y = ((this.y * 64) - (cpos.y * 16) + sh / 2) - (this.y * 64);
+        }
+
+        if (map.isDirty()) {
+
+            this.tileMap.clear();
+
+            // Go through each tile position on the raster and add tiles when present.
+            for (let x = this.x * 64; x < (this.x + 1) * 64; x++) {
+                for (let y = this.y * 64; y < (this.y + 1) * 64; y++) {
+
+                    // Grab the next tile.
+                    let tileId = tiles[x][y];
+
+                    if (tileId > 0 && tileId <= 190) {
+
+                        let tileCoordinates = tileset.getTileCoordinates(tileId);
+                        let tu = tileCoordinates[0];
+                        let tv = tileCoordinates[1];
+
+                        if (tileId == 170) {
+                            this.tileMap.addRect(6, 0, 0, x * 16, y * 16, 16, 16);
+                        } else if (tileId == 172) {
+                            this.tileMap.addRect(7, 0, 16, x * 16, y * 16, 16, 16);
+
+                        } else {
+
+                            // @ts-ignore
+                            this.tileMap.addRect(0, tu, tv, x * 16, y * 16, 16, 16);
+
+                        }
+
+                    } else if (tileId == 216) {
+                        this.tileMap.addRect(1, 0, 0, x * 16, y * 16, 16, 16);
+                    } else if (tileId == 217) {
+                        this.tileMap.addRect(2, 0, 0, x * 16, y * 16, 32, 32);
+                    } else if (tileId == 218) {
+                        this.tileMap.addRect(3, 0, 0, x * 16, y * 16, 16, 16);
+                    } else if (tileId == 219) {
+                        this.tileMap.addRect(4, 0, 0, x * 16, y * 16, 96, 96);
+                    } else if (tileId == 220) {
+                        this.tileMap.addRect(5, 0, 0, x * 16, y * 16, 80, 80);
+                    } else if (tileId == 255) {
+                        this.tileMap.addRect(8, 0, 0, x * 16, y * 16, 16, 16);
+                    } else {
+                        let tileCoordinates = tileset.getTileCoordinates(tileId);
+                        if (tileCoordinates != null) {
+                            let tu = tileCoordinates[0];
+                            let tv = tileCoordinates[1];
+                            // @ts-ignore
+                            this.tileMap.addRect(9, tu, tv, x * 16, y * 16, 16, 16);
+                        }
+                    }
+                }
+            }
+        }
         return true;
     }
 }
