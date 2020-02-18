@@ -11,7 +11,7 @@ let mapViewer: MapViewer;
 
 function debugLVL() {
 
-    let lvlFile = "assets/lvl/trench2.lvl";
+    let lvlFile = "assets/lvl/_bzw.lvl";
     let lvlFile2 = "assets/lvl/_bzw_.lvl";
 
     let map = LVL.read(lvlFile);

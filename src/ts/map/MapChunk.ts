@@ -71,8 +71,8 @@ export class MapChunk extends UpdatedObject {
             let sw = this.view.app.view.width;
             let sh = this.view.app.view.height;
             let cpos = camera.getPosition();
-            this.tileMap.x = this.tileMapAnim.x = (-1 + ((this.x * 64) - (cpos.x * 16) + sw / 2)) - (this.x * 64);
-            this.tileMap.y = this.tileMapAnim.y = ((this.y * 64) - (cpos.y * 16) + sh / 2) - (this.y * 64);
+            this.tileMap.x = this.tileMapAnim.x = Math.floor((-1 + ((this.x * 64) - (cpos.x * 16) + sw / 2)) - (this.x * 64));
+            this.tileMap.y = this.tileMapAnim.y = 1 + Math.floor(((this.y * 64) - (cpos.y * 16) + sh / 2) - (this.y * 64));
         }
 
         if (map.isDirty()) {

@@ -147,8 +147,8 @@ export class MapSprite {
 
     private updateCurrent() {
 
-        this.current[0] = this.frameX * this.frameWidth;
-        this.current[1] = this.frameY * this.frameHeight;
+        this.current[0] = Math.floor(this.frameX * this.frameWidth);
+        this.current[1] = Math.floor(this.frameY * this.frameHeight);
         this.current[2] = this.frameHeight;
         this.current[3] = this.frameWidth;
 
