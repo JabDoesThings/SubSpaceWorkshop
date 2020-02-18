@@ -5,7 +5,7 @@ import { MapUtils } from './map/old/MapUtils';
 import { LVZ } from './map/lvz/LVZUtils';
 import { LVZPackage } from './map/lvz/LVZ';
 import { LVL } from './map/lvl/LVLUtils';
-import { LVLMapView } from './map/LVLMapView';
+import { MapView } from './map/MapView';
 
 let mapViewer: MapViewer;
 
@@ -16,7 +16,7 @@ function debugLVL() {
 
     let map = LVL.read(lvlFile);
 
-    let mapViewer = new LVLMapView(map, document.getElementById("map-viewer-container"));
+    let mapViewer = new MapView(map, document.getElementById("map-viewer-container"));
 
     // let tileset = map.tileset;
 
@@ -70,9 +70,7 @@ export let start = function () {
     console.log("start.");
 
     debugLVL();
-
     // debugLVZ();
-
     // debugEditor();
 };
 

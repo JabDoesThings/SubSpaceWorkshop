@@ -29,7 +29,7 @@ export class TileSet extends DirtyDataObject {
         // Make sure the image is a valid tileset.
         // TileUtils.validateTilesetImage(image);
 
-        this.image = PIXI.Texture.from(image);
+        this.image = PIXI.Texture.from(image, {scaleMode: PIXI.SCALE_MODES.NEAREST});
 
         this.tileCoordinates = [];
         this.tiles = [];

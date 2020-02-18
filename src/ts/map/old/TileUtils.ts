@@ -12,15 +12,15 @@ export class TileUtils {
 
     public static DEFAULT_TILESET: TileSet = new TileSet("assets/media/tiles.bmp", "default", "default_tileset");
 
-    public static FLAG_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/flag.png");
-    public static GOAL_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/goal.png");
-    public static PRIZES_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/prizes.png");
-    public static OVER1_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over1.png");
-    public static OVER2_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over2.png");
-    public static OVER3_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over3.png");
-    public static OVER4_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over4.png");
-    public static OVER5_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over5.png");
-    public static EXTRAS_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/extras.bmp");
+    public static FLAG_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/flag.png", {scaleMode: PIXI.SCALE_MODES.NEAREST});
+    public static GOAL_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/goal.png", {scaleMode: PIXI.SCALE_MODES.NEAREST});
+    public static PRIZES_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/prizes.png", {scaleMode: PIXI.SCALE_MODES.NEAREST});
+    public static OVER1_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over1.png", {scaleMode: PIXI.SCALE_MODES.NEAREST});
+    public static OVER2_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over2.png", {scaleMode: PIXI.SCALE_MODES.LINEAR});
+    public static OVER3_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over3.png", {scaleMode: PIXI.SCALE_MODES.NEAREST});
+    public static OVER4_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over4.png", {scaleMode: PIXI.SCALE_MODES.NEAREST});
+    public static OVER5_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over5.png", {scaleMode: PIXI.SCALE_MODES.NEAREST});
+    public static EXTRAS_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/extras.bmp", {scaleMode: PIXI.SCALE_MODES.NEAREST});
 
     /**
      * Tests whether the image given is null or the dimensions given are invalid.
