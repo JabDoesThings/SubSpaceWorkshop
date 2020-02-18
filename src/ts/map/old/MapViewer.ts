@@ -1,9 +1,9 @@
 import * as PIXI from 'pixi.js';
 import { Map } from './Map';
 import { MapCamera } from './MapCamera';
-import { UpdatedObject } from '../util/UpdatedObject';
+import { UpdatedObject } from '../../util/UpdatedObject';
 import { MapUtils } from './MapUtils';
-import { RasterMapObject } from './objects/RasterMapObject';
+import { RasterMapObject } from '../objects/RasterMapObject';
 import { TileUtils } from './TileUtils';
 
 const Stats = require("stats.js");

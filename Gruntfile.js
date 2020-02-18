@@ -36,12 +36,14 @@ module.exports = function (grunt) {
                         dest: 'assets/js'
                     }],
                     options: {
-                        mangle: {
+                        /*mangle: {
                             keep_fnames: true
                         },
                         compress: {
                             keep_fnames: true,
-                        },
+                        },*/
+                        mangle: false,
+                        compress: false,
                         sourceMap: false
                     }
                 },

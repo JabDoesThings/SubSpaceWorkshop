@@ -10,7 +10,7 @@ export class TileUtils {
 
     public static readonly TILESET_DIMENSIONS: number[] = [306, 160];
 
-    public static DEFAULT_TILESET: TileSet = new TileSet("/assets/media/tiles.bmp", "default", "default_tileset");
+    public static DEFAULT_TILESET: TileSet = new TileSet("assets/media/tiles.bmp", "default", "default_tileset");
 
     public static FLAG_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/flag.png");
     public static GOAL_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/goal.png");

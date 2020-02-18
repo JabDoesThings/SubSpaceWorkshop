@@ -1,7 +1,7 @@
 import { MapObject } from './MapObject';
-import { MapUtils } from '../MapUtils';
-import { TileUtils } from '../TileUtils';
-import { Map } from "../Map";
+import { MapUtils } from '../old/MapUtils';
+import { TileUtils } from '../old/TileUtils';
+import { Map } from "../old/Map";
 import * as PIXI from "pixi.js";
 
 /**

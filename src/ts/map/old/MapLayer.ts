@@ -1,5 +1,5 @@
-import { MapObject } from './objects/MapObject';
-import { DirtyDataObject } from '../util/DirtyDataObject';
+import { MapObject } from '../objects/MapObject';
+import { DirtyDataObject } from '../../util/DirtyDataObject';
 
 /**
  * The <i>MapLayer</i> class. TODO: Document.

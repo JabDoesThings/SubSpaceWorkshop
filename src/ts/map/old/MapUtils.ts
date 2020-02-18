@@ -1,7 +1,9 @@
 import { Map } from './Map';
 import * as fs from 'fs';
-import { RasterMapObject } from './objects/RasterMapObject';
+import { RasterMapObject } from '../objects/RasterMapObject';
 import { TileSet } from './TileSet';
+import { BufferUtils } from '../../util/BufferUtils';
+import { TileUtils } from './TileUtils';
 
 /**
  * The <i>MapUtils</i> class. TODO: Document.
@@ -118,7 +120,7 @@ export class MapUtils {
 
     public static read(map: Map, path: string): void {
 
-        let tileset: TileSet = new TileSet(path, path);
+        let tileset: TileSet;
         map.setTileset(tileset);
 
         let buffer = fs.readFileSync(path);
@@ -134,10 +136,19 @@ export class MapUtils {
             }
         }
 
-        // Skip tileset bitmap image.
-        let offset = 2;
-        let readInSize = buffer.readInt32LE(offset);
-        offset += readInSize - 2;
+        let offset = 0;
+        let bm = BufferUtils.readFixedString(buffer, 0, 2);
+        if (bm === 'BM') {
+
+            tileset = new TileSet(path, path);
+
+            // Skip tileset bitmap image.
+            offset = buffer.readInt32LE(offset);
+        } else {
+            tileset = new TileSet("assets/media/tiles.bmp", "default");
+        }
+
+        map.setTileset(tileset);
 
         console.log("offset: " + offset + " length: " + length);
 

@@ -13,6 +13,7 @@ import {
     LVZScreenObject
 } from './LVZ';
 import * as zlib from 'zlib';
+import { BufferUtils } from '../../util/BufferUtils';
 
 export class LVZ {
 
@@ -43,7 +44,7 @@ export class LVZ {
         let offset: number = 0;
         let buffer: Buffer = fs.readFileSync(path);
 
-        let header = this.readFixedString(buffer, offset, 4);
+        let header = BufferUtils.readFixedString(buffer, offset, 4);
         offset += 4;
 
         if (!fs.existsSync(path)) {
@@ -61,7 +62,7 @@ export class LVZ {
 
             for (let index = 0; index < sectionCount; index++) {
 
-                let header = this.readFixedString(buffer, offset, 4);
+                let header = BufferUtils.readFixedString(buffer, offset, 4);
                 offset += 4;
 
                 // Make sure the section is a valid LVZ section.
@@ -78,7 +79,7 @@ export class LVZ {
                 let compressSize = buffer.readUInt32LE(offset);
                 offset += 4;
 
-                let fileName: string = LVZ.readNullString(buffer, offset);
+                let fileName: string = BufferUtils.readNullString(buffer, offset);
                 offset += fileName.length + 1;
 
                 let data = buffer.subarray(offset, offset + compressSize);
@@ -104,13 +105,13 @@ export class LVZ {
         let offset = 0;
 
         // Write LVZ Header.
-        LVZ.writeFixedString(buffer, 'CONT', offset);
+        BufferUtils.writeFixedString(buffer, 'CONT', offset);
         offset += 4;
         buffer.writeUInt32LE(pkg.sections.length, offset);
         offset += 4;
 
         let writeSection = (section: CompressedLVZSection) => {
-            LVZ.writeFixedString(buffer, 'CONT', offset);
+            BufferUtils.writeFixedString(buffer, 'CONT', offset);
             offset += 4;
             buffer.writeUInt32LE(section.decompressSize, offset);
             offset += 4;
@@ -118,7 +119,7 @@ export class LVZ {
             offset += 4;
             buffer.writeUInt32LE(section.compressSize, offset);
             offset += 4;
-            LVZ.writeNullString(section.fileName, buffer, offset);
+            BufferUtils.writeNullString(section.fileName, buffer, offset);
             offset += section.fileName.length + 1;
             section.data.copy(buffer, offset, 0, section.data.length);
             offset += section.data.length;
@@ -190,7 +191,7 @@ export class LVZ {
         let buffer = section.data;
         let offset = 0;
 
-        let objHeader = LVZ.readFixedString(buffer, offset, 4);
+        let objHeader = BufferUtils.readFixedString(buffer, offset, 4);
         offset += 4;
 
         let objCount = buffer.readUInt32LE(offset);
@@ -221,7 +222,7 @@ export class LVZ {
             offset += 2;
             let yFrames = buffer.readInt16LE(offset);
             offset += 2;
-            let fileName = this.readNullString(buffer, offset);
+            let fileName = BufferUtils.readNullString(buffer, offset);
             offset += fileName.length + 1;
             /////////////////////////////////////////////
 
@@ -406,7 +407,7 @@ export class LVZ {
         let offset = 0;
 
         // Header.
-        this.writeFixedString(buffer, "CLV2", offset);
+        BufferUtils.writeFixedString(buffer, "CLV2", offset);
         offset += 4;
         buffer.writeUInt32LE(mapCount + screenCount, offset);
         offset += 4;
@@ -489,7 +490,7 @@ export class LVZ {
             offset += 2;
             buffer.writeInt16LE(image.animationTime, offset);
             offset += 2;
-            LVZ.writeNullString(image.fileName, buffer, offset);
+            BufferUtils.writeNullString(image.fileName, buffer, offset);
             offset += image.fileName.length + 1;
             /////////////////////////////////////////////
         };
@@ -512,42 +513,6 @@ export class LVZ {
         let compressSize = compressBuffer.length;
 
         return new CompressedLVZSection(decompressSize, 0, compressSize, "", compressBuffer);
-    }
-
-    private static readFixedString(buffer: Buffer, offset: number, length: number): string {
-        let s: string = '';
-        for (let index = offset; index < offset + length; index++) {
-            s += String.fromCharCode(buffer.readInt8(index));
-        }
-        return s;
-    }
-
-    private static writeFixedString(buffer: Buffer, s: string, offset: number): void {
-        // Write each character as ascii value.
-        for (let index = 0; index < s.length; index++) {
-            buffer.writeInt8(s.charCodeAt(index), offset + index);
-        }
-    }
-
-    private static readNullString(buffer: Buffer, offset: number): string {
-        let s: string = '';
-        let next: number = 0;
-        while ((next = buffer.readInt8(offset++)) != 0) {
-            s += String.fromCharCode(next);
-        }
-        return s;
-    }
-
-    private static writeNullString(s: string, buffer: Buffer, offset: number): void {
-
-        // Write each character as ascii value.
-        for (let index = 0; index < s.length; index++) {
-            buffer.writeInt8(s.charCodeAt(index), offset + index);
-        }
-
-        // Write null-end value.
-        buffer.writeInt8(0, offset + s.length);
-
     }
 
     public static validateDecompressedScreenObject(dpkg: LVZPackage, object: CompiledLVZScreenObject): LVZErrorStatus {

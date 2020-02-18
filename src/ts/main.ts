@@ -1,11 +1,30 @@
-import { MapViewer } from './map/MapViewer';
+import { MapViewer } from './map/old/MapViewer';
 
-import { Map } from './map/Map';
-import { MapUtils } from './map/MapUtils';
+import { Map } from './map/old/Map';
+import { MapUtils } from './map/old/MapUtils';
 import { LVZ } from './map/lvz/LVZUtils';
 import { LVZPackage } from './map/lvz/LVZ';
+import { LVL } from './map/lvl/LVLUtils';
+import { LVLMapView } from './map/LVLMapView';
 
 let mapViewer: MapViewer;
+
+function debugLVL() {
+
+    let lvlFile = "assets/lvl/trench2.lvl";
+    let lvlFile2 = "assets/lvl/_bzw_.lvl";
+
+    let map = LVL.read(lvlFile);
+
+    let mapViewer = new LVLMapView(map, document.getElementById("map-viewer-container"));
+
+    // let tileset = map.tileset;
+
+    // document.body.appendChild(tileset.source);
+    // document.body.appendChild(LVL.DEFAULT_TILESET.source);
+
+    // LVL.write(map, lvlFile2);
+}
 
 function debugLVZ() {
 
@@ -39,17 +58,20 @@ function debugLVZ() {
 function debugEditor() {
 
     let map = new Map("Map");
-    MapUtils.read(map, "assets/lvl/trench2.lvl");
+    MapUtils.read(map, "assets/lvl/_bzw.lvl");
 
     let htmlContainer: HTMLElement = document.getElementById("map-viewer-container");
     mapViewer = new MapViewer(htmlContainer, map);
+
 }
 
 export let start = function () {
 
     console.log("start.");
 
-    debugLVZ();
+    debugLVL();
+
+    // debugLVZ();
 
     // debugEditor();
 };

@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 
 import { TileUtils } from './TileUtils';
-import { DirtyDataObject } from '../util/DirtyDataObject';
+import { DirtyDataObject } from '../../util/DirtyDataObject';
 
 /**
  * The <i>Tileset</i> class. TODO: Document.

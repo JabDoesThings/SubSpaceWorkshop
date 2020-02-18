@@ -1,8 +1,8 @@
-import { RasterMapObject } from './objects/RasterMapObject';
-import { MapObject } from './objects/MapObject';
+import { RasterMapObject } from '../objects/RasterMapObject';
+import { MapObject } from '../objects/MapObject';
 import { TileSet } from './TileSet';
 import { TileUtils } from './TileUtils';
-import { UpdatedObject } from '../util/UpdatedObject';
+import { UpdatedObject } from '../../util/UpdatedObject';
 
 /**
  * The <i>Map</i> class. TODO: Document.

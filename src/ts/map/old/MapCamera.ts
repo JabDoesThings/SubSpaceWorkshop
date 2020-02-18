@@ -1,7 +1,7 @@
 import { Vector2 } from 'three';
 import { MapUtils } from './MapUtils';
-import { UpdatedObject } from '../util/UpdatedObject';
-import { KeyListener } from '../util/KeyListener';
+import { UpdatedObject } from '../../util/UpdatedObject';
+import { KeyListener } from '../../util/KeyListener';
 
 /**
  * The <i>MapCamera</i> class. TODO: Document.
