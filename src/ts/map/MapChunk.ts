@@ -2,6 +2,7 @@ import { UpdatedObject } from '../util/UpdatedObject';
 import * as PIXI from "pixi.js";
 import { LVL } from './lvl/LVLUtils';
 import { Renderer } from '../Renderer';
+import Filter = PIXI.Filter;
 
 export class MapChunk extends UpdatedObject {
 
@@ -49,6 +50,10 @@ export class MapChunk extends UpdatedObject {
                 LVL.PRIZES_TEXTURE,
             ]
         );
+
+        // let filter = new PIXI.filters.ColorMatrixFilter();
+        // this.tileMap.filters = [filter];
+        // this.tileMapAnim.filters = [filter];
 
         this.setDirty(true);
     }
@@ -123,6 +128,16 @@ export class MapChunk extends UpdatedObject {
                                 id: tileId
                             });
 
+                        }
+                            // These tiles are see-through in-game, so set these in animation tilemap
+                        //       So that they are see-through.
+                        else if (tileId >= 173 && tileId <= 190) {
+                            this.tilesAnim.push({
+                                x: x * 16,
+                                y: y * 16,
+                                texture: 0,
+                                id: tileId
+                            });
                         } else {
 
                             // @ts-ignore
@@ -204,6 +219,11 @@ export class MapChunk extends UpdatedObject {
 
             if (frame != null) {
                 this.tileMapAnim.addRect(texture, frame[0], frame[1], x, y, frame[2], frame[3]);
+            } else {
+                let tileCoordinates = tileset.getTileCoordinates(next.id);
+                let tu = tileCoordinates[0];
+                let tv = tileCoordinates[1];
+                this.tileMapAnim.addRect(texture, tu, tv, x, y, 16, 16);
             }
         }
 

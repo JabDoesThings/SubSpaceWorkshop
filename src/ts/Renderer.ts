@@ -6,10 +6,26 @@ import { UpdatedObject } from './util/UpdatedObject';
 import { MapSprite } from './map/MapSprite';
 import { MapGrid } from './map/MapGrid';
 import { MapCamera } from './map/MapCamera';
+import Filter = PIXI.Filter;
 
 const Stats = require("stats.js");
 
 export class Renderer extends UpdatedObject {
+
+    private fragmentSrc = [
+        "varying vec2 vTextureCoord;" +
+        "" +
+        "uniform sampler2D uSampler;" +
+        "" +
+        "void main(void) {" +
+        "   gl_FragColor = texture2D(uSampler, vTextureCoord);" +
+        "   if(gl_FragColor.r == 0.0 && gl_FragColor.g == 0.0 && gl_FragColor.b == 0.0) {" +
+        "       gl_FragColor.a = 0.0;" +
+        "   }" +
+        "}"
+    ].join("\n");
+
+    private filter = new Filter(undefined, this.fragmentSrc, undefined);
 
     readonly map: LVLMap;
     readonly container: HTMLElement;
@@ -19,6 +35,7 @@ export class Renderer extends UpdatedObject {
     app: PIXI.Application;
     private grid: MapGrid;
     private mapContainer: PIXI.Container;
+    private mapAnimContainer: PIXI.Container;
 
     mapSpriteFlag: MapSprite;
     mapSpriteGoal: MapSprite;
@@ -94,13 +111,18 @@ export class Renderer extends UpdatedObject {
 
         this.grid = new MapGrid(this);
         this.mapContainer = new PIXI.Container();
-        this.app.stage.addChild(this.mapContainer);
+        this.mapAnimContainer = new PIXI.Container();
+        this.mapAnimContainer.filters = [this.filter];
+        this.mapAnimContainer.filterArea = this.app.renderer.screen;
+
         this.app.stage.addChild(this.grid);
+        this.app.stage.addChild(this.mapContainer);
+        this.app.stage.addChild(this.mapAnimContainer);
 
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
-                this.app.stage.addChild(this.chunks[x][y].tileMap);
-                this.app.stage.addChild(this.chunks[x][y].tileMapAnim);
+                this.mapContainer.addChild(this.chunks[x][y].tileMap);
+                this.mapAnimContainer.addChild(this.chunks[x][y].tileMapAnim);
             }
         }
 
