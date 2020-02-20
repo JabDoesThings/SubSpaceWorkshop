@@ -5,8 +5,8 @@ import { LVZPackage } from './map/lvz/LVZ';
 
 function debugLVL() {
 
-    let lvlFile = "assets/lvl/trench2.lvl";
-    let lvlFile2 = "assets/lvl/trench8.lvl";
+    let lvlFile = "assets/lvl/zone66.lvl";
+    let lvlFile2 = "assets/lvl/zone66_.lvl";
 
     let map = LVL.read(lvlFile);
     LVL.write(map, lvlFile2);

@@ -51,7 +51,7 @@ export class Bitmap {
         this.biClrUsed = buffer.readUInt32LE(46);
         this.biClrImportant = buffer.readUInt32LE(50);
 
-        if(Bitmap.DEBUG) {
+        if (Bitmap.DEBUG) {
             console.log('this.bfType=' + this.bfType);
             console.log('this.bfSize=' + this.bfSize);
             console.log('this.bfReserved1=' + this.bfReserved1);
@@ -68,6 +68,11 @@ export class Bitmap {
             console.log('this.biYPelsPerMeter=' + this.biYPelsPerMeter);
             console.log('this.biClrUsed=' + this.biClrUsed);
             console.log('this.biClrImportant=' + this.biClrImportant);
+        }
+
+        if (this.biClrUsed == 0 && this.bitCount == 8) {
+            this.biClrUsed = 256;
+            this.biClrImportant = 256;
         }
 
         // Define our color tables/colors used
@@ -130,6 +135,8 @@ export class Bitmap {
             for (let index = 0; index < this.biWidth * this.biHeight; index++) {
                 m_image[index] = this.pixels[index];
             }
+
+            console.log(this.colorTableRGB);
 
             for (let y = 0; y < this.biHeight; y++) {
                 for (let x = 0; x < this.biWidth; x++) {
