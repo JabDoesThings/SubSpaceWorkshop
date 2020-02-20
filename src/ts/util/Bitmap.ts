@@ -1,35 +1,30 @@
 /**
- * The <i>Bitmap</i> class. TODO: Document.
+ * The <i>BitmapHeader</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Bitmap {
+export class BitmapHeader {
 
-    public static readonly DEBUG = false;
+    readonly bfType: number;
+    readonly bfSize: number;
+    readonly bfReserved1: number;
+    readonly bfReserved2: number;
+    readonly bfOffBits: number;
+    readonly biSize: number;
+    readonly biWidth: number;
+    readonly biHeight: number;
+    readonly biPlanes: number;
+    readonly bitCount: number;
+    readonly biCompression: number;
+    readonly biSizeImage: number;
+    readonly biXPelsPerMeter: number;
+    readonly biYPelsPerMeter: number;
+    
+    pixelOffset: number;
+    biClrUsed: number;
+    biClrImportant: number;
 
-    private bfType: number;
-    private bfSize: number;
-    private bfReserved1: number;
-    private bfReserved2: number;
-    private bfOffBits: number;
-    private biSize: number;
-    private biWidth: number;
-    private biHeight: number;
-    private biPlanes: number;
-    private bitCount: number;
-    private biCompression: number;
-    private biSizeImage: number;
-    private biXPelsPerMeter: number;
-    private biYPelsPerMeter: number;
-    private biClrUsed: number;
-    private biClrImportant: number;
-    private colorTable: any[];
-    private colorTableRGB: any[];
-    private pixelOffset: number;
-    private stride: number;
-    private pixels: Uint8Array;
-
-    constructor(buffer: Buffer, transparent: boolean = false) {
+    constructor(buffer: Buffer) {
 
         // File Header
         this.bfType = buffer.readUInt16LE(0);
@@ -37,7 +32,6 @@ export class Bitmap {
         this.bfReserved1 = buffer.readUInt16LE(6);
         this.bfReserved2 = buffer.readUInt16LE(8);
         this.bfOffBits = buffer.readUInt32LE(10);
-
         // Info Header
         this.biSize = buffer.readUInt32LE(14);
         this.biWidth = buffer.readUInt32LE(18);
@@ -69,22 +63,44 @@ export class Bitmap {
             console.log('this.biClrUsed=' + this.biClrUsed);
             console.log('this.biClrImportant=' + this.biClrImportant);
         }
+    }
+}
 
-        if (this.biClrUsed == 0 && this.bitCount == 8) {
-            this.biClrUsed = 256;
-            this.biClrImportant = 256;
+/**
+ * The <i>Bitmap</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class Bitmap {
+
+    public static readonly DEBUG = false;
+
+    readonly header: BitmapHeader;
+
+    private colorTable: any[];
+    private colorTableRGB: any[];
+    private stride: number;
+    private pixels: Uint8Array;
+
+    constructor(buffer: Buffer, transparent: boolean = false) {
+
+        let header = this.header = new BitmapHeader(buffer);
+
+        if (header.biClrUsed == 0 && header.bitCount == 8) {
+            header.biClrUsed = 256;
+            header.biClrImportant = 256;
         }
 
         // Define our color tables/colors used
-        this.colorTable = new Array(this.biClrUsed);
-        this.colorTableRGB = new Array(this.biClrUsed);
+        this.colorTable = new Array(header.biClrUsed);
+        this.colorTableRGB = new Array(header.biClrUsed);
 
-        if (this.bitCount <= 8) {
+        if (header.bitCount <= 8) {
 
-            let pixelOffset = 14 + this.biSize;
+            let pixelOffset = 14 + header.biSize;
 
             // Read in the color table
-            for (let i = 0; i < this.biClrUsed; i++) {
+            for (let i = 0; i < header.biClrUsed; i++) {
 
                 this.colorTable[i] = buffer.readUInt32LE(pixelOffset);
                 pixelOffset += 4;
@@ -102,24 +118,26 @@ export class Bitmap {
                 }
             }
 
-            this.pixelOffset = pixelOffset;
+            header.pixelOffset = pixelOffset;
         }
 
-        this.stride = Math.floor((this.bitCount * this.biWidth + 31) / 32) * 4;
-        this.pixels = new Uint8Array(buffer.subarray(this.bfOffBits), 0);
+        this.stride = Math.floor((header.bitCount * header.biWidth + 31) / 32) * 4;
+        this.pixels = new Uint8Array(buffer.subarray(header.bfOffBits), 0);
     }
 
     public convertToImageData(): ImageData {
 
+        let header = this.header;
+
         let canvas = document.createElement("canvas");
         let ctx = canvas.getContext("2d");
-        let imageData = ctx.createImageData(this.biWidth, this.biHeight);
+        let imageData = ctx.createImageData(header.biWidth, header.biHeight);
 
-        if (this.bitCount == 24) {
+        if (header.bitCount == 24) {
 
-            for (let y = 0; y < this.biHeight; y++) {
-                for (let x = 0; x < this.biWidth; x++) {
-                    let index1 = (x + this.biWidth * ((this.biHeight - 1) - y)) * 4;
+            for (let y = 0; y < header.biHeight; y++) {
+                for (let x = 0; x < header.biWidth; x++) {
+                    let index1 = (x + header.biWidth * ((header.biHeight - 1) - y)) * 4;
                     let index2 = (x * 3 + this.stride * y);
                     imageData.data[index1] = this.pixels[index2 + 2];
                     imageData.data[index1 + 1] = this.pixels[index2 + 1];
@@ -128,20 +146,20 @@ export class Bitmap {
                 }
             }
 
-        } else if (this.bitCount <= 8) {
+        } else if (header.bitCount <= 8) {
 
-            let m_image: number[] = new Array(this.biWidth * this.biHeight);
+            let m_image: number[] = new Array(header.biWidth * header.biHeight);
 
-            for (let index = 0; index < this.biWidth * this.biHeight; index++) {
+            for (let index = 0; index < header.biWidth * header.biHeight; index++) {
                 m_image[index] = this.pixels[index];
             }
 
             console.log(this.colorTableRGB);
 
-            for (let y = 0; y < this.biHeight; y++) {
-                for (let x = 0; x < this.biWidth; x++) {
+            for (let y = 0; y < header.biHeight; y++) {
+                for (let x = 0; x < header.biWidth; x++) {
 
-                    let dataIndex = (x + this.biWidth * ((this.biHeight - 1) - y)) * 4;
+                    let dataIndex = (x + header.biWidth * ((header.biHeight - 1) - y)) * 4;
                     let rgb = m_image[x + this.stride * y];
 
                     imageData.data[dataIndex] = this.colorTableRGB[rgb][0];
@@ -402,6 +420,11 @@ export class PaletteData {
     }
 }
 
+/**
+ * The <i>PaletteColor</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class PaletteColor {
 
     r: number;
@@ -420,5 +443,4 @@ export class PaletteColor {
         let b = Math.abs(this.b - other.b);
         return r + g + b / 3.0;
     }
-
 }

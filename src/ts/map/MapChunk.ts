@@ -1,7 +1,7 @@
 import { UpdatedObject } from '../util/UpdatedObject';
 import * as PIXI from "pixi.js";
 import { LVL } from './lvl/LVLUtils';
-import { MapView } from './MapView';
+import { Renderer } from '../Renderer';
 
 export class MapChunk extends UpdatedObject {
 
@@ -9,13 +9,13 @@ export class MapChunk extends UpdatedObject {
 
     tileMap: any;
     tileMapAnim: any;
-    private view: MapView;
+    private view: Renderer;
     private readonly x: number;
     private readonly y: number;
 
     private tilesAnim: { id: number, texture: number, x: number, y: number }[];
 
-    constructor(view: MapView, x: number, y: number) {
+    constructor(view: Renderer, x: number, y: number) {
 
         super();
 

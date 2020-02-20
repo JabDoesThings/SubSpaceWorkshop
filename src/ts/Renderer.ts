@@ -1,15 +1,15 @@
-import { MapChunk } from './MapChunk';
+import { MapChunk } from './map/MapChunk';
 import * as PIXI from "pixi.js";
 
-import { LVLMap } from './lvl/LVL';
-import { UpdatedObject } from '../util/UpdatedObject';
-import { MapSprite } from './MapSprite';
-import { MapGrid } from './MapGrid';
-import { MapCamera } from './MapCamera';
+import { LVLMap } from './map/lvl/LVL';
+import { UpdatedObject } from './util/UpdatedObject';
+import { MapSprite } from './map/MapSprite';
+import { MapGrid } from './map/MapGrid';
+import { MapCamera } from './map/MapCamera';
 
 const Stats = require("stats.js");
 
-export class MapView extends UpdatedObject {
+export class Renderer extends UpdatedObject {
 
     readonly map: LVLMap;
     readonly container: HTMLElement;

@@ -196,10 +196,13 @@ export class LVLTileSet implements Dirtable {
     public source: HTMLCanvasElement;
     texture: PIXI.Texture;
 
+    bitCount: number;
+
     constructor(canvas: HTMLCanvasElement) {
 
         this.source = canvas;
         this.texture = PIXI.Texture.from(canvas.toDataURL());
+        this.bitCount = 8;
 
         this.tileCoordinates = [];
         this.tiles = [];

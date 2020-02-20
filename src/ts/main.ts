@@ -1,6 +1,6 @@
 import { LVL } from './map/lvl/LVLUtils';
 import { LVZ } from './map/lvz/LVZUtils';
-import { MapView } from './map/MapView';
+import { Renderer } from './Renderer';
 import { LVZPackage } from './map/lvz/LVZ';
 
 function debugLVL() {
@@ -11,7 +11,7 @@ function debugLVL() {
     let map = LVL.read(lvlFile);
     LVL.write(map, lvlFile2);
 
-    let mapViewer = new MapView(map, document.getElementById("map-viewer-container"));
+    let mapViewer = new Renderer(map, document.getElementById("map-viewer-container"));
 }
 
 function debugLVZ() {
