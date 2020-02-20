@@ -5,20 +5,19 @@ import { LVZPackage } from './map/lvz/LVZ';
 
 function debugLVL() {
 
-    let lvlFile = "assets/lvl/_bzw.lvl";
-    let lvlFile2 = "assets/lvl/_bzw_.lvl";
+    let lvlFile = "assets/lvl/trench2.lvl";
+    let lvlFile2 = "assets/lvl/trench8.lvl";
 
     let map = LVL.read(lvlFile);
+    LVL.write(map, lvlFile2);
 
     let mapViewer = new MapView(map, document.getElementById("map-viewer-container"));
-
-    // LVL.write(map, lvlFile2);
 }
 
 function debugLVZ() {
 
-    let lvzFile = "assets/lvz/thefield2.lvz";
-    let lvzFile2 = "assets/lvz/thefield2_copy.lvz";
+    let lvzFile = "assets/lvz/zone66.lvz";
+    let lvzFile2 = "assets/lvz/zone66_.lvz";
     console.log("!!! Reading LVZ: " + lvzFile + "..");
     let compressedPackage = LVZ.read(lvzFile);
     // compressedPackage.print();

@@ -59,7 +59,6 @@ export class MapView extends UpdatedObject {
         this.mapSpriteOver4 = new MapSprite(96, 96, 5, 2, 80);
         this.mapSpriteOver5 = new MapSprite(80, 80, 4, 6, 80);
         this.mapSpritePrize = new MapSprite(16, 16, 10, 1, 80);
-
         this.mapSpriteDoor1 = new MapSprite(16, 16, 19, 10, 80, 9, 8, 12, 8);
         this.mapSpriteDoor2 = new MapSprite(16, 16, 19, 10, 80, 13, 8, 16, 8);
 

@@ -22,7 +22,7 @@ export class LVL {
 
     public static read(path: string): LVLMap {
 
-        let tileset: LVLTileSet;
+        let tileSet: LVLTileSet;
         let buffer = fs.readFileSync(path);
         let length = buffer.length;
 
@@ -39,14 +39,13 @@ export class LVL {
         let bm = BufferUtils.readFixedString(buffer, 0, 2);
         if (bm === 'BM') {
 
-            tileset = this.readTileset(buffer);
+            tileSet = this.readTileset(buffer);
 
-            // Skip tileset bitmap image.
+            // Skip tileSet bitmap image.
             offset = buffer.readInt32LE(2);
         } else {
-            tileset = LVL.DEFAULT_TILESET;
+            tileSet = LVL.DEFAULT_TILESET;
         }
-
 
         let tileCount = 0;
 
@@ -60,11 +59,49 @@ export class LVL {
             tileCount++;
         }
 
-        return new LVLMap(tileset, tiles);
+        return new LVLMap(tileSet, tiles);
     }
 
     static write(map: LVLMap, path: string) {
 
+        let tileSetBuffer: Buffer = null;
+        let tileBuffer = LVL.toTileBuffer(map);
+        let buffer: Buffer;
+        if (map.tileset != null && map.tileset !== LVL.DEFAULT_TILESET) {
+            tileSetBuffer = Bitmap.toBuffer(map.tileset.source, 8);
+            buffer = Buffer.concat([tileSetBuffer, tileBuffer]);
+        } else {
+            buffer = tileBuffer;
+        }
+
+        fs.writeFileSync(path, buffer);
+    }
+
+    private static toTileBuffer(map: LVLMap): Buffer {
+
+        let tiles = map.tiles;
+        let tilesToWrite: { id: number, x: number, y: number }[] = [];
+        for (let x = 0; x < 1024; x++) {
+            for (let y = 0; y < 1024; y++) {
+                let nextTile = tiles[x][y];
+                if (nextTile !== 0) {
+                    tilesToWrite.push({id: nextTile, x: x, y: y});
+                }
+            }
+        }
+
+        let mapBufferLength = 4 * tilesToWrite.length;
+        let buffer: Buffer = Buffer.alloc(mapBufferLength);
+
+        let offset = 0;
+        for (let index = 0; index < tilesToWrite.length; index++) {
+            let tile = tilesToWrite[index];
+            let int = ((tile.id & 0x00ff) << 24) | ((tile.y & 0x03FF) << 12) | (tile.x & 0x03FF);
+            buffer.writeInt32LE(int, offset);
+            offset += 4;
+        }
+
+        return buffer;
     }
 
     public static readTilesetImage(path: string): LVLTileSet {
@@ -82,8 +119,8 @@ export class LVL {
         canvas.width = 304;
         canvas.height = 160;
         let context = canvas.getContext('2d');
-
         context.putImageData(imageData, 0, 0);
+
         return new LVLTileSet(canvas);
     }
 
