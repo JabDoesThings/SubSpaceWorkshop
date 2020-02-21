@@ -5,8 +5,10 @@ import { LVZPackage } from './map/lvz/LVZ';
 
 function debugLVL() {
 
-    let lvlFile = "assets/lvl/hz.lvl";
-    let lvlFile2 = "assets/lvl/hz_.lvl";
+    let arena = "thefield2";
+
+    let lvlFile = "assets/lvl/" + arena + ".lvl";
+    let lvlFile2 = "assets/lvl/" + arena + "_.lvl";
 
     let map = LVL.read(lvlFile);
     // LVL.write(map, lvlFile2);

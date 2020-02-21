@@ -2,7 +2,8 @@ import {
     ELVLAttribute,
     ELVLChunk,
     ELVLChunkType,
-    ELVLCollection, ELVLDCMEHashCode,
+    ELVLCollection,
+    ELVLDCMEHashCode, ELVLDCMELVZPath,
     ELVLDCMETextTiles,
     ELVLDCMEWallTile,
     ELVLRawChunk,
@@ -61,6 +62,15 @@ export class ELVL {
             console.log("ELVL header's 3rd UInt32 value is not 0 and is invalid.");
             return null;
         }
+
+        let pad = (size: number): void => {
+
+            // Pad to the next 4 bytes.
+            let remainder = size % 4;
+            if (remainder != 0) {
+                eOffset += 4 - remainder;
+            }
+        };
 
         let getBitFragment = (extractFrom: number, startIndex: number, endIndex: number): number => {
             let shift = 8 - endIndex;
@@ -211,10 +221,7 @@ export class ELVL {
             let value = split[1];
 
             // Pad to the next 4 bytes.
-            let remainder = size % 4;
-            if (remainder != 0) {
-                eOffset += 4 - remainder;
-            }
+            pad(size);
 
             console.log("Adding ELVLAttribute('" + key + "', '" + value + "').");
             return new ELVLAttribute(key, value);
@@ -256,10 +263,7 @@ export class ELVL {
                     eOffset += nameSize;
 
                     // Pad to the next 4 bytes.
-                    let remainder = nameSize % 4;
-                    if (remainder != 0) {
-                        eOffset += 4 - remainder;
-                    }
+                    pad(nameSize);
 
                 } else if (subChunkType == ELVLRegionType.TILE_DATA) {
 
@@ -271,10 +275,8 @@ export class ELVL {
                     let tiles = decodeTiles(eOffset += tdSize);
 
                     // Pad to the next 4 bytes.
-                    let remainder = tdSize % 4;
-                    if (remainder != 0) {
-                        eOffset += 4 - remainder;
-                    }
+                    // Pad to the next 4 bytes.
+                    pad(tdSize);
 
                     tileData = new ELVLRegionTileData(tiles);
 
@@ -284,24 +286,28 @@ export class ELVL {
 
                     eOffset += 4; // Size will always be zero.
                     options.isFlagBase = true;
+
                 } else if (subChunkType == ELVLRegionType.NO_ANTIWARP) {
 
                     console.log("\tReading NO_ANTIWARP... (size=" + 0 + ")");
 
                     eOffset += 4; // Size will always be zero.
                     options.noAntiWarp = true;
+
                 } else if (subChunkType == ELVLRegionType.NO_WEAPONS) {
 
                     console.log("\tReading NO_WEAPONS... (size=" + 0 + ")");
 
                     eOffset += 4; // Size will always be zero.
                     options.noWeapons = true;
+
                 } else if (subChunkType == ELVLRegionType.NO_FLAG_DROPS) {
 
                     console.log("\tReading NO_FLAG_DROPS... (size=" + 0 + ")");
 
                     eOffset += 4; // Size will always be zero.
                     options.noFlagDrops = true;
+
                 } else if (subChunkType == ELVLRegionType.AUTO_WARP) {
 
                     let awSize = buffer.readUInt32LE(eOffset);
@@ -324,10 +330,7 @@ export class ELVL {
                     }
 
                     // Pad to the next 4 bytes.
-                    let remainder = awSize % 4;
-                    if (remainder != 0) {
-                        eOffset += 4 - remainder;
-                    }
+                    pad(awSize);
 
                     autoWarp = new ELVLRegionAutoWarp(x, y, arena);
 
@@ -341,10 +344,7 @@ export class ELVL {
                     pythonCode = BufferUtils.readFixedString(buffer, eOffset, pycSize);
 
                     // Pad to the next 4 bytes.
-                    let remainder = pycSize % 4;
-                    if (remainder != 0) {
-                        eOffset += 4 - remainder;
-                    }
+                    pad(pycSize);
 
                 } else if (subChunkType == ELVLRegionType.DCME_COLOR) {
 
@@ -442,21 +442,29 @@ export class ELVL {
             return new ELVLDCMEHashCode(hashCode);
         };
 
-        let readRawChunk = (type: number): ELVLRawChunk => {
+        let readDCMELVZPath = (): ELVLDCMELVZPath => {
 
-            let size = buffer.readUInt32LE(eOffset);
+            let lvzpSize = buffer.readUInt32LE(eOffset);
             eOffset += 4;
 
+            let data = buffer.subarray(eOffset, eOffset + lvzpSize);
+            eOffset += lvzpSize;
+
+            pad(lvzpSize);
+
+            return new ELVLDCMELVZPath(ELVLChunkType.DCME_LVZ_PATH, data);
+        };
+
+        let readRawChunk = (type: number): ELVLRawChunk => {
+
+            let rSize = buffer.readUInt32LE(eOffset);
+            eOffset += 4;
+
+            let data = buffer.subarray(eOffset, eOffset + rSize);
+            eOffset += rSize;
+
             // Pad to the next 4 bytes.
-            let remainder = size % 4;
-            if (remainder != 0) {
-                size += 4 - remainder;
-            }
-
-            console.log("size: " + size);
-
-            let data = buffer.subarray(eOffset, eOffset + size);
-            eOffset += size;
+            pad(rSize);
 
             console.log("Adding ELVLRawChunk('" + type + "', " + data.length + " byte(s)).");
             return new ELVLRawChunk(type, data);
@@ -477,8 +485,10 @@ export class ELVL {
                 chunk = readDCMEWallTile();
             } else if (type == ELVLChunkType.DCME_TEXT_TILES) {
                 chunk = readDCMETextTiles();
-            } else if(type == ELVLChunkType.DCME_HASH_CODE) {
+            } else if (type == ELVLChunkType.DCME_HASH_CODE) {
                 chunk = readDCMEHashCode();
+            } else if (type == ELVLChunkType.DCME_LVZ_PATH) {
+                chunk = readDCMELVZPath();
             } else {
                 console.warn(
                     "Unknown type: "

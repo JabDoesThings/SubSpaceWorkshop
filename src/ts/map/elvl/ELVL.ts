@@ -708,26 +708,7 @@ export class ELVLDCMEBookmarks extends ELVLChunk {
  *
  * @author Jab
  */
-export class ELVLDCMELVZPath extends ELVLChunk {
-
-    constructor() {
-        super(ELVLChunkType.DCME_LVZ_PATH);
-    }
-
-    // @Override
-    equals(next: any): boolean {
-        return false;
-    }
-
-    // @Override
-    validate(): void {
-    }
-
-    // @Override
-    write(): Buffer {
-        return undefined;
-    }
-}
+export class ELVLDCMELVZPath extends ELVLRawChunk {}
 
 /**
  * The <i>ELVLType</i> enum identifies chunk types for ELVL data.
