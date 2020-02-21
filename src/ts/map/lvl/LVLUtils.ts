@@ -3,6 +3,8 @@ import { LVLMap, LVLTileSet } from './LVL';
 import { BufferUtils } from '../../util/BufferUtils';
 import { Bitmap } from '../../util/Bitmap';
 import * as PIXI from "pixi.js";
+import { ELVLCollection } from '../elvl/ELVL';
+import { ELVL } from '../elvl/ELVLUtils';
 
 export class LVL {
 
@@ -23,6 +25,7 @@ export class LVL {
     public static read(path: string): LVLMap {
 
         let tileSet: LVLTileSet;
+        let elvlData: ELVLCollection;
         let buffer = fs.readFileSync(path);
         let length = buffer.length;
 
@@ -40,6 +43,7 @@ export class LVL {
         if (bm === 'BM') {
 
             tileSet = this.readTileset(buffer);
+            elvlData = ELVL.read(buffer);
 
             // Skip tileSet bitmap image.
             offset = buffer.readInt32LE(2);

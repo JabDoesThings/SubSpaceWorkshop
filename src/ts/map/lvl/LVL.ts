@@ -201,6 +201,25 @@ export class LVLTileSet implements Dirtable {
     constructor(canvas: HTMLCanvasElement) {
 
         this.source = canvas;
+
+        // TILESET DEBUG CODE
+        //
+        // let width = 19;
+        // let height = 40;
+        // canvas.width = 16 * 19;
+        // canvas.height = 16 * 5;
+        //
+        // let ctx = canvas.getContext("2d");
+        //
+        // let offset = 0;
+        // for (let x = 0; x < width; x++) {
+        //     for (let y = 0; y < height; y++) {
+        //         let c = offset++ / (width * height) * 255.0;
+        //         ctx.fillStyle = 'rgb(' + c + "," + c + "," + c + ")";
+        //         ctx.fillRect(x * 16, y * 16, 16, 16);
+        //     }
+        // }
+
         this.texture = PIXI.Texture.from(canvas.toDataURL());
         this.bitCount = 8;
 
@@ -216,12 +235,12 @@ export class LVLTileSet implements Dirtable {
 
                 this.tileCoordinates.push([tx, ty]);
 
-                // Grab the section of the tileset for the tile and turn it into its own texture.
-                let rect = new PIXI.Rectangle(tx, ty, 16, 16);
-                let tile = new PIXI.Texture(this.texture.baseTexture, rect);
-
-                // Push the next ID to the stack.
-                this.tiles.push(tile);
+                // // Grab the section of the tileset for the tile and turn it into its own texture.
+                // let rect = new PIXI.Rectangle(tx, ty, 16, 16);
+                // let tile = new PIXI.Texture(this.texture.baseTexture, rect);
+                //
+                // // Push the next ID to the stack.
+                // this.tiles.push(tile);
             }
         }
 

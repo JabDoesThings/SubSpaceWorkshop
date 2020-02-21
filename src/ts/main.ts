@@ -5,11 +5,11 @@ import { LVZPackage } from './map/lvz/LVZ';
 
 function debugLVL() {
 
-    let lvlFile = "assets/lvl/zone66.lvl";
-    let lvlFile2 = "assets/lvl/zone66_.lvl";
+    let lvlFile = "assets/lvl/hz.lvl";
+    let lvlFile2 = "assets/lvl/hz_.lvl";
 
     let map = LVL.read(lvlFile);
-    LVL.write(map, lvlFile2);
+    // LVL.write(map, lvlFile2);
 
     let mapViewer = new Renderer(map, document.getElementById("map-viewer-container"));
 }

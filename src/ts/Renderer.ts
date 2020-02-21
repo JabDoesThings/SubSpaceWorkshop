@@ -110,6 +110,8 @@ export class Renderer extends UpdatedObject {
         });
 
         this.grid = new MapGrid(this);
+        this.grid.filters = [];
+        this.grid.filterArea = this.app.renderer.screen;
         this.mapContainer = new PIXI.Container();
         this.mapAnimContainer = new PIXI.Container();
         this.mapAnimContainer.filters = [this.filter];
