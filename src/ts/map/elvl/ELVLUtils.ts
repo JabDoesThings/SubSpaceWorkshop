@@ -2,7 +2,9 @@ import {
     ELVLAttribute,
     ELVLChunk,
     ELVLChunkType,
-    ELVLCollection, ELVLDCMEWallTile,
+    ELVLCollection, ELVLDCMEHashCode,
+    ELVLDCMETextTiles,
+    ELVLDCMEWallTile,
     ELVLRawChunk,
     ELVLRegion,
     ELVLRegionAutoWarp,
@@ -402,6 +404,44 @@ export class ELVL {
             return new ELVLDCMEWallTile(tiles);
         };
 
+        let readDCMETextTiles = (): ELVLDCMETextTiles => {
+
+            let ttSize = buffer.readUInt32LE(eOffset);
+            eOffset += 4;
+
+            // Create a blank character map.
+            let charMap = new Array(256);
+            for (let index = 0; index < charMap.length; index++) {
+                charMap[index] = 0;
+            }
+
+            let ttEnd = eOffset + ttSize;
+            while (eOffset < ttEnd) {
+                let charValue = buffer.readUInt8(eOffset++);
+                charMap[charValue] = buffer.readUInt8(eOffset++);
+            }
+
+            // Pad to the next 4 bytes.
+            let remainder = ttSize % 4;
+            if (remainder != 0) {
+                eOffset += 4 - remainder;
+            }
+
+            return new ELVLDCMETextTiles(charMap);
+
+        };
+
+        let readDCMEHashCode = (): ELVLDCMEHashCode => {
+
+            let hcSize = buffer.readUInt32LE(eOffset);
+            eOffset += 4;
+
+            let hashCode = BufferUtils.readFixedString(buffer, eOffset, hcSize);
+            eOffset += hcSize;
+
+            return new ELVLDCMEHashCode(hashCode);
+        };
+
         let readRawChunk = (type: number): ELVLRawChunk => {
 
             let size = buffer.readUInt32LE(eOffset);
@@ -435,6 +475,10 @@ export class ELVL {
                 chunk = readRegion();
             } else if (type == ELVLChunkType.DCME_WALL_TILES) {
                 chunk = readDCMEWallTile();
+            } else if (type == ELVLChunkType.DCME_TEXT_TILES) {
+                chunk = readDCMETextTiles();
+            } else if(type == ELVLChunkType.DCME_HASH_CODE) {
+                chunk = readDCMEHashCode();
             } else {
                 console.warn(
                     "Unknown type: "

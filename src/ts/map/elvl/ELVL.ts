@@ -530,6 +530,206 @@ export class ELVLDCMEWallTile extends ELVLChunk {
 }
 
 /**
+ * The <i>ELVLDCMETextTiles</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class ELVLDCMETextTiles extends ELVLChunk {
+
+    readonly charMap: number[];
+
+    constructor(chars: number[] = null) {
+
+        super(ELVLChunkType.DCME_TEXT_TILES);
+
+        if (chars == null) {
+
+            // Create a blank array for chars.
+            chars = new Array(256);
+
+            // Set all chars as not assigned.
+            for (let index = 0; index > chars.length; index++) {
+                chars[index] = 0;
+            }
+        }
+
+        this.charMap = chars;
+    }
+
+    // @Override
+    equals(next: any): boolean {
+
+        if (next == null || !(next instanceof ELVLDCMETextTiles)) {
+            return false;
+        }
+
+        for (let index = 0; index < this.charMap.length; index++) {
+            if (next.charMap[index] !== this.charMap[index]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // @Override
+    validate(): void {
+
+        if (this.charMap == null) {
+            throw new Error("The 'charMap' field for the ELVLDCMETextTiles is null or undefined.");
+        } else if (this.charMap.length != 256) {
+            throw new Error(
+                "The 'charMap' field for the ELVLDCMETextTiles is not 256 in size. ("
+                + this.charMap.length
+                + " in size)"
+            );
+        } else {
+            for (let index = 0; index < this.charMap.length; index++) {
+                let next = this.charMap[index];
+                if (typeof next !== 'number') {
+                    throw new Error("'charMap[" + index + "]' is not a number. (" + next + " assigned)");
+                } else if (next < 0) {
+                    throw new Error("'charMap[" + index + "]' is negative. (" + next + " assigned)");
+                }
+                // else if (next > 190) {
+                //     throw new Error(
+                //         "'charMap[" + index + "]' is greater than 190. (" + next + " assigned)");
+                // }
+            }
+        }
+    }
+
+    // @Override
+    write(): Buffer {
+
+        // Create a compressed character map to write to a buffer.
+        let compressedCharMap = [];
+        for (let index = 0; index < this.charMap.length; index++) {
+            let tileId = this.charMap[index];
+            if (tileId > 0) {
+                compressedCharMap.push(index);
+                compressedCharMap.push(tileId);
+            }
+        }
+
+        // Write the compressed character map to the buffer.
+        let buffer = Buffer.alloc(compressedCharMap.length);
+        for (let index = 0; index < compressedCharMap.length; index++) {
+            buffer.writeUInt8(compressedCharMap[index], index);
+        }
+
+        return buffer;
+    }
+}
+
+/**
+ * The <i>ELVLDCMEHashCode</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class ELVLDCMEHashCode extends ELVLChunk {
+
+    hashCode: string;
+
+    constructor(hashCode: string) {
+
+        super(ELVLChunkType.DCME_HASH_CODE);
+
+        if (hashCode == null) {
+            throw new Error("The hashCode given is null or undefined.");
+        }
+
+        this.hashCode = hashCode;
+    }
+
+    // @Override
+    equals(next: any): boolean {
+
+        if (next == null || !(next instanceof ELVLDCMEHashCode)) {
+            return false;
+        }
+
+        return next.hashCode === this.hashCode;
+    }
+
+    // @Override
+    validate(): void {
+
+        if (this.hashCode == null) {
+            throw new Error("The 'hashCode' field for the ELVLDCMEHashCode is null or undefined.");
+        } else if (typeof this.hashCode !== 'string') {
+            throw new Error(
+                "The 'hashCode' field for the ELVLDCMEHashCode is not a string. ("
+                + this.hashCode
+                + " assigned)"
+            );
+        }
+    }
+
+    // @Override
+    write(): Buffer {
+
+        // Create a buffer for the hash code.
+        let buffer = Buffer.alloc(this.hashCode.length);
+        BufferUtils.writeFixedString(buffer, this.hashCode, 0);
+
+        return buffer;
+    }
+}
+
+/**
+ * The <i>ELVLDCMEBookmarks</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class ELVLDCMEBookmarks extends ELVLChunk {
+
+    constructor() {
+        super(ELVLChunkType.DCME_BOOKMARKS);
+    }
+
+    // @Override
+    equals(next: any): boolean {
+        return false;
+    }
+
+    // @Override
+    validate(): void {
+    }
+
+    // @Override
+    write(): Buffer {
+        return undefined;
+    }
+}
+
+/**
+ * The <i>ELVLDCMELVZPath</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class ELVLDCMELVZPath extends ELVLChunk {
+
+    constructor() {
+        super(ELVLChunkType.DCME_LVZ_PATH);
+    }
+
+    // @Override
+    equals(next: any): boolean {
+        return false;
+    }
+
+    // @Override
+    validate(): void {
+    }
+
+    // @Override
+    write(): Buffer {
+        return undefined;
+    }
+}
+
+/**
  * The <i>ELVLType</i> enum identifies chunk types for ELVL data.
  * <ul>
  *     <li><b>ATTRIBUTE</b><p>
