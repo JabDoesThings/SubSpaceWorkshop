@@ -2,9 +2,13 @@ import {
     ELVLAttribute,
     ELVLChunk,
     ELVLChunkType,
-    ELVLCollection,
+    ELVLCollection, ELVLDCMEWallTile,
     ELVLRawChunk,
-    ELVLRegion, ELVLRegionAutoWarp, ELVLRegionOptions, ELVLRegionRawChunk, ELVLRegionTileData,
+    ELVLRegion,
+    ELVLRegionAutoWarp,
+    ELVLRegionOptions,
+    ELVLRegionRawChunk,
+    ELVLRegionTileData,
     ELVLRegionType
 } from './ELVL';
 import { BufferUtils } from '../../util/BufferUtils';
@@ -339,6 +343,7 @@ export class ELVL {
                     if (remainder != 0) {
                         eOffset += 4 - remainder;
                     }
+
                 } else if (subChunkType == ELVLRegionType.DCME_COLOR) {
 
                     let cSize = buffer.readUInt32LE(eOffset);
@@ -351,7 +356,9 @@ export class ELVL {
                     let blue = buffer.readUInt8(eOffset++);
                     eOffset++; // Will always be unused.
                     color = [red, green, blue];
+
                 } else {
+
                     console.warn(
                         "\tUnknown REGION sub-type: "
                         + BufferUtils.readFixedString(buffer, eOffset - 4, 4)
@@ -367,6 +374,7 @@ export class ELVL {
                     eOffset += uSize;
 
                     unknowns.push(new ELVLRegionRawChunk(subChunkType, uData));
+
                 }
 
             }
@@ -376,6 +384,22 @@ export class ELVL {
             let region = new ELVLRegion(name, options, tileData, autoWarp, pythonCode, unknowns);
             region.color = color;
             return region;
+        };
+
+        let readDCMEWallTile = (): ELVLDCMEWallTile => {
+            let wtSize = buffer.readUInt32LE(eOffset);
+            eOffset += 4;
+            if (wtSize != 16) {
+                throw new Error("The size for DCME Wall-Tile chunks can only be 16. (" + wtSize + " given)");
+            }
+
+            // Read the 16 tiles.
+            let tiles: number[] = new Array(16);
+            for (let index = 0; index < 16; index++) {
+                tiles[index] = buffer.readUInt8(eOffset++);
+            }
+
+            return new ELVLDCMEWallTile(tiles);
         };
 
         let readRawChunk = (type: number): ELVLRawChunk => {
@@ -409,6 +433,8 @@ export class ELVL {
                 chunk = readAttribute();
             } else if (type == ELVLChunkType.REGION) {
                 chunk = readRegion();
+            } else if (type == ELVLChunkType.DCME_WALL_TILES) {
+                chunk = readDCMEWallTile();
             } else {
                 console.warn(
                     "Unknown type: "
