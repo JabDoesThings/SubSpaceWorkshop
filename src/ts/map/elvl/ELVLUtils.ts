@@ -11,6 +11,15 @@ import { BufferUtils } from '../../util/BufferUtils';
 
 export class ELVL {
 
+    private static readonly REGION_TILEDATA_SMALL_EMPTY_RUN = 0;
+    private static readonly REGION_TILEDATA_LONG_EMPTY_RUN = 1;
+    private static readonly REGION_TILEDATA_SMALL_PRESENT_RUN = 2;
+    private static readonly REGION_TILEDATA_LONG_PRESENT_RUN = 3;
+    private static readonly REGION_TILEDATA_SMALL_EMPTY_ROWS = 4;
+    private static readonly REGION_TILEDATA_LONG_EMPTY_ROWS = 5;
+    private static readonly REGION_TILEDATA_SMALL_REPEAT = 6;
+    private static readonly REGION_TILEDATA_LONG_REPEAT = 7;
+
     public static readonly DEFAULT_REGION_OPTIONS: ELVLRegionOptions = {
         isFlagBase: false,
         noAntiWarp: false,
@@ -47,6 +56,145 @@ export class ELVL {
             return null;
         }
 
+        let getBitFragment = (extractFrom: number, startIndex: number, endIndex: number): number => {
+            let shift = 8 - endIndex;
+            let numBits = endIndex - startIndex + 1;
+            let mask = ((0x01 << numBits) - 1);
+            return (extractFrom >> shift) & mask;
+        };
+
+        let getEncodedType = (typeByte: number): number => {
+            return getBitFragment(typeByte, 1, 3);
+        };
+
+        let getEncodedLength1 = (one: number): number => {
+            return getBitFragment(one, 4, 8) + 1;
+        };
+
+        let getEncodedLength2 = (one: number, two: number): number => {
+            let highByte = getBitFragment(one, 7, 8) << 8;
+            return (highByte | (0xFF & two)) + 1;
+        };
+
+        let getEncodedLength = (buffer: Buffer, type: number): number => {
+            if (type % 2 == 0) {
+                // Short.
+                let result = getEncodedLength1(buffer.readUInt16LE(eOffset));
+                eOffset += 2;
+                return result;
+            } else {
+                let one = buffer.readInt16LE(eOffset);
+                eOffset += 2;
+                let two = buffer.readInt16LE(eOffset);
+                eOffset += 2;
+                return getEncodedLength2(one, two);
+            }
+        };
+
+        let decodeTiles = (endByte: number): boolean[][] => {
+
+            // Create a new blank array.
+            let tiles: boolean[][] = new Array(1024);
+            for (let x = 0; x < 1024; x++) {
+                tiles[x] = new Array(1024);
+                for (let y = 0; y < 1024; y++) {
+                    tiles[x][y] = false;
+                }
+            }
+
+            let curX = 0;
+            let curY = 0;
+
+            while (eOffset < endByte) {
+
+                let typeByte = buffer.readUInt8(eOffset);
+                eOffset++;
+
+                let type = getEncodedType(typeByte);
+
+                let len = getEncodedLength(buffer, type);
+
+                if (type == ELVL.REGION_TILEDATA_SMALL_EMPTY_RUN
+                    || type == ELVL.REGION_TILEDATA_LONG_EMPTY_RUN) {
+
+                    if (len + curX > 1024) {
+                        console.warn("empty run extends past end");
+                        break;
+                    }
+
+                    curX += len;
+
+                } else if (type == ELVL.REGION_TILEDATA_SMALL_PRESENT_RUN
+                    || type == ELVL.REGION_TILEDATA_LONG_PRESENT_RUN) {
+
+                    if (len + curX > 1024) {
+                        console.warn("present run extends past end");
+                        break;
+                    }
+
+                    let stopX = curX + len;
+
+                    for (let x = curX; x < stopX; x++) {
+                        tiles[curY][x] = true;
+                    }
+
+                    curX += len;
+
+                } else if (type == ELVL.REGION_TILEDATA_SMALL_EMPTY_ROWS
+                    || type == ELVL.REGION_TILEDATA_LONG_EMPTY_ROWS) {
+
+                    if (curX != 0) {
+                        console.warn("empty row occurred before a run was over, curX = " + curX);
+                        break;
+                    }
+
+                    curY += len;
+
+                } else if (type == ELVL.REGION_TILEDATA_SMALL_REPEAT
+                    || type == ELVL.REGION_TILEDATA_LONG_REPEAT) {
+
+                    if (curX != 0) {
+                        console.warn("repeat occurred before a run was over.");
+                        break;
+                    }
+                    if (curY == 0) {
+                        console.warn("repeat occurred in the first row.");
+                        break;
+                    }
+
+                    let stopY = curY + len;
+                    let copyY = curY - 1;
+
+                    for (let x = 0; x < 1024; x++) {
+                        for (let y = curY; y < stopY; y++) {
+                            tiles[y][x] = tiles[copyY][x];
+                        }
+                    }
+
+                    curY += len;
+                }
+
+                if (curX == 1024) {
+                    curY++;
+                    curX = 0;
+                }
+
+                if (type % 2 == 0) {
+                    // Short.
+                    eOffset++;
+                } else {
+                    // Long.
+                    eOffset += 2;
+                }
+            }
+
+            if (curY != 1024) {
+                console.warn("Encoded rTIL does NOT contain 1024 rows... it has " + curY);
+            }
+
+            return tiles;
+        };
+
         let readAttribute = (): ELVLAttribute => {
             let size = buffer.readUInt32LE(eOffset);
             eOffset += 4;
@@ -81,6 +229,7 @@ export class ELVL {
             let unknowns: ELVLRegionRawChunk[] = [];
 
             let size = buffer.readUInt32LE(eOffset);
+            let color = [0, 0, 0];
 
             eOffset += 4;
             let end = eOffset + size;
@@ -90,12 +239,12 @@ export class ELVL {
                 let subChunkType = buffer.readUInt32LE(eOffset);
                 eOffset += 4;
 
-                if (subChunkType === ELVLRegionType.REGION_NAME) {
+                if (subChunkType === ELVLRegionType.NAME) {
 
                     let nameSize = buffer.readUInt32LE(eOffset);
                     eOffset += 4;
 
-                    console.log("\tReading REGION_NAME... (size=" + nameSize + ")");
+                    console.log("\tReading NAME... (size=" + nameSize + ")");
 
                     name = BufferUtils.readFixedString(buffer, eOffset, nameSize);
                     eOffset += nameSize;
@@ -106,15 +255,14 @@ export class ELVL {
                         eOffset += 4 - remainder;
                     }
 
-                } else if (subChunkType == ELVLRegionType.REGION_TILE_DATA) {
+                } else if (subChunkType == ELVLRegionType.TILE_DATA) {
 
                     let tdSize = buffer.readUInt32LE(eOffset);
                     eOffset += 4;
 
-                    console.log("\tReading REGION_TILE_DATA... (size=" + tdSize + ")");
+                    console.log("\tReading TILE_DATA... (size=" + tdSize + ")");
 
-                    // TODO: Implement. Skip for now.
-                    eOffset += tdSize;
+                    let tiles = decodeTiles(eOffset += tdSize);
 
                     // Pad to the next 4 bytes.
                     let remainder = tdSize % 4;
@@ -122,38 +270,38 @@ export class ELVL {
                         eOffset += 4 - remainder;
                     }
 
-                    tileData = new ELVLRegionTileData();
+                    tileData = new ELVLRegionTileData(tiles);
 
-                } else if (subChunkType == ELVLRegionType.REGION_BASE_FLAG) {
+                } else if (subChunkType == ELVLRegionType.BASE_FLAG) {
 
-                    console.log("\tReading REGION_BASE_FLAG... (size=" + 0 + ")");
+                    console.log("\tReading BASE_FLAG... (size=" + 0 + ")");
 
                     eOffset += 4; // Size will always be zero.
                     options.isFlagBase = true;
-                } else if (subChunkType == ELVLRegionType.REGION_NO_ANTIWARP) {
+                } else if (subChunkType == ELVLRegionType.NO_ANTIWARP) {
 
-                    console.log("\tReading REGION_NO_ANTIWARP... (size=" + 0 + ")");
+                    console.log("\tReading NO_ANTIWARP... (size=" + 0 + ")");
 
                     eOffset += 4; // Size will always be zero.
                     options.noAntiWarp = true;
-                } else if (subChunkType == ELVLRegionType.REGION_NO_WEAPONS) {
+                } else if (subChunkType == ELVLRegionType.NO_WEAPONS) {
 
-                    console.log("\tReading REGION_NO_WEAPONS... (size=" + 0 + ")");
+                    console.log("\tReading NO_WEAPONS... (size=" + 0 + ")");
 
                     eOffset += 4; // Size will always be zero.
                     options.noWeapons = true;
-                } else if (subChunkType == ELVLRegionType.REGION_NO_FLAG_DROPS) {
+                } else if (subChunkType == ELVLRegionType.NO_FLAG_DROPS) {
 
-                    console.log("\tReading REGION_NO_FLAG_DROPS... (size=" + 0 + ")");
+                    console.log("\tReading NO_FLAG_DROPS... (size=" + 0 + ")");
 
                     eOffset += 4; // Size will always be zero.
                     options.noFlagDrops = true;
-                } else if (subChunkType == ELVLRegionType.REGION_AUTO_WARP) {
+                } else if (subChunkType == ELVLRegionType.AUTO_WARP) {
 
                     let awSize = buffer.readUInt32LE(eOffset);
                     eOffset += 4;
 
-                    console.log("\tReading REGION_AUTO_WARP... (size=" + awSize + ")");
+                    console.log("\tReading AUTO_WARP... (size=" + awSize + ")");
 
                     let x: number = 0;
                     let y: number = 0;
@@ -177,12 +325,12 @@ export class ELVL {
 
                     autoWarp = new ELVLRegionAutoWarp(x, y, arena);
 
-                } else if (subChunkType == ELVLRegionType.REGION_PYTHON_CODE) {
+                } else if (subChunkType == ELVLRegionType.PYTHON_CODE) {
 
                     let pycSize = buffer.readUInt32LE(eOffset);
                     eOffset += 4;
 
-                    console.log("\tReading REGION_PYTHON_CODE... (size=" + pycSize + ")");
+                    console.log("\tReading PYTHON_CODE... (size=" + pycSize + ")");
 
                     pythonCode = BufferUtils.readFixedString(buffer, eOffset, pycSize);
 
@@ -191,6 +339,18 @@ export class ELVL {
                     if (remainder != 0) {
                         eOffset += 4 - remainder;
                     }
+                } else if (subChunkType == ELVLRegionType.DCME_COLOR) {
+
+                    let cSize = buffer.readUInt32LE(eOffset);
+                    eOffset += 4;
+
+                    console.log("\tReading DCME_COLOR... (size=" + cSize + ")");
+
+                    let red = buffer.readUInt8(eOffset++);
+                    let green = buffer.readUInt8(eOffset++);
+                    let blue = buffer.readUInt8(eOffset++);
+                    eOffset++; // Will always be unused.
+                    color = [red, green, blue];
                 } else {
                     console.warn(
                         "\tUnknown REGION sub-type: "
@@ -213,7 +373,9 @@ export class ELVL {
 
             console.log("Adding ELVLRegion('" + name + ", " + options + ", " + tileData + ", " + autoWarp + ", " + pythonCode + ").");
 
-            return new ELVLRegion(name, options, tileData, autoWarp, pythonCode, unknowns);
+            let region = new ELVLRegion(name, options, tileData, autoWarp, pythonCode, unknowns);
+            region.color = color;
+            return region;
         };
 
         let readRawChunk = (type: number): ELVLRawChunk => {
@@ -260,6 +422,10 @@ export class ELVL {
 
             eCollection.addChunk(chunk);
         }
+
+        console.log(eCollection);
+
+        return eCollection;
     }
 
     public static write(): void {

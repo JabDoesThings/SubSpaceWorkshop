@@ -148,6 +148,7 @@ export class ELVLRegion extends ELVLChunk {
     options: ELVLRegionOptions;
     name: string;
     pythonCode: string;
+    color: number[];
 
     constructor(
         name: string,
@@ -165,6 +166,7 @@ export class ELVLRegion extends ELVLChunk {
         this.autoWarp = autoWarp;
         this.pythonCode = pythonCode;
         this.unknowns = unknowns;
+        this.color = [0, 0, 0];
 
         // Clone DEFAULT_REGION_OPTIONS.
         if (options == null) {
@@ -258,9 +260,9 @@ export class ELVLRegionRawChunk {
  */
 export class ELVLRegionTileData {
 
-    readonly tiles: number[][];
+    readonly tiles: boolean[][];
 
-    constructor(tiles: number[][] = null) {
+    constructor(tiles: boolean[][] = null) {
 
         if (tiles == null) {
 
@@ -269,7 +271,7 @@ export class ELVLRegionTileData {
             for (let x = 0; x < 1024; x++) {
                 tiles[x] = new Array(1024);
                 for (let y = 0; y < 1024; y++) {
-                    tiles[x][y] = 0;
+                    tiles[x][y] = false;
                 }
             }
         }
@@ -363,7 +365,7 @@ export class ELVLRegionAutoWarp {
         let buffer: Buffer = Buffer.alloc(8 + length);
 
         // SUB-CHUNK HEADER.
-        ELVLChunk.writeHeader(buffer, ELVLRegionType.REGION_AUTO_WARP, length);
+        ELVLChunk.writeHeader(buffer, ELVLRegionType.AUTO_WARP, length);
 
         buffer.writeUInt16LE(this.x, 4);
         buffer.writeUInt16LE(this.y, 6);
@@ -402,10 +404,18 @@ export class ELVLRegionAutoWarp {
  * </ul>
  */
 export enum ELVLChunkType {
+
     ATTRIBUTE = 1381258305 /*ATTR*/,
     REGION = 1313293650 /*REGN*/,
     TILESET = 1413829460 /*TSET*/,
-    TILE = 1162627412 /*TILE*/
+    TILE = 1162627412 /*TILE*/,
+
+    /* DCME CHUNKS */
+    DCME_WALL_TILES = 1415004996 /*DCWT*/,
+    DCME_TEXT_TILES = 1414808388 /*DCTT*/,
+    DCME_HASH_CODE = 1145652036 /*DCID*/,
+    DCME_BOOKMARKS = 1296188228 /*DCBM*/,
+    DCME_LVZ_PATH = 1447838532 /*DCLV*/
 }
 
 /**
@@ -459,12 +469,15 @@ export enum ELVLChunkType {
  * </ul>
  */
 export enum ELVLRegionType {
-    REGION_NAME = 1296125554 /*rNAM*/,
-    REGION_TILE_DATA = 1279874162 /*rTIL*/,
-    REGION_BASE_FLAG = 1163084402 /*rBSE*/,
-    REGION_NO_ANTIWARP = 1463897714 /*rNAW*/,
-    REGION_NO_WEAPONS = 1347898994 /*rNWP*/,
-    REGION_NO_FLAG_DROPS = 1279676018 /*rNFL*/,
-    REGION_AUTO_WARP = 1347895666 /*rAWP*/,
-    REGION_PYTHON_CODE = 1129926770 /*rPYC*/
+    NAME = 1296125554 /*rNAM*/,
+    TILE_DATA = 1279874162 /*rTIL*/,
+    BASE_FLAG = 1163084402 /*rBSE*/,
+    NO_ANTIWARP = 1463897714 /*rNAW*/,
+    NO_WEAPONS = 1347898994 /*rNWP*/,
+    NO_FLAG_DROPS = 1279676018 /*rNFL*/,
+    AUTO_WARP = 1347895666 /*rAWP*/,
+    PYTHON_CODE = 1129926770 /*rPYC*/,
+
+    /* DCME CHUNKS */
+    DCME_COLOR = 1280263026 /*rCOL*/
 }
