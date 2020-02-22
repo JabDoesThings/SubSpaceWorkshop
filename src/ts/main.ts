@@ -5,7 +5,7 @@ import { LVZPackage } from './map/lvz/LVZ';
 
 function debugLVL() {
 
-    let arena = "thefield2";
+    let arena = "hz";
 
     let lvlFile = "assets/lvl/" + arena + ".lvl";
     let lvlFile2 = "assets/lvl/" + arena + "_.lvl";

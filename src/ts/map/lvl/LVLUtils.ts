@@ -49,6 +49,7 @@ export class LVL {
             offset = buffer.readInt32LE(2);
         } else {
             tileSet = LVL.DEFAULT_TILESET;
+            elvlData = new ELVLCollection();
         }
 
         let tileCount = 0;
@@ -63,7 +64,7 @@ export class LVL {
             tileCount++;
         }
 
-        return new LVLMap(tileSet, tiles);
+        return new LVLMap(tiles, tileSet, elvlData);
     }
 
     static write(map: LVLMap, path: string) {

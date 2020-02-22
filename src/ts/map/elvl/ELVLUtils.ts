@@ -37,6 +37,7 @@ export class ELVL {
     public static readonly HEADER_SIGNATURE = 1819700325 /*elvl*/;
 
     public static read(buffer: Buffer): ELVLCollection {
+
         let eStartOffset;
         let eOffset = buffer.readUInt32LE(6);
         if (eOffset == 0) {
@@ -72,42 +73,49 @@ export class ELVL {
             }
         };
 
-        let getBitFragment = (extractFrom: number, startIndex: number, endIndex: number): number => {
-            let shift = 8 - endIndex;
-            let numBits = endIndex - startIndex + 1;
-            let mask = ((0x01 << numBits) - 1);
-            return (extractFrom >> shift) & mask;
-        };
+        // let getBitFragment = (extractFrom: number, startIndex: number, endIndex: number): number => {
+        //     let shift = 8 - endIndex;
+        //     let numBits = endIndex - startIndex + 1;
+        //     let mask = ((0x01 << numBits) - 1);
+        //     return (extractFrom >> shift) & mask;
+        // };
+        //
+        // let getEncodedType = (typeByte: number): number => {
+        //     return getBitFragment(typeByte, 1, 3);
+        // };
+        //
+        // let getEncodedLength1 = (one: number): number => {
+        //     return getBitFragment(one, 4, 8) + 1;
+        // };
+        //
+        // let getEncodedLength2 = (one: number, two: number): number => {
+        //     let highByte = getBitFragment(one, 7, 8) << 8;
+        //     return (highByte | (0xFF & two)) + 1;
+        // };
+        //
+        // let getEncodedLength = (buffer: Buffer, type: number): number => {
+        //     if (type % 2 == 0) {
+        //         // Short.
+        //         let result = getEncodedLength1(buffer.readUInt16LE(eOffset));
+        //         eOffset += 2;
+        //         return result;
+        //     } else {
+        //         let one = buffer.readInt16LE(eOffset);
+        //         eOffset += 2;
+        //         let two = buffer.readInt16LE(eOffset);
+        //         eOffset += 2;
+        //         return getEncodedLength2(one, two);
+        //     }
+        // };
 
-        let getEncodedType = (typeByte: number): number => {
-            return getBitFragment(typeByte, 1, 3);
-        };
-
-        let getEncodedLength1 = (one: number): number => {
-            return getBitFragment(one, 4, 8) + 1;
-        };
-
-        let getEncodedLength2 = (one: number, two: number): number => {
-            let highByte = getBitFragment(one, 7, 8) << 8;
-            return (highByte | (0xFF & two)) + 1;
-        };
-
-        let getEncodedLength = (buffer: Buffer, type: number): number => {
-            if (type % 2 == 0) {
-                // Short.
-                let result = getEncodedLength1(buffer.readUInt16LE(eOffset));
-                eOffset += 2;
-                return result;
-            } else {
-                let one = buffer.readInt16LE(eOffset);
-                eOffset += 2;
-                let two = buffer.readInt16LE(eOffset);
-                eOffset += 2;
-                return getEncodedLength2(one, two);
+        let copyRow = (tiles: boolean[][], fromRow: number, toRow: number): void => {
+            // BitBlt disp.hDC, 0, toRow, 1024, 1, disp.hDC, 0, fromRow, vbSrcCopy
+            for (let x = 0; x < 1024; x++) {
+                tiles[x][fromRow] = tiles[x][toRow];
             }
         };
 
-        let decodeTiles = (endByte: number): boolean[][] => {
+        let decodeTiles = (size: number): boolean[][] => {
 
             // Create a new blank array.
             let tiles: boolean[][] = new Array(1024);
@@ -118,94 +126,156 @@ export class ELVL {
                 }
             }
 
-            let curX = 0;
-            let curY = 0;
+            let tilesInRow: number = 0;
+            let rowsCounted: number = 0;
 
-            while (eOffset < endByte) {
+            let byte1: number = 0;
+            let byte2: number = 0;
+            let value: number = 0;
 
-                let typeByte = buffer.readUInt8(eOffset);
-                eOffset++;
+            let endEOffset = eOffset + size;
 
-                let type = getEncodedType(typeByte);
+            while (eOffset < endEOffset && rowsCounted < 1024) {
 
-                let len = getEncodedLength(buffer, type);
+                byte1 = buffer.readUInt8(eOffset++);
 
-                if (type == ELVL.REGION_TILEDATA_SMALL_EMPTY_RUN
-                    || type == ELVL.REGION_TILEDATA_LONG_EMPTY_RUN) {
+                let b1check = Math.floor(byte1 / 32);
+                // console.log("b1check = " + b1check);
 
-                    if (len + curX > 1024) {
-                        console.warn("empty run extends past end");
-                        break;
-                    }
+                if (b1check == 0) {
 
-                    curX += len;
+                    // 000nnnnn - n+1 (1-32) empty tiles in a row
+                    value = byte1 % 32 + 1;
 
-                } else if (type == ELVL.REGION_TILEDATA_SMALL_PRESENT_RUN
-                    || type == ELVL.REGION_TILEDATA_LONG_PRESENT_RUN) {
+                    tilesInRow += value;
 
-                    if (len + curX > 1024) {
-                        console.warn("present run extends past end");
-                        break;
-                    }
+                } else if (b1check == 1) {
 
-                    let stopX = curX + len;
+                    // 001000nn nnnnnnnn - n+1 (1-1024) empty tiles in a row
+                    byte2 = buffer.readUInt8(eOffset++);
+                    value = 256 * (byte1 % 4) + byte2 + 1;
 
-                    for (let x = curX; x < stopX; x++) {
-                        tiles[curY][x] = true;
-                    }
+                    tilesInRow += value;
 
-                    curX += len;
+                } else if (b1check == 2) {
 
-                } else if (type == ELVL.REGION_TILEDATA_SMALL_EMPTY_ROWS
-                    || type == ELVL.REGION_TILEDATA_LONG_EMPTY_ROWS) {
+                    // 010nnnnn - n+1 (1-32) present tiles in a row
+                    value = byte1 % 32 + 1;
 
-                    if (curX != 0) {
-                        console.warn("empty row occurred before a run was over, curX = " + curX);
-                        break;
-                    }
-
-                    curY += len;
-
-                } else if (type == ELVL.REGION_TILEDATA_SMALL_REPEAT
-                    || type == ELVL.REGION_TILEDATA_LONG_REPEAT) {
-
-                    if (curX != 0) {
-                        console.warn("repeat occurred before a run was over.");
-                        break;
-                    }
-                    if (curY == 0) {
-                        console.warn("repeat occurred in the first row.");
-                        break;
-                    }
-
-                    let stopY = curY + len;
-                    let copyY = curY - 1;
-
-                    for (let x = 0; x < 1024; x++) {
-                        for (let y = curY; y < stopY; y++) {
-                            tiles[y][x] = tiles[copyY][x];
+                    if (tilesInRow + value > 1024) {
+                        console.warn("Something's wrong. More than 1024 tiles in that row.");
+                    } else {
+                        // console.log("value = " + value);
+                        for (let x = tilesInRow; x < tilesInRow + value; x++) {
+                            tiles[x][rowsCounted] = true;
                         }
                     }
 
-                    curY += len;
-                }
+                    tilesInRow += value;
 
-                if (curX == 1024) {
-                    curY++;
-                    curX = 0;
-                }
+                } else if (b1check == 3) {
 
-                if (type % 2 == 0) {
-                    // Short.
-                    eOffset++;
+                    // 011000nn nnnnnnnn - n+1 (1-1024) present tiles in a row
+                    byte2 = buffer.readUInt8(eOffset++);
+                    value = 256 * (byte1 % 4) + byte2 + 1;
+
+                    if (tilesInRow + value > 1024) {
+                        console.warn("Something's wrong. More than 1024 tiles in that row.");
+                    } else {
+                        // console.log("value = " + value);
+                        for (let x = tilesInRow; x < tilesInRow + value; x++) {
+                            tiles[x][rowsCounted] = true;
+                            // console.log("\t\t\ttiles[" + x + "][" + rowsCounted + "] = true");
+                        }
+                    }
+
+                    tilesInRow += value;
+
+                } else if (b1check == 4) {
+
+                    // 100nnnnn - n+1 (1-32) rows of all empty
+                    value = byte1 % 32;
+
+                    rowsCounted += value;
+
+                } else if (b1check == 5) {
+
+                    // 101000nn nnnnnnnn - n+1 (1-1024) rows of all empty
+                    byte2 = buffer.readUInt8(eOffset++);
+                    value = 256 * (byte1 % 4) + byte2 + 1;
+
+                    rowsCounted += value;
+
+                } else if (b1check == 6) {
+
+                    // 110nnnnn - repeat last row n+1 (1-32) times
+                    value = byte1 % 32 + 1;
+
+                    // Next, copy the entire row.
+                    for (let i = 0; i < value; i++) {
+                        let start = rowsCounted + i - 1;
+                        copyRow(tiles, start, start + 1);
+                        // tmpRegion.CopyRow(rowsCounted - 1 + i - 1, rowsCounted - 1 + i)
+                    }
+
+                    rowsCounted += value;
+
+                } else if (b1check == 7) {
+
+                    // 111000nn nnnnnnnn - repeat last row n+1 (1-1024) times
+                    byte2 = buffer.readUInt8(eOffset++);
+                    value = 256 * (byte1 % 4) + byte2 + 1;
+
+                    // Next, copy the entire row.
+                    for (let i = 0; i < value; i++) {
+                        let start = rowsCounted + i - 1;
+                        copyRow(tiles, start, start + 1);
+                        // tmpRegion.CopyRow(rowsCounted - 1 + i - 1, rowsCounted - 1 + i)
+                    }
+
+                    rowsCounted += value;
+
                 } else {
-                    // Long.
-                    eOffset += 2;
+                    throw new Error("Error in region tile data: byte1/32 = " + b1check);
+                }
+
+                if (tilesInRow == 1024) {
+                    tilesInRow = 0;
+                    rowsCounted += 1;
                 }
             }
 
-            if (curY != 1024) {
-                console.warn("Encoded rTIL does NOT contain 1024 rows... it has " + curY);
+            let tileCount = 0;
+
+            let minX = 999999;
+            let minY = 999999;
+            let maxX = -999999;
+            let maxY = -999999;
+
+            for (let x = 0; x < 1024; x++) {
+                for (let y = 0; y < 1024; y++) {
+                    if (tiles[x][y]) {
+                        tileCount++;
+
+                        if (minX > x) {
+                            minX = x;
+                        }
+                        if (maxX < x) {
+                            maxX = x;
+                        }
+
+                        if (minY > y) {
+                            minY = y;
+                        }
+                        if (maxY < y) {
+                            maxY = y;
+                        }
+                    }
+                }
+            }
+
+            if (tileCount > 0) {
+                console.log("Region TileCount = " + tileCount + " minX = " + minX + " minY = " + minY + " maxX = " + maxX + " maxY = " + maxY);
             }
 
             return tiles;
@@ -272,9 +342,8 @@ export class ELVL {
 
                     console.log("\tReading TILE_DATA... (size=" + tdSize + ")");
 
-                    let tiles = decodeTiles(eOffset += tdSize);
+                    let tiles = decodeTiles(tdSize);
 
-                    // Pad to the next 4 bytes.
                     // Pad to the next 4 bytes.
                     pad(tdSize);
 

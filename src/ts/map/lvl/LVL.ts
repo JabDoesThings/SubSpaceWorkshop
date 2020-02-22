@@ -1,18 +1,26 @@
 import { Dirtable } from '../../util/Dirtable';
 import * as PIXI from "pixi.js";
 import { LVL } from './LVLUtils';
+import { ELVLCollection } from '../elvl/ELVL';
 
 export class LVLMap implements Dirtable {
 
     tileset: LVLTileSet;
 
+    metadata: ELVLCollection;
+
     readonly tiles: number[][];
 
     private dirty: boolean;
 
-    public constructor(tileSet: LVLTileSet = LVL.DEFAULT_TILESET, tiles: number[][] = null) {
+    public constructor(
+        tiles: number[][] = null,
+        tileSet: LVLTileSet = LVL.DEFAULT_TILESET,
+        metadata: ELVLCollection = new ELVLCollection()
+    ) {
 
         this.tileset = tileSet;
+        this.metadata = metadata;
 
         if (tiles == null) {
             this.tiles = [];
