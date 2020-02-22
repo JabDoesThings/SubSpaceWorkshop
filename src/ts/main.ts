@@ -11,6 +11,7 @@ function debugLVL() {
     let lvlFile2 = "assets/lvl/" + arena + "_.lvl";
 
     let map = LVL.read(lvlFile);
+    console.log(map);
     // LVL.write(map, lvlFile2);
 
     let mapViewer = new Renderer(map, document.getElementById("map-viewer-container"));
