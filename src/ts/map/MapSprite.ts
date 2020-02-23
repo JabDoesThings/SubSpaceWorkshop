@@ -1,4 +1,183 @@
-export class MapSprite {
+/**
+ * The <i>MapSpriteCollection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+import { Validatable } from '../util/Validatable';
+
+export class MapSpriteCollection {
+
+    private sprites: MapSprite[];
+
+    /**
+     * Main constructor.
+     */
+    constructor() {
+
+        // Initialize the array to store MapSprites in.
+        this.sprites = [];
+    }
+
+    /**
+     * Updates all MapSprites in the collection.
+     */
+    update(): void {
+
+        // Go through all registered MapSprites in the collection sequentially and update them.
+        for (let index = 0; index < this.sprites.length; index++) {
+            this.sprites[index].update();
+        }
+    }
+
+    /**
+     * Resets all MapSprites in the collection.
+     */
+    reset(): void {
+
+        // Go through all registered MapSprites in the collection sequentially and update them.
+        for (let index = 0; index < this.sprites.length; index++) {
+            this.sprites[index].reset();
+        }
+    }
+
+    /**
+     * Adds a MapSprite to the collection.
+     *
+     * @param sprite The MapSprite to add.
+     *
+     * @return Returns the index of the MapSprite.
+     *
+     * @throws Error Thrown if the MapSprite given is null or already registered to the collection.
+     */
+    addSprite(sprite: MapSprite): number {
+
+        // Check to make sure the MapSprite is valid and not registered.
+        if (sprite == null) {
+            throw new Error("The MapSprite given is null.");
+        } else if (this.getIndex(sprite) != -1) {
+            throw new Error("The MapSprite given is already registered in the collection.");
+        }
+
+        // Properly push the MapSprite to the end of the array.
+        this.sprites.push(sprite);
+
+        // Returns the index of the registered MapSprite.
+        return this.sprites.length - 1;
+    }
+
+    /**
+     * Removes a MapSprite from the collection.
+     *
+     * @param sprite The MapSprite to remove.
+     *
+     * @throws Error Thrown if the MapSprite given is null or is not registered to the collection.
+     */
+    removeSprite(sprite: MapSprite): void {
+
+        // Check to make sure the MapSprite is valid and is registered.
+        if (sprite == null) {
+            throw new Error("The MapSprite given is null.");
+        } else if (this.getIndex(sprite) == -1) {
+            throw new Error("The MapSprite given is not registered in the collection.");
+        }
+
+        // Create the new array to replace the old one without the object.
+        let newArray: MapSprite[] = [];
+
+        // Go through all registered MapSprites.
+        for (let index = 0; index < this.sprites.length; index++) {
+
+            let next = this.sprites[index];
+
+            // If the MapSprite explicitly matches the one to remove, we skip this and not add
+            //   it to the new array.
+            if (next === sprite) {
+                continue;
+            }
+
+            // Push the next MapSprite to the end of the new array. All MapObjects prior to
+            //   the one to remove will keep the same index. The ones following the MapSprite
+            //   to remove will have different indexes.
+            newArray.push(next);
+        }
+
+        // Set the new array with the removed MapSprite.
+        this.sprites = newArray;
+    }
+
+    /**
+     * @param index The index of the MapSprite.
+     *
+     * @return Returns the MapSprite stored at the index given.
+     *
+     * @throws Error Thrown if the index is negative or greater than the last index of the
+     *   collection. (size() - 1)
+     */
+    getSprite(index: number): MapSprite {
+
+        // Make sure that the index is in range.
+        if (index < 0) {
+            throw new Error("The index given is negative. (" + index + ")");
+        } else if (index > this.size() - 1) {
+            throw new Error(
+                "The index given is larger than the last index in the collection. ("
+                + index
+                + " given. Last index: "
+                + (this.size() - 1)
+                + ")"
+            );
+        }
+
+        return this.sprites[index];
+    }
+
+    /**
+     * Tests whether or not the MapSprite is registered in the collection.
+     *
+     * @param sprite The sprite to test.
+     *
+     * @return Returns the index of the MapSprite in the storage array for the collection. <br>
+     *     If the MapSprite is not stored in the collection, -1 is returned.
+     */
+    getIndex(sprite: MapSprite) {
+
+        // Go through all registered MapSprites with their respective indexes.
+        for (let index = 0; index < this.sprites.length; index++) {
+
+            let next = this.sprites[index];
+
+            // If the next MapSprite explicitly matches the sprite, then this is
+            //   the index we need to return.
+            if (next != null && next === sprite) {
+                return index;
+            }
+        }
+
+        // Return -1 if the MapSprite is not added to the collection.
+        return -1;
+    }
+
+    /**
+     * Clears all registered MapSprites in the collection.
+     */
+    clear(): void {
+        this.sprites = [];
+    }
+
+    /**
+     * @return Returns the amount of MapSprites registered in the collection.
+     */
+    size(): number {
+        return this.sprites.length;
+    }
+}
+
+/**
+ * The <i>MapSprite</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class MapSprite implements Validatable {
 
     public current: number[];
 
@@ -17,6 +196,19 @@ export class MapSprite {
     private frameTime: number;
     private last: number;
 
+    /**
+     * Main constructor.
+     *
+     * @param frameWidth
+     * @param frameHeight
+     * @param framesX
+     * @param framesY
+     * @param frameTime
+     * @param startX
+     * @param startY
+     * @param endX
+     * @param endY
+     */
     public constructor(frameWidth: number, frameHeight: number, framesX: number = 1, framesY: number = 1, frameTime: number = 1, startX: number = null, startY: number = null, endX: number = null, endY: number = null) {
 
         if (frameWidth == null) {
@@ -72,6 +264,19 @@ export class MapSprite {
             this.endY = framesY - 1;
         }
 
+        this.frameX = this.startX;
+        this.frameY = this.startY;
+        this.current = [0, 0, 0, 0];
+
+        this.validate();
+
+        this.reset();
+    }
+
+    // @Override
+    validate(): void {
+
+        // Make sure that the 'startX' field is valid.
         if (this.startX < 0) {
             throw new Error("the value 'startX' is less than 0.");
         } else if (this.startX > this.framesX - 1) {
@@ -82,6 +287,7 @@ export class MapSprite {
             );
         }
 
+        // Make sure that the 'startY' field is valid.
         if (this.startY < 0) {
             throw new Error("the value 'startY' is less than 0.");
         } else if (this.startY > this.framesY - 1) {
@@ -92,6 +298,7 @@ export class MapSprite {
             );
         }
 
+        // Make sure that the 'endX' field is valid.
         if (this.endX < 0) {
             throw new Error("the value 'endX' is less than 0.");
         } else if (this.endX > this.framesX - 1) {
@@ -102,6 +309,7 @@ export class MapSprite {
             );
         }
 
+        // Make sure tha the 'endY' field is valid.
         if (this.endY < 0) {
             throw new Error("the value 'endY' is less than 0.");
         } else if (this.endY > this.framesY - 1) {
@@ -111,15 +319,20 @@ export class MapSprite {
                 + ")"
             );
         }
-
-        this.frameX = this.startX;
-        this.frameY = this.startY;
-        this.current = [0, 0, 0, 0];
-
-        this.reset();
     }
 
-    public update(): void {
+    reset(): void {
+
+        this.frameOffset = 0;
+        this.framesX = this.startX;
+        this.framesY = this.startY;
+
+        this.updateCurrent();
+
+        this.last = Date.now();
+    }
+
+    update(): void {
 
         let now = Date.now();
         if (now - this.last > this.frameTime) {
@@ -129,7 +342,7 @@ export class MapSprite {
         }
     }
 
-    private next(): void {
+    next(): void {
 
         this.frameOffset++;
         this.frameX++;
@@ -145,32 +358,10 @@ export class MapSprite {
         this.updateCurrent();
     }
 
-    private updateCurrent() {
-
+    updateCurrent(): void {
         this.current[0] = Math.floor(this.frameX * this.frameWidth);
         this.current[1] = Math.floor(this.frameY * this.frameHeight);
         this.current[2] = this.frameHeight;
         this.current[3] = this.frameWidth;
-
-        // console.log(
-        //     "x: "
-        //     + this.current[0]
-        //     + " y: "
-        //     + this.current[1]
-        //     + " w: "
-        //     + this.current[2]
-        //     + " h: "
-        //     + this.current[3]
-        // );
-    }
-
-    private reset(): void {
-        this.frameOffset = 0;
-        this.framesX = this.startX;
-        this.framesY = this.startY;
-
-        this.updateCurrent();
-
-        this.last = Date.now();
     }
 }
