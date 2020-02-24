@@ -3,10 +3,13 @@ import * as PIXI from "pixi.js";
 
 import { LVLMap } from './map/lvl/LVL';
 import { UpdatedObject } from './util/UpdatedObject';
-import { MapSprite } from './map/MapSprite';
+import { MapSpriteCollection } from './map/MapSprite';
 import { MapGrid } from './map/MapGrid';
 import { MapCamera } from './map/MapCamera';
 import Filter = PIXI.Filter;
+import { LVZCollection, LVZMapObject } from './map/lvz/LVZ';
+import { LVLSpriteCollection } from './map/LVLSpriteCollection';
+import { LVZChunk } from './map/LVZChunk';
 
 const Stats = require("stats.js");
 
@@ -28,56 +31,34 @@ export class Renderer extends UpdatedObject {
     private filter = new Filter(undefined, this.fragmentSrc, undefined);
 
     readonly map: LVLMap;
-    readonly container: HTMLElement;
+    readonly lvz: LVZCollection;
 
-    private readonly chunks: MapChunk[][];
+    readonly lvlSprites: LVLSpriteCollection;
+    readonly lvzSprites: MapSpriteCollection;
+
+    readonly container: HTMLElement;
+    private chunks: MapChunk[][];
+    private lvzChunks: LVZChunk[][];
     private stats: Stats;
     app: PIXI.Application;
     private grid: MapGrid;
     private mapContainer: PIXI.Container;
     private mapAnimContainer: PIXI.Container;
-
-    mapSpriteFlag: MapSprite;
-    mapSpriteGoal: MapSprite;
-    mapSpritePrize: MapSprite;
-    mapSpriteOver1: MapSprite;
-    mapSpriteOver2: MapSprite;
-    mapSpriteOver3: MapSprite;
-    mapSpriteOver4: MapSprite;
-    mapSpriteOver5: MapSprite;
-    mapSpriteDoor1: MapSprite;
-    mapSpriteDoor2: MapSprite;
+    private lvzContainer: PIXI.Container;
 
     camera: MapCamera;
 
-    public constructor(map: LVLMap, container: HTMLElement) {
+    public constructor(container: HTMLElement, map: LVLMap, lvz: LVZCollection = new LVZCollection()) {
 
         super();
 
-        this.map = map;
         this.container = container;
+        this.map = map;
+        this.lvz = lvz;
 
+        this.lvlSprites = new LVLSpriteCollection(this.map);
+        this.lvzSprites = new MapSpriteCollection();
         this.camera = new MapCamera();
-
-        // Create chunks to view.
-        this.chunks = new Array(16);
-        for (let x = 0; x < 16; x++) {
-            this.chunks[x] = new Array(16);
-            for (let y = 0; y < 16; y++) {
-                this.chunks[x][y] = new MapChunk(this, x, y);
-            }
-        }
-
-        this.mapSpriteFlag = new MapSprite(16, 16, 10, 2, 90, 0, 0, 9, 0);
-        this.mapSpriteGoal = new MapSprite(16, 16, 9, 2, 90, 0, 1, 8, 1);
-        this.mapSpriteOver1 = new MapSprite(16, 16, 15, 2, 80);
-        this.mapSpriteOver2 = new MapSprite(32, 32, 10, 3, 80);
-        this.mapSpriteOver3 = new MapSprite(16, 16, 15, 2, 80);
-        this.mapSpriteOver4 = new MapSprite(96, 96, 5, 2, 80);
-        this.mapSpriteOver5 = new MapSprite(80, 80, 4, 6, 80);
-        this.mapSpritePrize = new MapSprite(16, 16, 10, 1, 80);
-        this.mapSpriteDoor1 = new MapSprite(16, 16, 19, 10, 80, 9, 8, 12, 8);
-        this.mapSpriteDoor2 = new MapSprite(16, 16, 19, 10, 80, 13, 8, 16, 8);
 
         this.initPixi();
     }
@@ -98,6 +79,7 @@ export class Renderer extends UpdatedObject {
         PIXI.settings.RENDER_OPTIONS.antialias = false;
         PIXI.settings.RENDER_OPTIONS.forceFXAA = false;
         PIXI.settings.MIPMAP_TEXTURES = PIXI.MIPMAP_MODES.OFF;
+        PIXI.settings.SPRITE_MAX_TEXTURES = 1024;
 
         this.app = new PIXI.Application({
             width: 800,
@@ -117,14 +99,44 @@ export class Renderer extends UpdatedObject {
         this.mapAnimContainer.filters = [this.filter];
         this.mapAnimContainer.filterArea = this.app.renderer.screen;
 
+        this.lvzContainer = new PIXI.Container();
+        this.lvzContainer.filters = [this.filter];
+        this.lvzContainer.filterArea = this.app.renderer.screen;
+
         this.app.stage.addChild(this.grid);
         this.app.stage.addChild(this.mapContainer);
         this.app.stage.addChild(this.mapAnimContainer);
+        this.app.stage.addChild(this.lvzContainer);
+
+        this.buildLVZSpriteCollection();
+
+        // Create chunks to view.
+        this.chunks = new Array(16);
+        for (let x = 0; x < 16; x++) {
+            this.chunks[x] = new Array(16);
+            for (let y = 0; y < 16; y++) {
+                this.chunks[x][y] = new MapChunk(this, x, y);
+            }
+        }
+
+        this.lvzChunks = new Array(16);
+        for (let x = 0; x < 16; x++) {
+            this.lvzChunks[x] = new Array(16);
+            for (let y = 0; y < 16; y++) {
+                this.lvzChunks[x][y] = new LVZChunk(this, x, y);
+            }
+        }
 
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
                 this.mapContainer.addChild(this.chunks[x][y].tileMap);
                 this.mapAnimContainer.addChild(this.chunks[x][y].tileMapAnim);
+            }
+        }
+
+        for (let x = 0; x < 16; x++) {
+            for (let y = 0; y < 16; y++) {
+                this.lvzContainer.addChild(this.lvzChunks[x][y].container);
             }
         }
 
@@ -138,16 +150,20 @@ export class Renderer extends UpdatedObject {
 
             this.stats.begin();
 
-            this.mapSpriteFlag.update();
-            this.mapSpriteGoal.update();
-            this.mapSpritePrize.update();
-            this.mapSpriteOver1.update();
-            this.mapSpriteOver2.update();
-            this.mapSpriteOver3.update();
-            this.mapSpriteOver4.update();
-            this.mapSpriteOver5.update();
-            this.mapSpriteDoor1.update();
-            this.mapSpriteDoor2.update();
+            let sw = this.app.view.width;
+            let sh = this.app.view.height;
+
+            let cPos = this.camera.getPosition();
+            let cx = cPos.x * 16;
+            let cy = cPos.y * 16;
+
+            this.camera.bounds.x = cx - sw / 2.0;
+            this.camera.bounds.y = cy - sh / 2.0;
+            this.camera.bounds.width = sw;
+            this.camera.bounds.height = sh;
+
+            this.lvlSprites.update();
+            this.lvzSprites.update();
 
             this.camera.update(delta);
             this.update(delta);
@@ -188,6 +204,7 @@ export class Renderer extends UpdatedObject {
         window.addEventListener('resize', resize);
 
         resize();
+        // }, 2000);
     }
 
     //@Override
@@ -199,13 +216,13 @@ export class Renderer extends UpdatedObject {
 
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
-                if (this.chunks[x][y].isDirty()) {
-                    this.chunks[x][y].update(delta);
-                }
+                this.chunks[x][y].onUpdate(delta);
+                this.lvzChunks[x][y].onUpdate();
             }
         }
 
         this.map.setDirty(false);
+        this.lvz.setDirty(false);
 
         return true;
     }
@@ -213,6 +230,21 @@ export class Renderer extends UpdatedObject {
     // @Override
     public isDirty(): boolean {
         return super.isDirty() || this.camera.isDirty() || this.map.isDirty();
+    }
+
+    private buildLVZSpriteCollection() {
+
+        this.lvzSprites.clear();
+        let mapObjects: LVZMapObject[] = this.lvz.getMapObjects();
+        for (let index = 0; index < mapObjects.length; index++) {
+
+            let next = mapObjects[index];
+            let sprite = next.image.getSprite();
+
+            if (this.lvzSprites.getIndex(sprite) == -1) {
+                this.lvzSprites.addSprite(sprite);
+            }
+        }
     }
 }
 

@@ -4,6 +4,7 @@
  * @author Jab
  */
 import { Validatable } from '../util/Validatable';
+import hex2rgb = PIXI.utils.hex2rgb;
 
 export class MapSpriteCollection {
 
@@ -179,10 +180,11 @@ export class MapSpriteCollection {
  */
 export class MapSprite implements Validatable {
 
-    public current: number[];
+    texture: PIXI.Texture;
+    current: number[];
 
-    private frameWidth: number;
-    private frameHeight: number;
+    frameWidth: number;
+    frameHeight: number;
     private framesX: number;
     private framesY: number;
     private startX: number;
@@ -195,6 +197,10 @@ export class MapSprite implements Validatable {
     private frameY: number;
     private frameTime: number;
     private last: number;
+
+    offset: number;
+
+    sequence: PIXI.Texture[];
 
     /**
      * Main constructor.
@@ -209,7 +215,7 @@ export class MapSprite implements Validatable {
      * @param endX
      * @param endY
      */
-    public constructor(frameWidth: number, frameHeight: number, framesX: number = 1, framesY: number = 1, frameTime: number = 1, startX: number = null, startY: number = null, endX: number = null, endY: number = null) {
+    constructor(frameWidth: number, frameHeight: number, framesX: number = 1, framesY: number = 1, frameTime: number = 1, startX: number = null, startY: number = null, endX: number = null, endY: number = null) {
 
         if (frameWidth == null) {
             throw new Error("The value of 'frameWidth' cannot be undefined.");
@@ -267,6 +273,7 @@ export class MapSprite implements Validatable {
         this.frameX = this.startX;
         this.frameY = this.startY;
         this.current = [0, 0, 0, 0];
+        this.offset = 0;
 
         this.validate();
 
@@ -323,6 +330,7 @@ export class MapSprite implements Validatable {
 
     reset(): void {
 
+        this.offset = 0;
         this.frameOffset = 0;
         this.framesX = this.startX;
         this.framesY = this.startY;
@@ -344,6 +352,7 @@ export class MapSprite implements Validatable {
 
     next(): void {
 
+        this.offset++;
         this.frameOffset++;
         this.frameX++;
         if (this.frameX > this.endX) {
@@ -352,6 +361,7 @@ export class MapSprite implements Validatable {
             if (this.frameY > this.endY) {
                 this.frameY = this.startY;
                 this.frameOffset = 0;
+                this.offset = 0;
             }
         }
 
@@ -359,9 +369,21 @@ export class MapSprite implements Validatable {
     }
 
     updateCurrent(): void {
-        this.current[0] = Math.floor(this.frameX * this.frameWidth);
-        this.current[1] = Math.floor(this.frameY * this.frameHeight);
-        this.current[2] = this.frameHeight;
-        this.current[3] = this.frameWidth;
+
+        let fw = this.frameWidth;
+        let fh = this.frameHeight;
+
+        if (fw <= 0 || fh <= 0) {
+            this.current[0] = 0;
+            this.current[1] = 0;
+            this.current[2] = 0;
+            this.current[3] = 0;
+            return;
+        }
+
+        this.current[0] = this.frameX * this.frameWidth;
+        this.current[1] = this.frameY * this.frameHeight;
+        this.current[2] = this.frameWidth;
+        this.current[3] = this.frameHeight;
     }
 }

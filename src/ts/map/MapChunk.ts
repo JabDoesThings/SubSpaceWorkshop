@@ -2,8 +2,22 @@ import { UpdatedObject } from '../util/UpdatedObject';
 import * as PIXI from "pixi.js";
 import { LVL } from './lvl/LVLUtils';
 import { Renderer } from '../Renderer';
-import Filter = PIXI.Filter;
 
+/**
+ * The <i>LVZChunkEntry</i> interface. TODO: Document.
+ */
+interface LVLChunkEntry {
+    id: number,
+    texture: number,
+    x: number,
+    y: number
+}
+
+/**
+ * The <i>MapChunk</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class MapChunk extends UpdatedObject {
 
     public static readonly LENGTH = 64;
@@ -14,7 +28,7 @@ export class MapChunk extends UpdatedObject {
     private readonly x: number;
     private readonly y: number;
 
-    private tilesAnim: { id: number, texture: number, x: number, y: number }[];
+    private tilesAnim: LVLChunkEntry[];
 
     constructor(view: Renderer, x: number, y: number) {
 
@@ -50,10 +64,6 @@ export class MapChunk extends UpdatedObject {
                 LVL.PRIZES_TEXTURE,
             ]
         );
-
-        // let filter = new PIXI.filters.ColorMatrixFilter();
-        // this.tileMap.filters = [filter];
-        // this.tileMapAnim.filters = [filter];
 
         this.setDirty(true);
     }
@@ -196,25 +206,27 @@ export class MapChunk extends UpdatedObject {
 
             let frame = null;
 
+            let sprites = this.view.lvlSprites;
+
             if (id >= 162 && id <= 165) {
-                frame = this.view.mapSpriteDoor1.current;
+                frame = sprites.mapSpriteDoor1.current;
             } else if (id >= 166 && id <= 169) {
-                frame = this.view.mapSpriteDoor2.current;
+                frame = sprites.mapSpriteDoor2.current;
             } else if (id == 170) {
-                frame = this.view.mapSpriteFlag.current;
+                frame = sprites.mapSpriteFlag.current;
             } else if (id == 172) {
-                frame = this.view.mapSpriteGoal.current;
+                frame = sprites.mapSpriteGoal.current;
             } else if (id == 216) {
                 texture = 3;
-                frame = this.view.mapSpriteOver1.current;
+                frame = sprites.mapSpriteOver1.current;
             } else if (id == 217) {
-                frame = this.view.mapSpriteOver2.current;
+                frame = sprites.mapSpriteOver2.current;
             } else if (id == 218) {
-                frame = this.view.mapSpriteOver3.current;
+                frame = sprites.mapSpriteOver3.current;
             } else if (id == 219) {
-                frame = this.view.mapSpriteOver4.current;
+                frame = sprites.mapSpriteOver4.current;
             } else if (id == 220) {
-                frame = this.view.mapSpriteOver5.current;
+                frame = sprites.mapSpriteOver5.current;
             }
 
             if (frame != null) {

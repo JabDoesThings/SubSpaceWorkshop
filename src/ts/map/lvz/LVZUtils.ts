@@ -548,23 +548,25 @@ export class LVZ {
 
         if (object == null) {
             return LVZErrorStatus.OBJECT_NULL;
-        } else if (object.image == null) {
+        } else if (object.getImage() == null) {
             return LVZErrorStatus.IMAGE_NOT_DEFINED;
-        } else if (object.id < LVZ.OBJECT_ID_MIN || object.id > LVZ.OBJECT_ID_MAX) {
+        } else if (object.getId() < LVZ.OBJECT_ID_MIN || object.getId() > LVZ.OBJECT_ID_MAX) {
             return LVZErrorStatus.OBJECT_ID_OUT_OF_RANGE;
-        } else if (object.x < LVZ.SCREEN_OBJECT_COORDINATE_MIN || object.x > LVZ.SCREEN_OBJECT_COORDINATE_MAX) {
+        } else if (object.getX() < LVZ.SCREEN_OBJECT_COORDINATE_MIN
+            || object.getX() > LVZ.SCREEN_OBJECT_COORDINATE_MAX) {
             return LVZErrorStatus.X_COORDINATE_OUT_OF_RANGE;
-        } else if (object.y < LVZ.SCREEN_OBJECT_COORDINATE_MIN || object.y > LVZ.SCREEN_OBJECT_COORDINATE_MAX) {
+        } else if (object.getY() < LVZ.SCREEN_OBJECT_COORDINATE_MIN
+            || object.getY() > LVZ.SCREEN_OBJECT_COORDINATE_MAX) {
             return LVZErrorStatus.Y_COORDINATE_OUT_OF_RANGE;
-        } else if (object.xType < LVZ.COORDINATE_TYPE_MIN || object.xType > LVZ.COORDINATE_TYPE_MAX) {
+        } else if (object.getXType() < LVZ.COORDINATE_TYPE_MIN || object.getXType() > LVZ.COORDINATE_TYPE_MAX) {
             return LVZErrorStatus.X_COORDINATE_TYPE_OUT_OF_RANGE;
-        } else if (object.yType < LVZ.COORDINATE_TYPE_MIN || object.yType > LVZ.COORDINATE_TYPE_MAX) {
+        } else if (object.getYType() < LVZ.COORDINATE_TYPE_MIN || object.getYType() > LVZ.COORDINATE_TYPE_MAX) {
             return LVZErrorStatus.Y_COORDINATE_TYPE_OUT_OF_RANGE;
-        } else if (object.mode < LVZ.DISPLAY_MODE_MIN || object.mode > LVZ.DISPLAY_MODE_MAX) {
+        } else if (object.getMode() < LVZ.DISPLAY_MODE_MIN || object.getMode() > LVZ.DISPLAY_MODE_MAX) {
             return LVZErrorStatus.DISPLAY_MODE_OUT_OF_RANGE;
-        } else if (object.layer < LVZ.RENDER_LAYER_MIN || object.layer > LVZ.RENDER_LAYER_MAX) {
+        } else if (object.getLayer() < LVZ.RENDER_LAYER_MIN || object.getLayer() > LVZ.RENDER_LAYER_MAX) {
             return LVZErrorStatus.RENDER_LAYER_OUT_OF_RANGE;
-        } else if (object.time < LVZ.DISPLAY_TIME_MIN || object.time > LVZ.DISPLAY_TIME_MAX) {
+        } else if (object.getDisplayTime() < LVZ.DISPLAY_TIME_MIN || object.getDisplayTime() > LVZ.DISPLAY_TIME_MAX) {
             return LVZErrorStatus.DISPLAY_TIME_OUT_OF_RANGE;
         }
 
@@ -644,13 +646,13 @@ export class LVZ {
 
         if (resource == null) {
             return LVZErrorStatus.OBJECT_NULL;
-        } else if (resource.data == null) {
+        } else if (resource.getData() == null) {
             return LVZErrorStatus.RESOURCE_DATA_NULL;
-        } else if (resource.name == null) {
+        } else if (resource.getName() == null) {
             return LVZErrorStatus.RESOURCE_NAME_NULL;
-        } else if (resource.name == '') {
+        } else if (resource.getName() == '') {
             return LVZErrorStatus.RESOURCE_NAME_EMPTY;
-        } else if (resource.time < LVZ.RESOURCE_TIME_MIN) {
+        } else if (resource.getTime() < LVZ.RESOURCE_TIME_MIN) {
             return LVZErrorStatus.RESOURCE_TIME_NEGATIVE;
         }
 
@@ -661,13 +663,16 @@ export class LVZ {
 
         if (image == null) {
             return LVZErrorStatus.OBJECT_NULL;
-        } else if (image.resource == null) {
+        } else if (image.getResource() == null) {
             return LVZErrorStatus.IMAGE_RESOURCE_NULL;
-        } else if (image.xFrames < LVZ.IMAGE_FRAME_COUNT_MIN || image.xFrames > LVZ.IMAGE_FRAME_COUNT_MAX) {
+        } else if (image.getXFrames() < LVZ.IMAGE_FRAME_COUNT_MIN
+            || image.getXFrames() > LVZ.IMAGE_FRAME_COUNT_MAX) {
             return LVZErrorStatus.X_FRAME_COUNT_OUT_OF_RANGE;
-        } else if (image.yFrames < LVZ.IMAGE_FRAME_COUNT_MIN || image.yFrames > LVZ.IMAGE_FRAME_COUNT_MAX) {
+        } else if (image.getYFrames() < LVZ.IMAGE_FRAME_COUNT_MIN
+            || image.getYFrames() > LVZ.IMAGE_FRAME_COUNT_MAX) {
             return LVZErrorStatus.Y_FRAME_COUNT_OUT_OF_RANGE;
-        } else if (image.animationTime < LVZ.IMAGE_ANIMATION_TIME_MIN || image.animationTime > LVZ.IMAGE_ANIMATION_TIME_MAX) {
+        } else if (image.getAnimationTime() < LVZ.IMAGE_ANIMATION_TIME_MIN
+            || image.getAnimationTime() > LVZ.IMAGE_ANIMATION_TIME_MAX) {
             return LVZErrorStatus.ANIMATION_TIME_OUT_OF_RANGE;
         }
 

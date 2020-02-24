@@ -15,6 +15,8 @@ export class MapCamera extends UpdatedObject {
     coordinateMin: number;
     coordinateMax: number;
 
+    bounds: PIXI.Rectangle;
+
     /**
      * Main constructor.
      */
@@ -30,6 +32,8 @@ export class MapCamera extends UpdatedObject {
         // Set the initial position to be the center of the map with the default scale.
         this.position = new Vector2(this.coordinateMax / 2, this.coordinateMax / 2);
         this.scale = 1.0;
+
+        this.bounds = new PIXI.Rectangle(0,0,0,0);
 
         this.upArrowListener = new KeyListener("ArrowUp");
         this.downArrowListener = new KeyListener("ArrowDown");

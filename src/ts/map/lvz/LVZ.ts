@@ -3,16 +3,21 @@ import { Printable } from '../../util/Printable';
 import * as zlib from "zlib";
 import { Validatable } from '../../util/Validatable';
 import * as fs from 'fs';
+import { Dirtable } from '../../util/Dirtable';
+import { MapSprite } from '../MapSprite';
+import { LVL } from '../lvl/LVLUtils';
+import ImageResource = PIXI.resources.ImageResource;
 
 /**
  * The <i>LVZCollection</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LVZCollection extends Printable implements Validatable {
+export class LVZCollection extends Printable implements Dirtable, Validatable {
 
     private mapObjects: LVZMapObject[];
     private screenObjects: LVZScreenObject[];
+    private dirty: boolean;
 
     public constructor() {
 
@@ -20,6 +25,30 @@ export class LVZCollection extends Printable implements Validatable {
 
         this.mapObjects = [];
         this.screenObjects = [];
+        this.dirty = true;
+    }
+
+    public getNearbyPixels(x1: number = 0, y1: number = 0, x2: number = 16384, y2: number = 16384): LVZMapObject[] {
+
+        let result: LVZMapObject[] = [];
+
+        for (let index = 0; index < this.mapObjects.length; index++) {
+
+            let next = this.mapObjects[index];
+            let x = next.getX(), y = next.getX();
+
+            if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
+                result.push(next);
+            }
+        }
+
+        return result;
+
+        // return this.mapObjects;
+    }
+
+    public getNearbyTiles(x1: number = 0, y1: number = 0, x2: number = 1024, y2: number = 1024): LVZMapObject[] {
+        return this.getNearbyPixels(x1 * 16, y1 * 16, x2 * 16, y2 * 16);
     }
 
     public getMapObjects(): LVZMapObject[] {
@@ -62,6 +91,16 @@ export class LVZCollection extends Printable implements Validatable {
         }
     }
 
+    // @Override
+    isDirty(): boolean {
+        return this.dirty;
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+        this.dirty = flag;
+    }
+
     public addMapObject(object: LVZMapObject) {
 
         // Make sure the MapObject is not null or undefined.
@@ -83,6 +122,7 @@ export class LVZCollection extends Printable implements Validatable {
         }
 
         this.mapObjects.push(object);
+        this.setDirty(true);
     }
 
     /**
@@ -138,6 +178,7 @@ export class LVZCollection extends Printable implements Validatable {
 
         // Set the new array as the map objects for the collection.
         this.mapObjects = newArray;
+        this.setDirty(true);
     }
 
     public addScreenObject(object: LVZScreenObject) {
@@ -161,6 +202,7 @@ export class LVZCollection extends Printable implements Validatable {
         }
 
         this.screenObjects.push(object);
+        this.setDirty(true);
     }
 
     /**
@@ -216,6 +258,7 @@ export class LVZCollection extends Printable implements Validatable {
 
         // Set the new array as the screen objects for the collection.
         this.screenObjects = newArray;
+        this.setDirty(true);
     }
 
     /**
@@ -223,6 +266,7 @@ export class LVZCollection extends Printable implements Validatable {
      */
     public clearMapObjects(): void {
         this.mapObjects = [];
+        this.setDirty(true);
     }
 
     /**
@@ -230,6 +274,7 @@ export class LVZCollection extends Printable implements Validatable {
      */
     public clearScreenObjects(): void {
         this.screenObjects = [];
+        this.setDirty(true);
     }
 
     /**
@@ -395,7 +440,7 @@ export class LVZPackage extends Printable implements Validatable {
 
         let getResourceByName = (name: string): LVZResource => {
             for (let index = 0; index < this.resources.length; index++) {
-                if (this.resources[index].name === name) {
+                if (this.resources[index].getName() === name) {
                     return this.resources[index];
                 }
             }
@@ -464,8 +509,13 @@ export class LVZPackage extends Printable implements Validatable {
         };
 
         let compileImage = (image: LVZImage): CompiledLVZImage => {
-            processResource(image.resource);
-            return new CompiledLVZImage(image.resource.name, image.xFrames, image.yFrames, image.animationTime);
+            processResource(image.getResource());
+            return new CompiledLVZImage(
+                image.getResource().getName(),
+                image.getXFrames(),
+                image.getYFrames(),
+                image.getAnimationTime()
+            );
         };
 
         let getImageIndex = (image: LVZImage): number => {
@@ -505,18 +555,18 @@ export class LVZPackage extends Printable implements Validatable {
 
         for (let index = 0; index < screenObjects.length; index++) {
             let next = screenObjects[index];
-            let image = getImageIndex(next.image);
+            let image = getImageIndex(next.getImage());
 
             let compiledScreenObject = new CompiledLVZScreenObject(
-                next.id,
-                next.xType,
-                next.x,
-                next.yType,
-                next.y,
+                next.getId(),
+                next.getXType(),
+                next.getX(),
+                next.getYType(),
+                next.getY(),
                 image,
-                next.layer,
-                next.time,
-                next.mode
+                next.getLayer(),
+                next.getDisplayTime(),
+                next.getMode()
             );
 
             this.screenObjects.push(compiledScreenObject);
@@ -854,16 +904,18 @@ export class DecompressedLVZSection extends Printable {
  *
  * @author Jab
  */
-export class LVZResource extends Printable implements Validatable {
+export class LVZResource extends Printable implements Validatable, Dirtable {
 
-    public readonly name: string;
-    public readonly time: number;
-    public readonly data: Buffer;
+    private data: Buffer;
+    private name: string;
+    private time: number;
+    private dirty: boolean;
+    image: HTMLImageElement;
 
     /**
      * Main constructor.
      *
-     * @param name
+     * @param nameOrPath
      * @param time
      * @param data
      */
@@ -900,6 +952,17 @@ export class LVZResource extends Printable implements Validatable {
             // Ensure that the file time is set.
             this.time = Date.now();
         }
+
+        this.dirty = true;
+    }
+
+    // @Override
+    public toString(): string {
+        return "LVZResource={"
+            + "name=" + this.name
+            + ", time=" + this.time
+            + ", data=Buffer (" + this.data.length + " bytes)"
+            + "}";
     }
 
     // @Override
@@ -935,6 +998,16 @@ export class LVZResource extends Printable implements Validatable {
         throw new EvalError(message);
     }
 
+    // @Override
+    isDirty(): boolean {
+        return this.dirty;
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+        this.dirty = flag;
+    }
+
     public compress(): CompressedLVZSection {
         let compressedData = zlib.deflateSync(this.data);
         let compressSize = compressedData.length;
@@ -950,6 +1023,115 @@ export class LVZResource extends Printable implements Validatable {
         }
 
         return false;
+    }
+
+    public getData(): Buffer {
+        return this.data;
+    }
+
+    public setData(data: Buffer): void {
+        if (!data.equals(this.data)) {
+            this.data = data;
+            this.setDirty(true);
+        }
+    }
+
+    public getName(): string {
+        return this.name;
+    }
+
+    public setName(name: string): void {
+        if (this.name !== name) {
+            this.name = name;
+            this.setDirty(true);
+        }
+    }
+
+    public getTime(): number {
+        return this.time;
+    }
+
+    public setTime(time: number): void {
+        if (this.time !== time) {
+            this.time = time;
+            this.setDirty(true);
+        }
+    }
+
+    isImage(): boolean {
+
+        let acceptedFormats = ["bm2", "bmp", "png", "gif", "jpg"];
+
+        let extension = this.getExtension();
+
+        for (let index = 0; index < acceptedFormats.length; index++) {
+            if (extension === acceptedFormats[index]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    getExtension(): string {
+
+        if (this.name.indexOf(".") != -1) {
+            return this.name.toLowerCase().split(".")[1].trim();
+        }
+
+        return null;
+    }
+
+    private getMimeType() {
+
+        let extension = this.getExtension();
+
+        switch (extension) {
+            case "bm2":
+            case "bmp":
+                return "image/bmp";
+            case "gif":
+                return "image/gif";
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "png":
+                return "image/png";
+        }
+
+        return null;
+    }
+
+    createTexture(callback: (img: HTMLImageElement) => void): PIXI.Texture {
+
+        if (!this.isImage()) {
+            throw new Error("The LVZResource is not an image file. (" + this.name + ")");
+        }
+
+        let mimeType = this.getMimeType();
+
+        if (mimeType == null) {
+            throw new Error(
+                "The LVZResource identifies as an image type, "
+                + "but has no registered mime-type. ("
+                + this.name
+                + ")"
+            );
+        }
+
+        //convert image file to base64-encoded string
+        let base64Image = this.data.toString('base64');
+
+        let cv = document.createElement("canvas");
+        let texture = PIXI.Texture.from(cv);
+
+        this.image = document.createElement("img");
+        this.image.src = 'data:' + mimeType + ';base64,' + base64Image;
+        this.image.decode().finally(() => {
+            callback(this.image);
+        });
+
+        return texture;
     }
 }
 
@@ -1010,10 +1192,10 @@ export class CompiledLVZImage extends Printable {
 
         if (other instanceof LVZImage) {
 
-            return other.resource.name == this.fileName
-                && other.xFrames == this.xFrames
-                && other.yFrames == this.yFrames
-                && other.animationTime == this.animationTime;
+            return other.getResource().getName() == this.fileName
+                && other.getXFrames() == this.xFrames
+                && other.getYFrames() == this.yFrames
+                && other.getAnimationTime() == this.animationTime;
 
         } else if (other instanceof CompiledLVZImage) {
 
@@ -1033,12 +1215,15 @@ export class CompiledLVZImage extends Printable {
  *
  * @author Jab
  */
-export class LVZImage extends Printable implements Validatable {
+export class LVZImage extends Printable implements Validatable, Dirtable {
 
-    public resource: LVZResource;
-    public animationTime: number;
-    public xFrames: number;
-    public yFrames: number;
+    private resource: LVZResource;
+    private animationTime: number;
+    private xFrames: number;
+    private yFrames: number;
+    private dirty: boolean;
+
+    private sprite: MapSprite;
 
     /**
      * Main constructor.
@@ -1056,6 +1241,18 @@ export class LVZImage extends Printable implements Validatable {
         this.animationTime = animationTime;
         this.xFrames = xFrames;
         this.yFrames = yFrames;
+
+        this.dirty = true;
+    }
+
+    // @Override
+    public toString(): string {
+        return "LVZImage={"
+            + this.resource.toString()
+            + ", xFrames=" + this.xFrames
+            + ", yFrames=" + this.yFrames
+            + ", animationTime=" + this.animationTime
+            + "}";
     }
 
     // @Override
@@ -1067,6 +1264,7 @@ export class LVZImage extends Printable implements Validatable {
         console.log(prefix + "\tANIMATION TIME: " + this.animationTime);
     }
 
+    // @Override
     public validate(): void {
 
         let status = LVZ.validateImage(this);
@@ -1107,6 +1305,124 @@ export class LVZImage extends Printable implements Validatable {
         this.print("\t");
         throw new EvalError(message);
 
+    }
+
+    // @Override
+    isDirty(): boolean {
+        return this.dirty;
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+        this.dirty = flag;
+    }
+
+    getResource(): LVZResource {
+        return this.resource;
+    }
+
+    setResource(resource: LVZResource): void {
+
+        if (this.resource !== resource) {
+            this.resource = resource;
+
+            // The resource changed. The texture is now invalid and needs to be destroyed.
+            this.sprite.texture.destroy(true);
+            this.sprite = null;
+
+            this.setDirty(true);
+        }
+    }
+
+    getAnimationTime(): number {
+        return this.animationTime;
+    }
+
+    setAnimationTime(time: number): void {
+
+        if (this.animationTime !== time) {
+
+            this.animationTime = time;
+
+            // TODO: Apply to sprite if exists.
+
+            this.setDirty(true);
+        }
+    }
+
+    getXFrames(): number {
+        return this.xFrames;
+    }
+
+    setXFrames(frames: number): void {
+
+        if (this.xFrames !== frames) {
+
+            this.xFrames = frames;
+
+            // TODO: Apply to sprite if exists.
+
+            this.setDirty(true);
+        }
+    }
+
+    getYFrames(): number {
+        return this.yFrames;
+    }
+
+    setYFrames(frames: number): void {
+
+        if (this.yFrames !== frames) {
+
+            this.yFrames = frames;
+
+            // TODO: Apply to sprite if exists.
+
+            this.setDirty(true);
+        }
+    }
+
+    getSprite(): MapSprite {
+
+        if (this.sprite == null && this.resource.isImage()) {
+
+            let xFrames = this.xFrames, yFrames = this.yFrames;
+            let time = this.animationTime / 10;
+
+            this.sprite = new MapSprite(0, 0, xFrames, yFrames, time);
+
+            this.resource.createTexture((img: HTMLImageElement) => {
+
+                let tex = PIXI.Texture.from(img);
+                let sequence: PIXI.Texture[] = [];
+
+                let width = img.width;
+                let height = img.height;
+                let fw = Math.floor(width / xFrames);
+                let fh = Math.floor(height / yFrames);
+
+                for (let y = 0; y < this.yFrames; y++) {
+                    for (let x = 0; x < this.xFrames; x++) {
+                        let frame = new PIXI.Texture(tex.baseTexture, new PIXI.Rectangle(x * fw, y * fh, fw, fh));
+                        sequence.push(frame);
+                    }
+                }
+
+                console.log(sequence);
+
+                this.sprite.sequence = sequence;
+                this.sprite.frameWidth = img.width / this.xFrames;
+                this.sprite.frameHeight = img.height / this.yFrames;
+
+                this.sprite.reset();
+            });
+        }
+
+        return this.sprite;
+    }
+
+    isAnimated(): boolean {
+        return this.xFrames > 1 || this.yFrames > 1;
     }
 }
 
@@ -1182,7 +1498,7 @@ export class CompiledLVZMapObject extends Printable {
  *
  * @author Jab
  */
-export class LVZMapObject extends Printable implements Validatable {
+export class LVZMapObject extends Printable implements Validatable, Dirtable {
 
     public image: LVZImage;
     public x: number;
@@ -1191,6 +1507,7 @@ export class LVZMapObject extends Printable implements Validatable {
     public layer: LVZRenderLayer;
     public mode: LVZDisplayMode;
     public time: number;
+    public dirty: boolean;
 
     /**
      * Main constructor.
@@ -1221,6 +1538,7 @@ export class LVZMapObject extends Printable implements Validatable {
         this.layer = layer;
         this.mode = mode;
         this.time = time;
+        this.dirty = true;
     }
 
     // @Override
@@ -1241,6 +1559,7 @@ export class LVZMapObject extends Printable implements Validatable {
 
     // @Override
     public validate(): void {
+
         let state = LVZ.validateMapObject(this);
 
         if (state == LVZErrorStatus.SUCCESS) {
@@ -1300,6 +1619,22 @@ export class LVZMapObject extends Printable implements Validatable {
         throw new Error(message);
     }
 
+    // @Override
+    isDirty(): boolean {
+        if (this.dirty) {
+            return true;
+        }
+
+        if (this.image != null && this.image.isDirty()) {
+            return true;
+        }
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+        this.dirty = false;
+    }
+
     /**
      * @return Returns the image displayed for the object.
      */
@@ -1313,7 +1648,10 @@ export class LVZMapObject extends Printable implements Validatable {
      * @param image The image to set.
      */
     public setImage(image: LVZImage): void {
-        this.image = image;
+        if (this.image !== image) {
+            this.image = image;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1329,7 +1667,10 @@ export class LVZMapObject extends Printable implements Validatable {
      * @param value The value to set.
      */
     public setX(value: number): void {
-        this.x = value;
+        if (this.x !== value) {
+            this.x = value;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1345,7 +1686,10 @@ export class LVZMapObject extends Printable implements Validatable {
      * @param value The value to set.
      */
     public setY(value: number): void {
-        this.y = value;
+        if (this.y !== value) {
+            this.y = value;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1361,8 +1705,12 @@ export class LVZMapObject extends Printable implements Validatable {
      * @param id The ID to set.
      */
     public setId(id: number): void {
+
         // TODO: Possible check for ID being negative. -Jab
-        this.id = id;
+        if (this.id !== id) {
+            this.id = id;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1378,7 +1726,11 @@ export class LVZMapObject extends Printable implements Validatable {
      * @param layer The layer to set.
      */
     public setLayer(layer: LVZRenderLayer): void {
-        this.layer = layer;
+        if (this.layer !== layer) {
+            this.layer = layer;
+            this.setDirty(true);
+        }
+
     }
 
     /**
@@ -1394,7 +1746,10 @@ export class LVZMapObject extends Printable implements Validatable {
      * @param mode The display mode to set.
      */
     public setMode(mode: LVZDisplayMode): void {
-        this.mode = mode;
+        if (this.mode !== mode) {
+            this.mode = mode;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1407,11 +1762,14 @@ export class LVZMapObject extends Printable implements Validatable {
 
     /**
      * Sets the time that the object will display when toggled on.
-     * @param value The display-time to set. <br>
+     * @param time The display-time to set. <br>
      *     <b>NOTE:</b> A display-time of '0' will show indefinitely until otherwise toggled off.
      */
-    public setDisplayTime(value: number): void {
-        this.time = value;
+    public setDisplayTime(time: number): void {
+        if (this.time !== time) {
+            this.time = time;
+            this.setDirty(true);
+        }
     }
 }
 
@@ -1505,17 +1863,18 @@ export class CompiledLVZScreenObject extends Printable {
  *
  * @author Jab
  */
-export class LVZScreenObject extends Printable implements Validatable {
+export class LVZScreenObject extends Printable implements Validatable, Dirtable {
 
-    public image: LVZImage;
-    public x: number;
-    public y: number;
-    public id: number;
-    public time: number;
-    public layer: LVZRenderLayer;
-    public xType: LVZXType;
-    public yType: LVZYType;
-    public mode: LVZDisplayMode;
+    private image: LVZImage;
+    private x: number;
+    private y: number;
+    private id: number;
+    private time: number;
+    private layer: LVZRenderLayer;
+    private xType: LVZXType;
+    private yType: LVZYType;
+    private mode: LVZDisplayMode;
+    private dirty: boolean;
 
     /**
      * Main constructor.
@@ -1554,6 +1913,7 @@ export class LVZScreenObject extends Printable implements Validatable {
         this.xType = xType;
         this.yType = yType;
         this.mode = mode;
+        this.dirty = true;
     }
 
     // @Override
@@ -1577,6 +1937,16 @@ export class LVZScreenObject extends Printable implements Validatable {
 
     }
 
+    // @Override
+    isDirty(): boolean {
+        return this.dirty;
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+        this.dirty = flag;
+    }
+
     /**
      * @return Returns the image displayed for the object.
      */
@@ -1590,7 +1960,10 @@ export class LVZScreenObject extends Printable implements Validatable {
      * @param image The image to set.
      */
     public setImage(image: LVZImage): void {
-        this.image = image;
+        if (this.image !== image) {
+            this.image = image;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1606,7 +1979,10 @@ export class LVZScreenObject extends Printable implements Validatable {
      * @param value The value to set.
      */
     public setX(value: number): void {
-        this.x = value;
+        if (this.x !== value) {
+            this.x = value;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1622,7 +1998,10 @@ export class LVZScreenObject extends Printable implements Validatable {
      * @param value The value to set.
      */
     public setY(value: number): void {
-        this.y = value;
+        if (this.y !== value) {
+            this.y = value;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1638,8 +2017,12 @@ export class LVZScreenObject extends Printable implements Validatable {
      * @param id The ID to set.
      */
     public setId(id: number): void {
+
         // TODO: Possible check for ID being negative. -Jab
-        this.id = id;
+        if (this.id !== id) {
+            this.id = id;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1655,7 +2038,10 @@ export class LVZScreenObject extends Printable implements Validatable {
      * @param layer The layer to set.
      */
     public setLayer(layer: LVZRenderLayer): void {
-        this.layer = layer;
+        if (this.layer !== layer) {
+            this.layer = layer;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1671,7 +2057,10 @@ export class LVZScreenObject extends Printable implements Validatable {
      * @param mode The display mode to set.
      */
     public setMode(mode: LVZDisplayMode): void {
-        this.mode = mode;
+        if (this.mode !== mode) {
+            this.mode = mode;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1684,11 +2073,14 @@ export class LVZScreenObject extends Printable implements Validatable {
 
     /**
      * Sets the time that the object will display when toggled on.
-     * @param value The display-time to set. <br>
+     * @param time The display-time to set. <br>
      *     <b>NOTE:</b> A display-time of '0' will show indefinitely until otherwise toggled off.
      */
-    public setDisplayTime(value: number): void {
-        this.time = value;
+    public setDisplayTime(time: number): void {
+        if (this.time !== time) {
+            this.time = time;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1704,7 +2096,10 @@ export class LVZScreenObject extends Printable implements Validatable {
      * @param type The type to set.
      */
     public setXType(type: LVZXType): void {
-        this.xType = type;
+        if (this.xType !== type) {
+            this.xType = type;
+            this.setDirty(true);
+        }
     }
 
     /**
@@ -1720,7 +2115,10 @@ export class LVZScreenObject extends Printable implements Validatable {
      * @param type The type to set.
      */
     public setYType(type: LVZYType): void {
-        this.yType = type;
+        if (this.yType !== type) {
+            this.yType = type;
+            this.setDirty(true);
+        }
     }
 }
 
