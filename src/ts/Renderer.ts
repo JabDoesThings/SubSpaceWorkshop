@@ -10,6 +10,7 @@ import Filter = PIXI.Filter;
 import { LVZCollection, LVZMapObject } from './map/lvz/LVZ';
 import { LVLSpriteCollection } from './map/LVLSpriteCollection';
 import { LVZChunk } from './map/LVZChunk';
+import { ELVLRegionRender } from './map/ELVLRegionRender';
 
 const Stats = require("stats.js");
 
@@ -46,7 +47,10 @@ export class Renderer extends UpdatedObject {
     private mapAnimContainer: PIXI.Container;
     private lvzContainer: PIXI.Container;
 
+    private regions: ELVLRegionRender[];
+
     camera: MapCamera;
+    private elvlContainer: PIXI.Container;
 
     public constructor(container: HTMLElement, map: LVLMap, lvz: LVZCollection = new LVZCollection()) {
 
@@ -58,6 +62,22 @@ export class Renderer extends UpdatedObject {
 
         this.lvlSprites = new LVLSpriteCollection(this.map);
         this.lvzSprites = new MapSpriteCollection();
+
+        this.regions = [];
+
+        let elvl = map.getMetadata();
+        let regions = elvl.getRegions();
+
+        if (regions.length != 0) {
+            for (let index = 0; index < regions.length; index++) {
+
+                let next = regions[index];
+
+                let renderer = new ELVLRegionRender(this, next);
+                this.regions.push(renderer);
+            }
+        }
+
         this.camera = new MapCamera();
 
         this.initPixi();
@@ -94,6 +114,10 @@ export class Renderer extends UpdatedObject {
         this.grid = new MapGrid(this);
         this.grid.filters = [];
         this.grid.filterArea = this.app.renderer.screen;
+
+        this.elvlContainer = new PIXI.Container();
+        this.elvlContainer.alpha = 0.2;
+
         this.mapContainer = new PIXI.Container();
         this.mapAnimContainer = new PIXI.Container();
         this.mapAnimContainer.filters = [this.filter];
@@ -103,6 +127,7 @@ export class Renderer extends UpdatedObject {
         this.lvzContainer.filters = [this.filter];
         this.lvzContainer.filterArea = this.app.renderer.screen;
 
+        this.app.stage.addChild(this.elvlContainer);
         this.app.stage.addChild(this.grid);
         this.app.stage.addChild(this.mapContainer);
         this.app.stage.addChild(this.mapAnimContainer);
@@ -137,6 +162,12 @@ export class Renderer extends UpdatedObject {
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
                 this.lvzContainer.addChild(this.lvzChunks[x][y].container);
+            }
+        }
+
+        if (this.regions.length != 0) {
+            for (let index = 0; index < this.regions.length; index++) {
+                this.elvlContainer.addChild(this.regions[index].container);
             }
         }
 
@@ -218,6 +249,12 @@ export class Renderer extends UpdatedObject {
             for (let y = 0; y < 16; y++) {
                 this.chunks[x][y].onUpdate(delta);
                 this.lvzChunks[x][y].onUpdate();
+            }
+        }
+
+        if (this.regions.length != 0) {
+            for (let index = 0; index < this.regions.length; index++) {
+                this.regions[index].update();
             }
         }
 

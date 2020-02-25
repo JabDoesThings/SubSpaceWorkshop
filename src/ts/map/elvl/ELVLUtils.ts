@@ -117,6 +117,10 @@ export class ELVL {
                     // 000nnnnn - n+1 (1-32) empty tiles in a row
                     value = byte1 % 32 + 1;
 
+                    for (let x = tilesInRow; x < tilesInRow + value; x++) {
+                        tiles[x][rowsCounted] = false;
+                    }
+
                     tilesInRow += value;
 
                 } else if (b1check == ELVL.TILEDATA_LONG_EMPTY_RUN) {
@@ -124,6 +128,10 @@ export class ELVL {
                     // 001000nn nnnnnnnn - n+1 (1-1024) empty tiles in a row
                     byte2 = buffer.readUInt8(eOffset++);
                     value = 256 * (byte1 % 4) + byte2 + 1;
+
+                    for (let x = tilesInRow; x < tilesInRow + value; x++) {
+                        tiles[x][rowsCounted] = false;
+                    }
 
                     tilesInRow += value;
 
@@ -183,9 +191,10 @@ export class ELVL {
                     value = byte1 % 32 + 1;
 
                     // Next, copy the entire row.
-                    for (let i = 0; i < value; i++) {
-                        let start = rowsCounted + i - 1;
-                        copyRow(tiles, start, start + 1);
+                    for (let x = 0; x < 1024; x++) {
+                        for (let y = rowsCounted; y < rowsCounted + value; y++) {
+                            tiles[x][y] = tiles[x][y - 1];
+                        }
                     }
 
                     rowsCounted += value;
@@ -197,9 +206,10 @@ export class ELVL {
                     value = 256 * (byte1 % 4) + byte2 + 1;
 
                     // Next, copy the entire row.
-                    for (let i = 0; i < value; i++) {
-                        let start = rowsCounted + i - 1;
-                        copyRow(tiles, start, start + 1);
+                    for (let x = 0; x < 1024; x++) {
+                        for (let y = rowsCounted; y < rowsCounted + value; y++) {
+                            tiles[x][y] = tiles[x][y - 1];
+                        }
                     }
 
                     rowsCounted += value;

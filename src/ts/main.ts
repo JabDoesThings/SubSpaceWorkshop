@@ -7,16 +7,16 @@ function debugLVL() {
 
     let container = document.getElementById("map-viewer-container");
 
-    let arena = "theField";
+    let arena = "hz";
     let lvlFile = "assets/lvl/" + arena + ".lvl";
     let lvlFile2 = "assets/lvl/" + arena + "_.lvl";
 
     let map = LVL.read(lvlFile);
 
-    let lvzPackage = LVZ.read("assets/lvz/thefield.lvz");
-    let lvz = lvzPackage.inflate().collect();
+    // let lvzPackage = LVZ.read("assets/lvz/thefield.lvz");
+    // let lvz = lvzPackage.inflate().collect();
 
-    let renderer = new Renderer(container, map, lvz);
+    let renderer = new Renderer(container, map);
 }
 
 function debugLVZ() {

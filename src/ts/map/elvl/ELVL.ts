@@ -33,6 +33,22 @@ export class ELVLCollection {
 
         this.chunks.push(chunk);
     }
+
+    getRegions(): ELVLRegion[] {
+
+        let regions: ELVLRegion[] = [];
+
+        for (let index = 0; index < this.chunks.length; index++) {
+
+            let next = this.chunks[index];
+
+            if (next instanceof ELVLRegion) {
+                regions.push(next);
+            }
+        }
+
+        return regions;
+    }
 }
 
 export abstract class ELVLChunk {
@@ -708,7 +724,8 @@ export class ELVLDCMEBookmarks extends ELVLChunk {
  *
  * @author Jab
  */
-export class ELVLDCMELVZPath extends ELVLRawChunk {}
+export class ELVLDCMELVZPath extends ELVLRawChunk {
+}
 
 /**
  * The <i>ELVLType</i> enum identifies chunk types for ELVL data.

@@ -187,6 +187,10 @@ export class LVLMap implements Dirtable {
     public setDirty(flag: boolean): void {
         this.dirty = flag;
     }
+
+    getMetadata(): ELVLCollection {
+        return this.metadata;
+    }
 }
 
 /**
