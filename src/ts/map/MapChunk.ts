@@ -2,6 +2,7 @@ import { UpdatedObject } from '../util/UpdatedObject';
 import * as PIXI from "pixi.js";
 import { LVL } from './lvl/LVLUtils';
 import { Renderer } from '../Renderer';
+import { LVLArea } from './lvl/LVL';
 
 /**
  * The <i>LVZChunkEntry</i> interface. TODO: Document.
@@ -27,6 +28,8 @@ export class MapChunk extends UpdatedObject {
     private view: Renderer;
     private readonly x: number;
     private readonly y: number;
+
+    private area: LVLArea;
 
     private tilesAnim: LVLChunkEntry[];
 
@@ -65,7 +68,10 @@ export class MapChunk extends UpdatedObject {
             ]
         );
 
+        this.area = new LVLArea(x * 64, y * 64, ((x + 1) * 64) - 1, ((y + 1) * 64) - 1);
+
         this.setDirty(true);
+        console.log(this);
     }
 
     // @Override
@@ -90,7 +96,9 @@ export class MapChunk extends UpdatedObject {
             this.tileMap.y = this.tileMapAnim.y = 1 + Math.floor(((this.y * 64) - (cpos.y * 16) + sh / 2) - (this.y * 64));
         }
 
-        if (map.isDirty()) {
+        if (map.isDirty() && map.containsDirtyArea(this.area.x1, this.area.y1, this.area.x2, this.area.y2)) {
+
+            console.log("Drawing MapChunk: " + this.area);
 
             this.tileMap.clear();
             this.tilesAnim = [];

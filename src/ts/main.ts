@@ -17,6 +17,10 @@ function debugLVL() {
     // let lvz = lvzPackage.inflate().collect();
 
     let renderer = new Renderer(container, map);
+
+    setTimeout(() => {
+        map.fill(217, 32, 32, 127, 127);
+    }, 5000);
 }
 
 function debugLVZ() {

@@ -8,21 +8,21 @@ import { ELVL } from '../elvl/ELVLUtils';
 
 export class LVL {
 
-    public static readonly TILESET_DIMENSIONS: number[] = [304, 160];
-    public static readonly MAP_LENGTH = 1024;
+    static readonly TILESET_DIMENSIONS: number[] = [304, 160];
+    static readonly MAP_LENGTH = 1024;
 
-    public static DEFAULT_TILESET = LVL.readTilesetImage("assets/media/tiles.bmp");
-    public static FLAG_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/flag.png");
-    public static GOAL_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/goal.png");
-    public static PRIZES_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/prizes.png");
-    public static OVER1_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over1.png");
-    public static OVER2_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over2.png");
-    public static OVER3_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over3.png");
-    public static OVER4_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over4.png");
-    public static OVER5_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over5.png");
-    public static EXTRAS_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/extras.bmp");
+    static DEFAULT_TILESET = LVL.readTilesetImage("assets/media/tiles.bmp");
+    static FLAG_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/flag.png");
+    static GOAL_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/goal.png");
+    static PRIZES_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/prizes.png");
+    static OVER1_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over1.png");
+    static OVER2_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over2.png");
+    static OVER3_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over3.png");
+    static OVER4_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over4.png");
+    static OVER5_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over5.png");
+    static EXTRAS_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/extras.bmp");
 
-    public static read(path: string): LVLMap {
+    static read(path: string): LVLMap {
 
         let tileSet: LVLTileSet;
         let elvlData: ELVLCollection;
@@ -82,39 +82,12 @@ export class LVL {
         fs.writeFileSync(path, buffer);
     }
 
-    private static toTileBuffer(map: LVLMap): Buffer {
-
-        let tiles = map.tiles;
-        let tilesToWrite: { id: number, x: number, y: number }[] = [];
-        for (let x = 0; x < 1024; x++) {
-            for (let y = 0; y < 1024; y++) {
-                let nextTile = tiles[x][y];
-                if (nextTile !== 0) {
-                    tilesToWrite.push({id: nextTile, x: x, y: y});
-                }
-            }
-        }
-
-        let mapBufferLength = 4 * tilesToWrite.length;
-        let buffer: Buffer = Buffer.alloc(mapBufferLength);
-
-        let offset = 0;
-        for (let index = 0; index < tilesToWrite.length; index++) {
-            let tile = tilesToWrite[index];
-            let int = ((tile.id & 0x00ff) << 24) | ((tile.y & 0x03FF) << 12) | (tile.x & 0x03FF);
-            buffer.writeInt32LE(int, offset);
-            offset += 4;
-        }
-
-        return buffer;
-    }
-
-    public static readTilesetImage(path: string): LVLTileSet {
+    static readTilesetImage(path: string): LVLTileSet {
         let buffer = fs.readFileSync(path);
         return LVL.readTileset(buffer);
     }
 
-    public static readTileset(buffer: Buffer): LVLTileSet {
+    static readTileset(buffer: Buffer): LVLTileSet {
 
         let bitmap = new Bitmap(buffer);
         let imageData = bitmap.convertToImageData();
@@ -143,7 +116,7 @@ export class LVL {
      * @throws EvalError Thrown if the 'x' or 'y' coordinate ranges are inverted.
      * @throws RangeError Thrown if the 'x' or 'y' coordinate given falls outside the ranges given.
      */
-    public static validateCoordinates(x: number, y: number, startX: number, startY: number, endX: number, endY: number): void {
+    static validateCoordinates(x: number, y: number, startX: number, startY: number, endX: number, endY: number): void {
 
         // Make sure that the ranges are not inverted.
         LVL.validateRanges(startX, startY, endX, endY);
@@ -185,7 +158,7 @@ export class LVL {
      *
      * @throws EvalError Thrown if the 'x' or 'y' coordinate ranges are inverted.
      */
-    public static validateRanges(startX: number, startY: number, endX: number, endY: number): void {
+    static validateRanges(startX: number, startY: number, endX: number, endY: number): void {
 
         if (startX > endX) {
             throw new EvalError("'startX' is greater than 'endX'.");
@@ -209,7 +182,7 @@ export class LVL {
      *
      * @return Returns 'true' if the 'src' is completely outside of the 'dst' range.
      */
-    public static isOutOfRange(
+    static isOutOfRange(
         srcStartX: number, srcStartY: number, srcEndX: number, srcEndY: number,
         dstStartX: number, dstStartY: number, dstEndX: number, dstEndY: number): boolean {
         return srcEndX < dstStartX
@@ -230,7 +203,7 @@ export class LVL {
      *
      * @return Returns 'true' if the 'x' and 'y' coordinate are within the range given.
      */
-    public static contains(x: number, y: number, startX: number, startY: number, endX: number, endY: number) {
+    static contains(x: number, y: number, startX: number, startY: number, endX: number, endY: number) {
         return x >= startX && x <= endX && y >= startY && y <= endY;
     }
 
@@ -276,7 +249,7 @@ export class LVL {
      * @throws Error Thrown if the image is null, or the width or height of the image is
      *   not 16 pixels.
      */
-    public static validateTileImage(image: PIXI.Texture) {
+    static validateTileImage(image: PIXI.Texture) {
 
         // First, make sure the image is not null or undefined.
         if (image == null) {
@@ -305,7 +278,7 @@ export class LVL {
      *
      * @return Returns 'true' if the image's dimensions are divisible by 16.
      */
-    public static canImageFitTiles(image: HTMLImageElement): boolean {
+    static canImageFitTiles(image: HTMLImageElement): boolean {
 
         // First, make sure the image is not null or undefined.
         if (image == null) {
@@ -324,7 +297,7 @@ export class LVL {
      *
      * @return Returns 'true' if the width and height are both divisible by 16.
      */
-    public static canFitTiles(width: number, height: number): boolean {
+    static canFitTiles(width: number, height: number): boolean {
         return width % 16 == 0 && height % 16 == 0;
     }
 
@@ -334,10 +307,76 @@ export class LVL {
      *
      * @throws RangeError Thrown if the value is less than 0 or greater than 255.
      */
-    public static validateTileId(value: number): void {
+    static validateTileId(value: number): void {
         if (value < 0 || value > 255) {
             throw new RangeError("The tile-value given is out of range. " +
                 "Tile values can only be between 0 and 255. (" + value + " given)");
+        }
+    }
+
+    // static validatePosition(x: number, y: number): void {
+    //
+    //     let messages: string[] = [];
+    //
+    //     if (x < 0) {
+    //         messages.push("The 'x' coordinate given is negative. (" + x + " given)");
+    //     } else if (x > 1023) {
+    //         messages.push("The 'x' coordinate given is greater than 1023. (" + x + " given)");
+    //     }
+    //
+    //     if (y < 0) {
+    //         messages.push("The 'y' coordinate given is negative. (" + y + " given)");
+    //     } else if (y > 1023) {
+    //         messages.push("The 'y' coordinate given is greater than 1023. (" + y + " given)");
+    //     }
+    //
+    //     if (messages.length != 0) {
+    //         throw new Error(messages.join("\n"));
+    //     }
+    // }
+
+    static validateArea(x1: number, y1: number, x2: number, y2: number) {
+
+        let messages: string[] = [];
+
+        if (x1 > x2 || y1 > y2) {
+            messages.push(
+                "The coordinates given are inverted. x1 should be less than x2 and y1 should be less than y2. ("
+                + "{"
+                + "x1:" + x1 + ","
+                + "y1:" + y1 + ","
+                + "x2:" + x2 + ","
+                + "y2:" + y2
+                + "} given)"
+            );
+        }
+
+        if (x1 < 0) {
+            messages.push("The 'x1' coordinate given is negative. (" + x1 + " given)");
+        } else if (x1 > 1023) {
+            messages.push("The 'x1' coordinate given is greater than 1023. (" + x1 + " given)");
+        }
+
+        if (y1 < 0) {
+            messages.push("The 'y1' coordinate given is negative. (" + y1 + " given)");
+        } else if (y1 > 1023) {
+            messages.push("The 'y1' coordinate given is greater than 1023. (" + y1 + " given)");
+        }
+
+        if (x2 < 0) {
+            messages.push("The 'x2' coordinate given is negative. (" + x2 + " given)");
+        } else if (x2 > 1023) {
+            messages.push("The 'x2' coordinate given is greater than 1023. (" + x2 + " given)");
+        }
+
+        if (y2 < 0) {
+            messages.push("The 'y2' coordinate given is negative. (" + y2 + " given)");
+        } else if (y2 > 1023) {
+            messages.push("The 'y2' coordinate given is greater than 1023. (" + y2 + " given)");
+        }
+
+        if (messages.length != 0) {
+            throw new Error(messages.join("\n"));
         }
     }
 
@@ -347,7 +386,34 @@ export class LVL {
      *
      * @return Returns 'true' if the ID is within 1 and 190.
      */
-    public static inTilesetRange(tile: number): boolean {
+    static inTilesetRange(tile: number): boolean {
         return tile >= 1 && tile <= 190;
+    }
+
+    private static toTileBuffer(map: LVLMap): Buffer {
+
+        let tiles = map.tiles;
+        let tilesToWrite: { id: number, x: number, y: number }[] = [];
+        for (let x = 0; x < 1024; x++) {
+            for (let y = 0; y < 1024; y++) {
+                let nextTile = tiles[x][y];
+                if (nextTile !== 0) {
+                    tilesToWrite.push({id: nextTile, x: x, y: y});
+                }
+            }
+        }
+
+        let mapBufferLength = 4 * tilesToWrite.length;
+        let buffer: Buffer = Buffer.alloc(mapBufferLength);
+
+        let offset = 0;
+        for (let index = 0; index < tilesToWrite.length; index++) {
+            let tile = tilesToWrite[index];
+            let int = ((tile.id & 0x00ff) << 24) | ((tile.y & 0x03FF) << 12) | (tile.x & 0x03FF);
+            buffer.writeInt32LE(int, offset);
+            offset += 4;
+        }
+
+        return buffer;
     }
 }
