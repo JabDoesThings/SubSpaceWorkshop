@@ -99,7 +99,7 @@ export class MapGrid extends PIXI.Container {
         if (this.renderBaseGrid) {
 
             this.baseGrid.clear();
-            this.baseGrid.lineStyle(1, 0x444444, 0.33);
+            this.baseGrid.lineStyle(1, 0x444444, 0.1);
 
             // Horizontal lines.
             for (let y = Math.max(-offsetY, startY); y <= Math.min(1023 * 16, endY + 16); y += 16) {
@@ -117,7 +117,7 @@ export class MapGrid extends PIXI.Container {
         if (this.renderChunkLines) {
 
             this.chunkGrid.clear();
-            this.chunkGrid.lineStyle(1, 0xff4444, 0.33);
+            this.chunkGrid.lineStyle(1, 0xff0000, 0.2);
 
             for (let z = 64 * 16; z < 1024 * 16; z += 64 * 16) {
 
@@ -143,7 +143,7 @@ export class MapGrid extends PIXI.Container {
         if (this.renderAxisLines) {
 
             this.centerLines.clear();
-            this.centerLines.lineStyle(1, 0x7777ff, 1);
+            this.centerLines.lineStyle(1, 0x0000ff, 0.2);
 
             let drawCenterX = screenCenterX > 0 && screenCenterX <= sw;
             let drawCenterY = screenCenterY > 0 && screenCenterY <= sh;
@@ -162,7 +162,7 @@ export class MapGrid extends PIXI.Container {
         if (this.renderBorderLines) {
 
             this.borderLines.clear();
-            this.borderLines.lineStyle(1.5, 0x7777ff, 1);
+            this.borderLines.lineStyle(1.5, 0x0000ff, 0.2);
 
             let drawLeft = left > 0 && left <= sw;
             let drawTop = top > 0 && top <= sh;

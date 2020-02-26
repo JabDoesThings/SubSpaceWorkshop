@@ -73,7 +73,7 @@ export class LVL {
         let tileBuffer = LVL.toTileBuffer(map);
         let buffer: Buffer;
         if (map.tileset != null && map.tileset !== LVL.DEFAULT_TILESET) {
-            tileSetBuffer = Bitmap.toBuffer(map.tileset.source, map.tileset.bitCount);
+            tileSetBuffer = Bitmap.toBuffer(map.tileset.source, map.tileset.bitCount, true);
             buffer = Buffer.concat([tileSetBuffer, tileBuffer]);
         } else {
             buffer = tileBuffer;
@@ -95,6 +95,7 @@ export class LVL {
         let canvas = document.createElement('canvas');
         canvas.width = 304;
         canvas.height = 160;
+
         let context = canvas.getContext('2d');
         context.putImageData(imageData, 0, 0);
 

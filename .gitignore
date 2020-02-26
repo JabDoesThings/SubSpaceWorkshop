@@ -8,3 +8,4 @@ package-lock.json
 node_modules/
 .idea/
 stats.bat
+screenshot.png

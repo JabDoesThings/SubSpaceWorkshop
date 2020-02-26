@@ -39,7 +39,7 @@ export class ELVL {
         let eStartOffset;
         let eOffset = buffer.readUInt32LE(6);
         if (eOffset == 0) {
-            return null;
+            return new ELVLCollection();
         }
         eStartOffset = eOffset;
 

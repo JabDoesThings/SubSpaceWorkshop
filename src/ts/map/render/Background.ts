@@ -8,19 +8,35 @@ export class Background extends PIXI.Container {
     private layer2: StarFieldLayer;
     private texLayer: BackgroundObjectLayer;
 
+    g: PIXI.Graphics;
+
+    private lw: number;
+    private lh: number;
+
     constructor(view: Renderer) {
 
         super();
 
         this.view = view;
+
+        this.filters = [];
+        this.filterArea = view.app.screen;
+
+        this.g = new PIXI.Graphics();
+        this.lw = -1;
+        this.lh = -1;
+
         this.draw();
     }
 
     draw(): void {
         this.removeChildren();
+
         this.layer1 = new StarFieldLayer(this, 0x606060, 8);
         this.layer2 = new StarFieldLayer(this, 0xB8B8B8, 6);
         this.texLayer = new BackgroundObjectLayer(this);
+
+        this.addChild(this.g);
         this.addChild(this.layer1);
         this.addChild(this.layer2);
         this.addChild(this.texLayer);
@@ -29,6 +45,18 @@ export class Background extends PIXI.Container {
     update(): void {
 
         let camera = this.view.camera;
+
+        let screen = this.view.app.screen;
+        if (screen.width != this.lw || screen.height != this.lh) {
+
+            this.g.clear();
+            this.g.beginFill(0x000000);
+            this.g.drawRect(0, 0, screen.width, screen.height);
+            this.g.endFill();
+
+            this.lw = screen.width;
+            this.lh = screen.height;
+        }
 
         if (camera.isDirty()) {
 

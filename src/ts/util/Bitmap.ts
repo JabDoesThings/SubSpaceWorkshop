@@ -19,7 +19,7 @@ export class BitmapHeader {
     readonly biSizeImage: number;
     readonly biXPelsPerMeter: number;
     readonly biYPelsPerMeter: number;
-    
+
     pixelOffset: number;
     biClrUsed: number;
     biClrImportant: number;
@@ -173,7 +173,13 @@ export class Bitmap {
         return imageData;
     }
 
-    static toBuffer(source: HTMLCanvasElement, bitCount: number) {
+    /**
+     *
+     * @param source
+     * @param bitCount
+     * @param dummy Set to true to save to a 1x1 bitmap.
+     */
+    static toBuffer(source: HTMLCanvasElement, bitCount: number, dummy: boolean = false) {
 
         let sw = source.width;
         let sh = source.height;
@@ -236,7 +242,9 @@ export class Bitmap {
             let length = headerLength + colorBuffer.length + pixelBuffer.length;
             buffer = Buffer.alloc(length);
             colorBuffer.copy(buffer, headerLength);
-            pixelBuffer.copy(buffer, headerLength + 1024);
+            if (!dummy) {
+                pixelBuffer.copy(buffer, headerLength + 1024);
+            }
         }
 
         // File Header
@@ -246,6 +254,10 @@ export class Bitmap {
         buffer.writeUInt16LE(0, 8); // bfReserved2
         buffer.writeUInt32LE(40, 14); // biSize
 
+        if (dummy) {
+            sw = 1;
+            sh = 1;
+        }
         // Info Header
         buffer.writeUInt32LE(sw, 18); // biWidth
         buffer.writeUInt32LE(sh, 22); // biHeight
@@ -379,7 +391,6 @@ export class PaletteData {
                 }
             }
         }
-
     }
 
     pad(amount: number, color: PaletteColor = new PaletteColor(0, 0, 0)): void {

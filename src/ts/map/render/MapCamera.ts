@@ -16,6 +16,7 @@ export class MapCamera extends UpdatedObject {
     coordinateMax: number;
 
     bounds: PIXI.Rectangle;
+    private shift: boolean;
 
     /**
      * Main constructor.
@@ -23,6 +24,8 @@ export class MapCamera extends UpdatedObject {
     constructor() {
 
         super();
+
+        this.shift = false;
 
         this.setRequireDirtyToUpdate(false);
 
@@ -33,7 +36,7 @@ export class MapCamera extends UpdatedObject {
         this.position = new Vector2(this.coordinateMax / 2, this.coordinateMax / 2);
         this.scale = 1.0;
 
-        this.bounds = new PIXI.Rectangle(0,0,0,0);
+        this.bounds = new PIXI.Rectangle(0, 0, 0, 0);
 
         this.upArrowListener = new KeyListener("ArrowUp");
         this.downArrowListener = new KeyListener("ArrowDown");
@@ -70,6 +73,12 @@ export class MapCamera extends UpdatedObject {
             this.setDirty(true);
         });
 
+        new KeyListener("Shift", () => {
+            this.shift = true;
+        }, null, () => {
+            this.shift = false;
+        });
+
         // Make sure anything dependent on the camera being dirty renders on the first
         // render call.
         this.setDirty(true);
@@ -78,15 +87,20 @@ export class MapCamera extends UpdatedObject {
     // @Override
     public onUpdate(delta: number): boolean {
 
+        let speed = 1;
+        if (this.shift) {
+            speed = 2;
+        }
+
         if (this.upArrowListener.isDown != this.downArrowListener.isDown) {
 
             if (this.upArrowListener.isDown) {
-                this.position.y -= 1;
+                this.position.y -= speed;
                 this.setDirty(true);
             }
 
             if (this.downArrowListener.isDown) {
-                this.position.y += 1;
+                this.position.y += speed;
                 this.setDirty(true);
             }
 
@@ -95,18 +109,17 @@ export class MapCamera extends UpdatedObject {
             } else if (this.position.y >= this.coordinateMax) {
                 this.position.y = this.coordinateMax;
             }
-
         }
 
         if (this.leftArrowListener.isDown != this.rightArrowListener.isDown) {
 
             if (this.leftArrowListener.isDown) {
-                this.position.x -= 1;
+                this.position.x -= speed;
                 this.setDirty(true);
             }
 
             if (this.rightArrowListener.isDown) {
-                this.position.x += 1;
+                this.position.x += speed;
                 this.setDirty(true);
             }
 
@@ -115,7 +128,6 @@ export class MapCamera extends UpdatedObject {
             } else if (this.position.x >= this.coordinateMax) {
                 this.position.x = this.coordinateMax;
             }
-
         }
 
         return true;

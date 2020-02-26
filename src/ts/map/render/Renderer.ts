@@ -12,8 +12,31 @@ import { LVLSpriteCollection } from './LVLSpriteCollection';
 import { LVZChunk } from './LVZChunk';
 import { ELVLRegionRender } from './ELVLRegionRender';
 import { Background } from './Background';
+import InteractionEvent = PIXI.interaction.InteractionEvent;
 
 const Stats = require("stats.js");
+
+export interface MapMouseEvent {
+    type: MapMouseEventType,
+    data: MapSpace,
+    button: number
+}
+
+export interface MapSpace {
+    tileX: number,
+    tileY: number,
+    x: number,
+    y: number
+}
+
+export enum MapMouseEventType {
+    DOWN = 'down',
+    UP = 'up',
+    DRAG = 'drag',
+    HOVER = 'hover',
+    ENTER = 'enter',
+    EXIT = 'exit'
+}
 
 export class Renderer extends UpdatedObject {
 
@@ -30,24 +53,24 @@ export class Renderer extends UpdatedObject {
 
     static chromaFilter = new Filter(undefined, Renderer.fragmentSrc, undefined);
 
-    readonly map: LVLMap;
-    readonly lvz: LVZCollection;
+    readonly mouseListeners: ((event: MapMouseEvent) => void)[] = [];
 
     readonly lvlSprites: LVLSpriteCollection;
     readonly lvzSprites: MapSpriteCollection;
-
     readonly container: HTMLElement;
+
     private chunks: LVLChunk[][];
     private lvzChunks: LVZChunk[][];
     private stats: Stats;
-    app: PIXI.Application;
-    private grid: MapGrid;
-
     private regions: ELVLRegionRender[];
-
-    camera: MapCamera;
     private elvlContainer: PIXI.Container;
 
+    readonly map: LVLMap;
+    readonly lvz: LVZCollection;
+
+    app: PIXI.Application;
+    camera: MapCamera;
+    grid: MapGrid;
     _background: Background;
     _border: LVLBorder;
     _map: PIXI.Container;
@@ -115,7 +138,6 @@ export class Renderer extends UpdatedObject {
         this.grid = new MapGrid(this);
         this.grid.filters = [];
         this.grid.filterArea = this.app.renderer.screen;
-        this.grid.visible = false;
 
         this.elvlContainer = new PIXI.Container();
         this.elvlContainer.alpha = 0.2;
@@ -242,7 +264,86 @@ export class Renderer extends UpdatedObject {
         window.addEventListener('resize', resize);
 
         resize();
-        // }, 2000);
+
+        this.app.stage.interactive = true;
+
+        let toMapSpace = (e: InteractionEvent): MapSpace => {
+            let cPos = this.camera.getPosition();
+            let cx = cPos.x * 16.0;
+            let cy = cPos.y * 16.0;
+            let sw = this.app.screen.width;
+            let sh = this.app.screen.height;
+            let gMouse = e.data.global;
+            let mx = Math.floor(cx + (gMouse.x - (sw / 2.0)));
+            let my = Math.floor(cy + (gMouse.y - (sh / 2.0)));
+            let tx = Math.floor(mx / 16.0);
+            let ty = Math.floor(my / 16.0);
+            return {x: mx, y: my, tileX: tx, tileY: ty};
+        };
+
+        let dispatch = (event: MapMouseEvent): void => {
+
+            if (this.mouseListeners.length != 0) {
+                for (let index = 0; index < this.mouseListeners.length; index++) {
+                    this.mouseListeners[index](event);
+                }
+            }
+        };
+
+        let down = false;
+
+        let onButtonDown = (e: InteractionEvent) => {
+            down = true;
+            dispatch({data: toMapSpace(e), type: MapMouseEventType.DOWN, button: e.data.button});
+        };
+
+        let onButtonMove = (e: InteractionEvent) => {
+            dispatch({
+                data: toMapSpace(e),
+                type: down ? MapMouseEventType.DRAG : MapMouseEventType.HOVER,
+                button: e.data.button
+            });
+        };
+
+        let onButtonUp = (e: InteractionEvent) => {
+            down = false;
+            dispatch({data: toMapSpace(e), type: MapMouseEventType.UP, button: e.data.button});
+        };
+        let onButtonOver = (e: InteractionEvent) => {
+            let mapSpace = toMapSpace(e);
+            dispatch({data: toMapSpace(e), type: MapMouseEventType.ENTER, button: e.data.button});
+        };
+        let onButtonOut = (e: InteractionEvent) => {
+            let mapSpace = toMapSpace(e);
+            dispatch({data: toMapSpace(e), type: MapMouseEventType.EXIT, button: e.data.button});
+        };
+        this.app.stage.on('pointerdown', onButtonDown)
+            .on('pointerup', onButtonUp)
+            .on('pointerupoutside', onButtonUp)
+            .on('pointerover', onButtonOver)
+            .on('pointerout', onButtonOut)
+            .on('pointermove', onButtonMove);
+
+        this.mouseListeners.push((event: MapMouseEvent): void => {
+
+            // if (event.button !== 0) {
+            //     return;
+            // }
+
+            console.log(event.type);
+
+            if (event.type !== MapMouseEventType.DOWN && event.type !== MapMouseEventType.DRAG) {
+                return;
+            }
+
+            let data = event.data;
+            let x = data.tileX;
+            let y = data.tileY;
+            if (x >= 0 && x < 1024 && y >= 0 && y < 1024) {
+                this.map.setTile(x, y, 170);
+            }
+        });
+
     }
 
     //@Override

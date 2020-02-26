@@ -2,22 +2,40 @@ import { LVL } from './map/lvl/LVLUtils';
 import { LVZ } from './map/lvz/LVZUtils';
 import { Renderer } from './map/render/Renderer';
 import { LVZPackage } from './map/lvz/LVZ';
+import { KeyListener } from './util/KeyListener';
+import * as fs from 'fs';
+import InteractionEvent = PIXI.interaction.InteractionEvent;
 
 function debugLVL() {
 
     let container = document.getElementById("map-viewer-container");
 
-    let arena = "_bzw";
+    let arena = "zone66";
     let lvlFile = "assets/lvl/" + arena + ".lvl";
-    let lvlFile2 = "assets/lvl/" + arena + "_.lvl";
+    let lvlFile2 = "assets/lvl/" + arena + "3.lvl";
 
     let map = LVL.read(lvlFile);
-    console.log(map);
+    LVL.write(map, lvlFile2);
+
+    console.log("save");
 
     // let lvzPackage = LVZ.read("assets/lvz/thefield.lvz");
     // let lvz = lvzPackage.inflate().collect();
 
-    let renderer = new Renderer(container, map);
+    let view = new Renderer(container, map);
+
+    // Screenshot button.
+    new KeyListener("F12", () => {
+        let renderer = view.app.renderer;
+        let renderTexture = PIXI.RenderTexture.create({width: renderer.width, height: renderer.height});
+        renderer.render(view.app.stage, renderTexture);
+        let canvas = renderer.extract.canvas(renderTexture);
+        let b64 = canvas.toDataURL('image/png');
+        let link = document.createElement("a");
+        link.setAttribute("href", b64);
+        link.setAttribute("download", "screenshot.png");
+        link.click();
+    });
 
     // setTimeout(() => {
     //     map.fill(217, 32, 32, 127, 127);
