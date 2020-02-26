@@ -19,7 +19,7 @@ interface LVLChunkEntry {
  *
  * @author Jab
  */
-export class MapChunk extends UpdatedObject {
+export class LVLChunk extends UpdatedObject {
 
     public static readonly LENGTH = 64;
 
@@ -247,5 +247,94 @@ export class MapChunk extends UpdatedObject {
         }
 
         return true;
+    }
+}
+
+export class LVLBorder extends PIXI.Container {
+
+    private view: Renderer;
+
+    constructor(view: Renderer) {
+        super();
+
+        this.view = view;
+
+        this.draw();
+    }
+
+    update(): void {
+
+        let camera = this.view.camera;
+
+        if (camera.isDirty()) {
+            let sw = this.view.app.view.width;
+            let sh = this.view.app.view.height;
+            let cPos = camera.getPosition();
+            let cx = (cPos.x * 16) - (sw / 2.0);
+            let cy = (cPos.y * 16) - (sh / 2.0);
+
+            this.x = -16 - cx;
+            this.y = -16 - cy;
+        }
+    }
+
+    draw(): void {
+
+        this.removeChildren();
+
+        let borderTexture = this.view.map.tileset.borderTile;
+
+        let sprite: PIXI.Sprite;
+
+        for (let index = 1; index < 1025; index++) {
+
+            // TOP
+            let sprite = new PIXI.Sprite(borderTexture);
+            sprite.x = index * 16;
+            sprite.y = 0;
+            this.addChild(sprite);
+
+            // BOTTOM
+            sprite = new PIXI.Sprite(borderTexture);
+            sprite.x = index * 16;
+            sprite.y = 16400;
+            this.addChild(sprite);
+
+            // LEFT
+            sprite = new PIXI.Sprite(borderTexture);
+            sprite.x = 0;
+            sprite.y = index * 16;
+            this.addChild(sprite);
+
+            // RIGHT
+            sprite = new PIXI.Sprite(borderTexture);
+            sprite.x = 16400;
+            sprite.y = index * 16;
+            this.addChild(sprite);
+        }
+
+        // TOP-LEFT
+        sprite = new PIXI.Sprite(borderTexture);
+        sprite.x = 0;
+        sprite.y = 0;
+        this.addChild(sprite);
+
+        // TOP-RIGHT
+        sprite = new PIXI.Sprite(borderTexture);
+        sprite.x = 16400;
+        sprite.y = 0;
+        this.addChild(sprite);
+
+        // BOTTOM-RIGHT
+        sprite = new PIXI.Sprite(borderTexture);
+        sprite.x = 16400;
+        sprite.y = 16400;
+        this.addChild(sprite);
+
+        // BOTTOM-LEFT
+        sprite = new PIXI.Sprite(borderTexture);
+        sprite.x = 0;
+        sprite.y = 16400;
+        this.addChild(sprite);
     }
 }

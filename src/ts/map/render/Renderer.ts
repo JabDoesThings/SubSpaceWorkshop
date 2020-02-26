@@ -1,4 +1,4 @@
-import { MapChunk } from './MapChunk';
+import { LVLBorder, LVLChunk } from './LVLRender';
 import * as PIXI from "pixi.js";
 
 import { LVLMap } from '../lvl/LVL';
@@ -11,12 +11,13 @@ import { LVZCollection, LVZMapObject } from '../lvz/LVZ';
 import { LVLSpriteCollection } from './LVLSpriteCollection';
 import { LVZChunk } from './LVZChunk';
 import { ELVLRegionRender } from './ELVLRegionRender';
+import { Background } from './Background';
 
 const Stats = require("stats.js");
 
 export class Renderer extends UpdatedObject {
 
-    private fragmentSrc = [
+    static fragmentSrc = [
         "varying vec2 vTextureCoord;" +
         "" +
         "uniform sampler2D uSampler;" +
@@ -29,7 +30,7 @@ export class Renderer extends UpdatedObject {
         "}"
     ].join("\n");
 
-    private filter = new Filter(undefined, this.fragmentSrc, undefined);
+    static chromaFilter = new Filter(undefined, Renderer.fragmentSrc, undefined);
 
     readonly map: LVLMap;
     readonly lvz: LVZCollection;
@@ -38,19 +39,21 @@ export class Renderer extends UpdatedObject {
     readonly lvzSprites: MapSpriteCollection;
 
     readonly container: HTMLElement;
-    private chunks: MapChunk[][];
+    private chunks: LVLChunk[][];
     private lvzChunks: LVZChunk[][];
     private stats: Stats;
     app: PIXI.Application;
     private grid: MapGrid;
-    private mapContainer: PIXI.Container;
-    private mapAnimContainer: PIXI.Container;
-    private lvzContainer: PIXI.Container;
 
     private regions: ELVLRegionRender[];
 
     camera: MapCamera;
     private elvlContainer: PIXI.Container;
+
+    _background: Background;
+    _border: LVLBorder;
+    _map: PIXI.Container;
+    _lvz: PIXI.Container;
 
     public constructor(container: HTMLElement, map: LVLMap, lvz: LVZCollection = new LVZCollection()) {
 
@@ -114,25 +117,31 @@ export class Renderer extends UpdatedObject {
         this.grid = new MapGrid(this);
         this.grid.filters = [];
         this.grid.filterArea = this.app.renderer.screen;
+        this.grid.visible = false;
 
         this.elvlContainer = new PIXI.Container();
         this.elvlContainer.alpha = 0.2;
 
+        this._border = new LVLBorder(this);
 
-        this.mapContainer = new PIXI.Container();
-        this.mapAnimContainer = new PIXI.Container();
-        this.mapAnimContainer.filters = [this.filter];
-        this.mapAnimContainer.filterArea = this.app.renderer.screen;
+        this._map = new PIXI.Container();
+        this._map.filters = [Renderer.chromaFilter];
+        this._map.filterArea = this.app.renderer.screen;
 
-        this.lvzContainer = new PIXI.Container();
-        this.lvzContainer.filters = [this.filter];
-        this.lvzContainer.filterArea = this.app.renderer.screen;
+        this._lvz = new PIXI.Container();
+        this._lvz.filters = [Renderer.chromaFilter];
+        this._lvz.filterArea = this.app.renderer.screen;
 
-        this.app.stage.addChild(this.elvlContainer);
-        this.app.stage.addChild(this.grid);
-        this.app.stage.addChild(this.mapContainer);
-        this.app.stage.addChild(this.mapAnimContainer);
-        this.app.stage.addChild(this.lvzContainer);
+        this._background = new Background(this);
+
+        let stage = this.app.stage;
+
+        stage.addChild(this._background);
+        stage.addChild(this.elvlContainer);
+        stage.addChild(this.grid);
+        stage.addChild(this._border);
+        stage.addChild(this._map);
+        stage.addChild(this._lvz);
 
         this.buildLVZSpriteCollection();
 
@@ -141,7 +150,7 @@ export class Renderer extends UpdatedObject {
         for (let x = 0; x < 16; x++) {
             this.chunks[x] = new Array(16);
             for (let y = 0; y < 16; y++) {
-                this.chunks[x][y] = new MapChunk(this, x, y);
+                this.chunks[x][y] = new LVLChunk(this, x, y);
             }
         }
 
@@ -155,14 +164,14 @@ export class Renderer extends UpdatedObject {
 
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
-                this.mapContainer.addChild(this.chunks[x][y].tileMap);
-                this.mapAnimContainer.addChild(this.chunks[x][y].tileMapAnim);
+                this._map.addChild(this.chunks[x][y].tileMap);
+                this._map.addChild(this.chunks[x][y].tileMapAnim);
             }
         }
 
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
-                this.lvzContainer.addChild(this.lvzChunks[x][y].container);
+                this._lvz.addChild(this.lvzChunks[x][y].container);
             }
         }
 
@@ -194,6 +203,8 @@ export class Renderer extends UpdatedObject {
             this.camera.bounds.width = sw;
             this.camera.bounds.height = sh;
 
+            this._background.update();
+            this._border.update();
             this.lvlSprites.update();
             this.lvzSprites.update();
 

@@ -7,7 +7,7 @@ function debugLVL() {
 
     let container = document.getElementById("map-viewer-container");
 
-    let arena = "hz";
+    let arena = "_bzw";
     let lvlFile = "assets/lvl/" + arena + ".lvl";
     let lvlFile2 = "assets/lvl/" + arena + "_.lvl";
 
@@ -19,9 +19,9 @@ function debugLVL() {
 
     let renderer = new Renderer(container, map);
 
-    setTimeout(() => {
-        map.fill(217, 32, 32, 127, 127);
-    }, 5000);
+    // setTimeout(() => {
+    //     map.fill(217, 32, 32, 127, 127);
+    // }, 5000);
 }
 
 function debugLVZ() {

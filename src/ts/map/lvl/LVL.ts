@@ -45,7 +45,7 @@ export class LVLMap implements Dirtable {
             this.tiles = tiles;
         }
 
-        this.setAreaDirty(0,0,1023, 1023);
+        this.setAreaDirty(0, 0, 1023, 1023);
     }
 
     /**
@@ -223,6 +223,7 @@ export class LVLTileSet implements Dirtable {
 
     source: HTMLCanvasElement;
     texture: PIXI.Texture;
+    borderTile: PIXI.Texture;
     bitCount: number;
 
     private dirty: boolean;
@@ -248,6 +249,8 @@ export class LVLTileSet implements Dirtable {
                 this.tileCoordinates.push([16 * x, 16 * y]);
             }
         }
+
+        this.borderTile = new PIXI.Texture(this.texture.baseTexture, new PIXI.Rectangle(0, 16, 16, 16));
     }
 
     /**
