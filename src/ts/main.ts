@@ -12,6 +12,7 @@ function debugLVL() {
     let lvlFile2 = "assets/lvl/" + arena + "_.lvl";
 
     let map = LVL.read(lvlFile);
+    console.log(map);
 
     // let lvzPackage = LVZ.read("assets/lvz/thefield.lvz");
     // let lvz = lvzPackage.inflate().collect();
@@ -54,7 +55,7 @@ function debugLVZ() {
 
 export let start = function () {
 
-    console.log("start.");
+    console.log("### START ###");
 
     debugLVL();
     // debugLVZ();

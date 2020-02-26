@@ -118,6 +118,7 @@ export class Renderer extends UpdatedObject {
         this.elvlContainer = new PIXI.Container();
         this.elvlContainer.alpha = 0.2;
 
+
         this.mapContainer = new PIXI.Container();
         this.mapAnimContainer = new PIXI.Container();
         this.mapAnimContainer.filters = [this.filter];
@@ -225,7 +226,6 @@ export class Renderer extends UpdatedObject {
             // Resize the renderer
             let width = parent.clientWidth;
             let height = parent.clientHeight;
-            console.log("RESIZE: width=" + width + ", height=" + height);
             ctx.app.renderer.resize(width, height);
             ctx.setDirty(true);
 

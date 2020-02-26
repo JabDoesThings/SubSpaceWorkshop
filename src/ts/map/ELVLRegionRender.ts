@@ -89,10 +89,17 @@ export class ELVLRegionRender {
         }
 
         if (this.entries.length != 0) {
+
             this.bounds.x = minX;
             this.bounds.y = minY;
             this.bounds.width = maxX - minX;
             this.bounds.height = maxY - minY;
+
+            // this.bounds.x = 0;
+            // this.bounds.y = 0;
+            // this.bounds.width = 1024;
+            // this.bounds.height = 1024;
+
         } else {
             this.bounds.x = 0;
             this.bounds.y = 0;

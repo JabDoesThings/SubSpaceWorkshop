@@ -71,7 +71,6 @@ export class MapChunk extends UpdatedObject {
         this.area = new LVLArea(x * 64, y * 64, ((x + 1) * 64) - 1, ((y + 1) * 64) - 1);
 
         this.setDirty(true);
-        console.log(this);
     }
 
     // @Override
@@ -98,7 +97,7 @@ export class MapChunk extends UpdatedObject {
 
         if (map.isDirty() && map.containsDirtyArea(this.area.x1, this.area.y1, this.area.x2, this.area.y2)) {
 
-            console.log("Drawing MapChunk: " + this.area);
+            // console.log("Drawing MapChunk: " + this.area);
 
             this.tileMap.clear();
             this.tilesAnim = [];

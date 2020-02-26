@@ -1,12 +1,37 @@
-import { BufferUtils } from '../../util/BufferUtils';
 import { ELVL } from './ELVLUtils';
 
 export class ELVLCollection {
 
     readonly chunks: ELVLChunk[];
+    readonly regions: ELVLRegion[];
+    readonly attributes: ELVLAttribute[];
 
     constructor() {
         this.chunks = [];
+        this.regions = [];
+        this.attributes = [];
+    }
+
+    addChunk(chunk: ELVLChunk): void {
+
+        if (chunk == null) {
+            throw new Error("The ELVLChunk is null or undefined.");
+        } else if (this.hasChunk(chunk)) {
+            throw new Error("The ELVLChunk is already in the collection.");
+        }
+
+        this.chunks.push(chunk);
+    }
+
+    addRegion(region: ELVLRegion): void {
+
+        if (region == null) {
+            throw new Error("The ELVLRegion is null or undefined.");
+        } else if (this.hasRegion(region)) {
+            throw new Error("The ELVLRegion is already in the collection.");
+        }
+
+        this.regions.push(region);
     }
 
     hasChunk(chunk: ELVLChunk): boolean {
@@ -21,49 +46,72 @@ export class ELVLCollection {
                 return true;
             }
         }
+
+        return false;
     }
 
-    addChunk(chunk: ELVLChunk) {
+    hasAttribute(attribute: ELVLAttribute): boolean {
 
-        if (chunk == null) {
-            throw new Error("The chunk given is null or undefined.");
-        } else if (this.hasChunk(chunk)) {
-            throw new Error("The chunk is already in the collection.");
+        if (attribute == null) {
+            throw new Error("The ELVLAttribute is null or undefined.");
         }
 
-        this.chunks.push(chunk);
-    }
-
-    getRegions(): ELVLRegion[] {
-
-        let regions: ELVLRegion[] = [];
-
         for (let index = 0; index < this.chunks.length; index++) {
-
             let next = this.chunks[index];
-
-            if (next instanceof ELVLRegion) {
-                regions.push(next);
+            if (attribute.equals(next)) {
+                return true;
             }
         }
 
-        return regions;
+        return false;
+    }
+
+    hasRegion(region: ELVLRegion): boolean {
+
+        if (region == null) {
+            throw new Error("The ELVLRegion is null or undefined.");
+        }
+
+        for (let index = 0; index < this.chunks.length; index++) {
+            let next = this.chunks[index];
+            if (region.equals(next)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    addAttribute(attribute: ELVLAttribute): void {
+
+        if (attribute == null) {
+            throw new Error("The ELVLAttribute is null or undefined.");
+        } else if (this.hasAttribute(attribute)) {
+            throw new Error("The ELVLAttribute is already in the collection.");
+        }
+
+        this.attributes.push(attribute);
+    }
+
+    getAttributes(): ELVLAttribute[] {
+        return this.attributes;
+    }
+
+    getRegions(): ELVLRegion[] {
+        return this.regions;
+    }
+
+    getChunks(): ELVLChunk[] {
+        return this.chunks;
     }
 }
 
 export abstract class ELVLChunk {
 
-    readonly type: ELVLChunkType;
+    readonly id: string;
 
-    protected constructor(type: ELVLChunkType) {
-        this.type = type;
-    }
-
-    abstract write(): Buffer;
-
-    static writeHeader(buffer: Buffer, header: number, length: number) {
-        buffer.writeUInt32LE(header, 0);
-        buffer.writeUInt32LE(length, 4);
+    protected constructor(id: string) {
+        this.id = id;
     }
 
     abstract equals(next: any): boolean;
@@ -80,8 +128,8 @@ export class ELVLRawChunk extends ELVLChunk {
 
     data: Buffer;
 
-    constructor(type: number, data: Buffer) {
-        super(type);
+    constructor(id: string, data: Buffer) {
+        super(id);
         this.data = data;
     }
 
@@ -97,18 +145,9 @@ export class ELVLRawChunk extends ELVLChunk {
 
     // @Override
     validate(): void {
-
-        if (this.type == null) {
-            throw new Error("The 'type' field of the ELVLRawChunk is null or undefined.");
-        } else if (this.data == null) {
+        if (this.data == null) {
             throw new Error("The 'data' field of the ELVLRawChunk is null or undefined.");
         }
-    }
-
-    // @Override
-    write(): Buffer {
-        // TODO: Document.
-        return undefined;
     }
 }
 
@@ -118,7 +157,7 @@ export class ELVLAttribute extends ELVLChunk {
     value: string;
 
     constructor(name: string, value: string) {
-        super(ELVLChunkType.ATTRIBUTE);
+        super('ATTR');
 
         this.name = name;
         this.value = value;
@@ -126,13 +165,14 @@ export class ELVLAttribute extends ELVLChunk {
         this.validate();
     }
 
+    // @Override
     equals(next: any): boolean {
 
         if (next == null || !(next instanceof ELVLAttribute)) {
             return false;
         }
 
-        return next.name == this.name && next.value == this.value;
+        return next.id == this.id && next.name == this.name && next.value == this.value;
     }
 
     // @Override
@@ -144,11 +184,6 @@ export class ELVLAttribute extends ELVLChunk {
             throw new Error("The 'value' field of the ELVLAttribute '" + this.name + "' is null or undefined.");
         }
     }
-
-    write(): Buffer {
-        // TODO: Implement.
-        return undefined;
-    }
 }
 
 /**
@@ -158,7 +193,7 @@ export class ELVLAttribute extends ELVLChunk {
  */
 export class ELVLRegion extends ELVLChunk {
 
-    unknowns: ELVLRegionRawChunk[];
+    chunks: ELVLRegionChunk[];
     tileData: ELVLRegionTileData;
     autoWarp: ELVLRegionAutoWarp;
     options: ELVLRegionOptions;
@@ -172,16 +207,16 @@ export class ELVLRegion extends ELVLChunk {
         tileData: ELVLRegionTileData = new ELVLRegionTileData(),
         autoWarp: ELVLRegionAutoWarp = null,
         pythonCode: string = null,
-        unknowns: ELVLRegionRawChunk[] = []
+        chunks: ELVLRegionChunk[] = []
     ) {
 
-        super(ELVLChunkType.REGION);
+        super('REGN');
 
         this.name = name;
         this.tileData = tileData;
         this.autoWarp = autoWarp;
         this.pythonCode = pythonCode;
-        this.unknowns = unknowns;
+        this.chunks = chunks;
         this.color = [0, 0, 0];
 
         // Clone DEFAULT_REGION_OPTIONS.
@@ -206,7 +241,7 @@ export class ELVLRegion extends ELVLChunk {
             return false;
         }
 
-        return next.type === this.type && next.name === this.name;
+        return next.id === this.id && next.name === this.name;
     }
 
     // @Override
@@ -227,17 +262,12 @@ export class ELVLRegion extends ELVLChunk {
         }
 
         if (this.autoWarp != null) {
-            this.autoWarp.validate(this.name);
+            this.autoWarp.validate();
         }
 
         if (this.tileData != null) {
-            this.tileData.validate(this.name);
+            this.tileData.validate();
         }
-    }
-
-    // @Override
-    write(): Buffer {
-        return undefined;
     }
 }
 
@@ -248,13 +278,24 @@ export interface ELVLRegionOptions {
     noFlagDrops: boolean;
 }
 
-export class ELVLRegionRawChunk {
+export abstract class ELVLRegionChunk {
+
+    readonly id: string;
+
+    protected constructor(id: string) {
+        this.id = id;
+    }
+}
+
+export class ELVLRegionRawChunk extends ELVLRegionChunk {
 
     type: number;
     data: Buffer;
 
-    constructor(type: number, data: Buffer) {
-        this.type = type;
+    constructor(id: string, data: Buffer) {
+
+        super(id);
+
         this.data = data;
     }
 
@@ -274,11 +315,13 @@ export class ELVLRegionRawChunk {
  *
  * @author Jab
  */
-export class ELVLRegionTileData {
+export class ELVLRegionTileData extends ELVLRegionChunk {
 
     readonly tiles: boolean[][];
 
     constructor(tiles: boolean[][] = null) {
+
+        super('rTIL');
 
         if (tiles == null) {
 
@@ -295,17 +338,9 @@ export class ELVLRegionTileData {
         this.validate();
     }
 
-    validate(regionName: string = null): void {
+    // @Override
+    validate(): void {
         // TODO: Implement.
-    }
-
-    write(): Buffer {
-
-        // TODO: Implement.
-
-        let length = 0;
-        let buffer = Buffer.alloc(length);
-        return buffer;
     }
 }
 
@@ -314,7 +349,7 @@ export class ELVLRegionTileData {
  *
  * @author Jab
  */
-export class ELVLRegionAutoWarp {
+export class ELVLRegionAutoWarp extends ELVLRegionChunk {
 
     x: number;
     y: number;
@@ -335,6 +370,8 @@ export class ELVLRegionAutoWarp {
      */
     constructor(x: number, y: number, arena: string = null) {
 
+        super('rAWP');
+
         this.x = x;
         this.y = y;
         this.arena = arena;
@@ -342,7 +379,8 @@ export class ELVLRegionAutoWarp {
         this.validate();
     }
 
-    validate(regionName: string = null): void {
+    // @Override
+    validate(): void {
 
         if (this.x < -1) {
             throw new Error("The 'x' value given is less than -1. (" + this.x + " given)");
@@ -362,46 +400,14 @@ export class ELVLRegionAutoWarp {
             }
         }
     }
-
-    write(): Buffer {
-
-        // NOTE: As a simple space optimization, if the warp does not cross arenas, you can
-        // leave out the 16 bytes of arena name, so that the whole chunk data is 4 bytes
-        // long.
-
-        this.validate();
-
-        let length;
-        if (this.arena == null) {
-            length = 4;
-        } else {
-            length = 20;
-        }
-
-        let buffer: Buffer = Buffer.alloc(8 + length);
-
-        // SUB-CHUNK HEADER.
-        ELVLChunk.writeHeader(buffer, ELVLRegionType.AUTO_WARP, length);
-
-        buffer.writeUInt16LE(this.x, 4);
-        buffer.writeUInt16LE(this.y, 6);
-
-        if (this.arena != null) {
-            for (let index = 0; index < this.arena.length; index++) {
-                BufferUtils.writeFixedString(buffer, this.arena, 8);
-            }
-        }
-
-        return buffer;
-    }
 }
 
 /**
- * The <i>ELVLDCMEWallTile</i> class. TODO: Document.
+ * The <i>ELVLWallTiles</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class ELVLDCMEWallTile extends ELVLChunk {
+export class ELVLWallTiles extends ELVLChunk {
 
     public static readonly TOP_LEFT_CORNER = 9;
     public static readonly TOP_JUNCTION = 13;
@@ -424,7 +430,7 @@ export class ELVLDCMEWallTile extends ELVLChunk {
 
     constructor(tiles: number[] = null) {
 
-        super(ELVLChunkType.DCME_WALL_TILES);
+        super('DCWT');
 
         if (tiles == null) {
             tiles = new Array(16);
@@ -471,7 +477,7 @@ export class ELVLDCMEWallTile extends ELVLChunk {
     equals(next: any): boolean {
 
         // Make sure that this is a wall-tile definition.
-        if (next == null || !(next instanceof ELVLDCMEWallTile)) {
+        if (next == null || !(next instanceof ELVLWallTiles)) {
             return false;
         }
 
@@ -528,35 +534,20 @@ export class ELVLDCMEWallTile extends ELVLChunk {
             }
         }
     }
-
-    // @Override
-    write(): Buffer {
-
-        this.validate();
-
-        let buffer = Buffer.alloc(16);
-
-        // Write each tile ID as the offset of the index.
-        for (let index = 0; index < 16; index++) {
-            buffer.writeUInt8(this.tiles[index], index);
-        }
-
-        return buffer;
-    }
 }
 
 /**
- * The <i>ELVLDCMETextTiles</i> class. TODO: Document.
+ * The <i>ELVLTextTiles</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class ELVLDCMETextTiles extends ELVLChunk {
+export class ELVLTextTiles extends ELVLChunk {
 
     readonly charMap: number[];
 
     constructor(chars: number[] = null) {
 
-        super(ELVLChunkType.DCME_TEXT_TILES);
+        super('DCTT');
 
         if (chars == null) {
 
@@ -575,7 +566,7 @@ export class ELVLDCMETextTiles extends ELVLChunk {
     // @Override
     equals(next: any): boolean {
 
-        if (next == null || !(next instanceof ELVLDCMETextTiles)) {
+        if (next == null || !(next instanceof ELVLTextTiles)) {
             return false;
         }
 
@@ -607,34 +598,8 @@ export class ELVLDCMETextTiles extends ELVLChunk {
                 } else if (next < 0) {
                     throw new Error("'charMap[" + index + "]' is negative. (" + next + " assigned)");
                 }
-                // else if (next > 190) {
-                //     throw new Error(
-                //         "'charMap[" + index + "]' is greater than 190. (" + next + " assigned)");
-                // }
             }
         }
-    }
-
-    // @Override
-    write(): Buffer {
-
-        // Create a compressed character map to write to a buffer.
-        let compressedCharMap = [];
-        for (let index = 0; index < this.charMap.length; index++) {
-            let tileId = this.charMap[index];
-            if (tileId > 0) {
-                compressedCharMap.push(index);
-                compressedCharMap.push(tileId);
-            }
-        }
-
-        // Write the compressed character map to the buffer.
-        let buffer = Buffer.alloc(compressedCharMap.length);
-        for (let index = 0; index < compressedCharMap.length; index++) {
-            buffer.writeUInt8(compressedCharMap[index], index);
-        }
-
-        return buffer;
     }
 }
 
@@ -643,13 +608,13 @@ export class ELVLDCMETextTiles extends ELVLChunk {
  *
  * @author Jab
  */
-export class ELVLDCMEHashCode extends ELVLChunk {
+export class ELVLHashCode extends ELVLChunk {
 
     hashCode: string;
 
     constructor(hashCode: string) {
 
-        super(ELVLChunkType.DCME_HASH_CODE);
+        super('DCID');
 
         if (hashCode == null) {
             throw new Error("The hashCode given is null or undefined.");
@@ -661,7 +626,7 @@ export class ELVLDCMEHashCode extends ELVLChunk {
     // @Override
     equals(next: any): boolean {
 
-        if (next == null || !(next instanceof ELVLDCMEHashCode)) {
+        if (next == null || !(next instanceof ELVLHashCode)) {
             return false;
         }
 
@@ -681,149 +646,28 @@ export class ELVLDCMEHashCode extends ELVLChunk {
             );
         }
     }
-
-    // @Override
-    write(): Buffer {
-
-        // Create a buffer for the hash code.
-        let buffer = Buffer.alloc(this.hashCode.length);
-        BufferUtils.writeFixedString(buffer, this.hashCode, 0);
-
-        return buffer;
-    }
 }
 
 /**
- * The <i>ELVLDCMEBookmarks</i> class. TODO: Document.
+ * The <i>ELVLBookmarks</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class ELVLDCMEBookmarks extends ELVLChunk {
+export class ELVLBookmarks extends ELVLRawChunk {
 
-    constructor() {
-        super(ELVLChunkType.DCME_BOOKMARKS);
-    }
-
-    // @Override
-    equals(next: any): boolean {
-        return false;
-    }
-
-    // @Override
-    validate(): void {
-    }
-
-    // @Override
-    write(): Buffer {
-        return undefined;
+    constructor(data: Buffer) {
+        super('DCBM', data);
     }
 }
 
 /**
- * The <i>ELVLDCMELVZPath</i> class. TODO: Document.
+ * The <i>ELVLLVZPath</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class ELVLDCMELVZPath extends ELVLRawChunk {
-}
+export class ELVLLVZPath extends ELVLRawChunk {
 
-/**
- * The <i>ELVLType</i> enum identifies chunk types for ELVL data.
- * <ul>
- *     <li><b>ATTRIBUTE</b><p>
- *     These define misc textual attributes. the format is ascii text, not null terminated,
- *     in this form: "<key>=<value>". each "ATTR" chunk should contain just one key/value
- *     pair. multiple chunks of this type may be present in one file.
- *
- *     <li><b>REGION</b><p>
- *     These chunks define regions. to recap, a region is a set of tiles, usually but not
- *     always contiguous, with certain properties. asss understands regions and can
- *     implement some advanced features using them. currently continuum doesn't understand
- *     regions, but it would be nice if it did, and we'll be able to do even cooler things
- *     when it does.<p>
-
- *     There's a lot of stuff that you might want to say about a region, so to support all
- *     the varied uses, and also future uses, we'll use the chunk model again: each region
- *     gets its own set of "subchunks" describing its function. to avoid confusion, all
- *     sub-chunk types that go inside the "REGN" superchunk start with "r". the data of
- *     the big "REGN" chunk is simply a series of subchunks.
- * </ul>
- */
-export enum ELVLChunkType {
-
-    ATTRIBUTE = 1381258305 /*ATTR*/,
-    REGION = 1313293650 /*REGN*/,
-    TILESET = 1413829460 /*TSET*/,
-    TILE = 1162627412 /*TILE*/,
-
-    /* DCME CHUNKS */
-    DCME_WALL_TILES = 1415004996 /*DCWT*/,
-    DCME_TEXT_TILES = 1414808388 /*DCTT*/,
-    DCME_HASH_CODE = 1145652036 /*DCID*/,
-    DCME_BOOKMARKS = 1296188228 /*DCBM*/,
-    DCME_LVZ_PATH = 1447838532 /*DCLV*/
-}
-
-/**
- * The <i>ELVLRegionType</i> enum identifies REGION sub-chunk types.
- *
- * <ul>
- *     <li><b>REGION_NAME</b><p>
- *     This is just a plain ascii string, not null terminated. every chunk should have
- *     exactly one of these.
- *
- *     <li><b>REGION_TILE_DATA</b><p>
- *     This sub-chunk describes the tiles that make up the region. it's stored in a
- *     compact RLE-ish representation.
- *
- *     Conceptually, a region is some subset of the 1024x1024 tiles in the map. to encode a
- *     region, encode it row by row, left to right, top to bottom.
- *
- *     <li><b>REGION_BASE_FLAG</b><p>
- *     This is a 0-byte chunk. its presence signifies that this region should be considered
- *     a "base".
- *
- *     <li><b>REGION_NO_ANTIWARP</b><p>
- *     This is a 0-byte chunk. If present, antiwarp should be disabled for ships in this
- *     region. This happens on the server and players whose antiwarp is being disabled
- *     aren't necessarily aware of it.
- *
- *     <li><b>REGION_NO_WEAPONS</b><p>
- *     This is a 0-byte chunk. If present, all weapons are non-functional in this region.
- *     This happens on the server and players whose weapons are being disabled aren't
- *     necessarily aware of it.
- *
- *     <li><b>REGION_NO_FLAG_DROPS</b><p>
- *     This is a 0-byte chunk. If present, any flags dropped in this region are respawned
- *     as neutral flags in the center of the map. (or wherever the settings indicate they
- *     should be spawned)
- *
- *     <li><b>REGION_AUTO_WARP</b><p>
- *     This chunk, if present, turns on the auto-warping feature. any player entering this
- *     region will be immediately warped to the specified destination.
- *
- *     <li><b>REGION_PYTHON_CODE</b><p>
- *     This chunk lets you embed code in level files. the exact semantics of this data
- *     haven't yet been determined, but it'll probably go something like this:<p>
- *
- *     This chunk should contain ascii data representing some python code. the code will
- *     be executed when the map is loaded, and it may define several functions: a function
- *     named "enter", if it exists, will be call each time a player enters this region. it
- *     will be called with one argument, which is the player who entered the region. a
- *     function named "exit" works similarly, except of course it gets called when someone
- *     leaves.
- * </ul>
- */
-export enum ELVLRegionType {
-    NAME = 1296125554 /*rNAM*/,
-    TILE_DATA = 1279874162 /*rTIL*/,
-    BASE_FLAG = 1163084402 /*rBSE*/,
-    NO_ANTIWARP = 1463897714 /*rNAW*/,
-    NO_WEAPONS = 1347898994 /*rNWP*/,
-    NO_FLAG_DROPS = 1279676018 /*rNFL*/,
-    AUTO_WARP = 1347895666 /*rAWP*/,
-    PYTHON_CODE = 1129926770 /*rPYC*/,
-
-    /* DCME CHUNKS */
-    DCME_COLOR = 1280263026 /*rCOL*/
+    constructor(data: Buffer) {
+        super('DCLV', data);
+    }
 }
