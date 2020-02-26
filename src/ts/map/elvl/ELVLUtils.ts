@@ -560,7 +560,7 @@ export class ELVLRegionTileMapHandler extends ELVLRegionChunkHandler<ELVLRegionT
             } else if (b1check == ELVLRegionTileMapHandler.SMALL_EMPTY_ROWS) {
 
                 // 100nnnnn - n+1 (1-32) rows of all empty
-                value = byte1 % 32;
+                value = byte1 % 32 + 1;
 
                 rowsCounted += value;
 
