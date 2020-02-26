@@ -87,6 +87,8 @@ export class BackgroundObjectLayer extends PIXI.Container {
             let tex = Math.floor(Math.random() * BackgroundObjectLayer.starTextures.length);
 
             let sprite = new PIXI.Sprite(BackgroundObjectLayer.starTextures[tex]);
+            sprite.filters = [Renderer.chromaFilter];
+            sprite.filterArea = this.background.view.app.screen;
             sprite.x = Math.floor(minX + (Math.random() * dx));
             sprite.y = Math.floor(minY + (Math.random() * dy));
 
@@ -98,6 +100,8 @@ export class BackgroundObjectLayer extends PIXI.Container {
             let tex = Math.floor(Math.random() * BackgroundObjectLayer.backgroundTextures.length);
 
             let sprite = new PIXI.Sprite(BackgroundObjectLayer.backgroundTextures[tex]);
+            sprite.filters = [Renderer.chromaFilter];
+            sprite.filterArea = this.background.view.app.screen;
             sprite.x = Math.floor(minX + (Math.random() * dx));
             sprite.y = Math.floor(minY + (Math.random() * dy));
 

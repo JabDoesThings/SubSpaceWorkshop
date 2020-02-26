@@ -19,9 +19,7 @@ export class Renderer extends UpdatedObject {
 
     static fragmentSrc = [
         "varying vec2 vTextureCoord;" +
-        "" +
         "uniform sampler2D uSampler;" +
-        "" +
         "void main(void) {" +
         "   gl_FragColor = texture2D(uSampler, vTextureCoord);" +
         "   if(gl_FragColor.r == 0.0 && gl_FragColor.g == 0.0 && gl_FragColor.b == 0.0) {" +
@@ -203,8 +201,6 @@ export class Renderer extends UpdatedObject {
             this.camera.bounds.width = sw;
             this.camera.bounds.height = sh;
 
-            this._background.update();
-            this._border.update();
             this.lvlSprites.update();
             this.lvzSprites.update();
 
@@ -254,6 +250,8 @@ export class Renderer extends UpdatedObject {
 
         if (this.camera.isDirty()) {
             this.grid.draw();
+            this._background.update();
+            this._border.update();
         }
 
         for (let x = 0; x < 16; x++) {
