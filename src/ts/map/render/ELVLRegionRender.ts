@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 
-import { ELVLRegion } from './elvl/ELVL';
-import { Renderer } from '../Renderer';
+import { ELVLRegion } from '../elvl/ELVL';
+import { Renderer } from './Renderer';
 
 /**
  * The <i>TileEntry</i> interface. TODO: Document.

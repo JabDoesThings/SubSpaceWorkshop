@@ -1,6 +1,6 @@
 import { LVL } from './map/lvl/LVLUtils';
 import { LVZ } from './map/lvz/LVZUtils';
-import { Renderer } from './Renderer';
+import { Renderer } from './map/render/Renderer';
 import { LVZPackage } from './map/lvz/LVZ';
 
 function debugLVL() {

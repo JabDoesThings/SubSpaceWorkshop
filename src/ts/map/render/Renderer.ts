@@ -1,16 +1,16 @@
-import { MapChunk } from './map/MapChunk';
+import { MapChunk } from './MapChunk';
 import * as PIXI from "pixi.js";
 
-import { LVLMap } from './map/lvl/LVL';
-import { UpdatedObject } from './util/UpdatedObject';
-import { MapSpriteCollection } from './map/MapSprite';
-import { MapGrid } from './map/MapGrid';
-import { MapCamera } from './map/MapCamera';
+import { LVLMap } from '../lvl/LVL';
+import { UpdatedObject } from '../../util/UpdatedObject';
+import { MapSpriteCollection } from './MapSprite';
+import { MapGrid } from './MapGrid';
+import { MapCamera } from './MapCamera';
 import Filter = PIXI.Filter;
-import { LVZCollection, LVZMapObject } from './map/lvz/LVZ';
-import { LVLSpriteCollection } from './map/LVLSpriteCollection';
-import { LVZChunk } from './map/LVZChunk';
-import { ELVLRegionRender } from './map/ELVLRegionRender';
+import { LVZCollection, LVZMapObject } from '../lvz/LVZ';
+import { LVLSpriteCollection } from './LVLSpriteCollection';
+import { LVZChunk } from './LVZChunk';
+import { ELVLRegionRender } from './ELVLRegionRender';
 
 const Stats = require("stats.js");
 

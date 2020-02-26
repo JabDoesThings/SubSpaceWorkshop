@@ -4,7 +4,7 @@ import * as zlib from "zlib";
 import { Validatable } from '../../util/Validatable';
 import * as fs from 'fs';
 import { Dirtable } from '../../util/Dirtable';
-import { MapSprite } from '../MapSprite';
+import { MapSprite } from '../render/MapSprite';
 import { LVL } from '../lvl/LVLUtils';
 import ImageResource = PIXI.resources.ImageResource;
 

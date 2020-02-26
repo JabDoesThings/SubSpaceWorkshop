@@ -3,7 +3,7 @@
  *
  * @author Jab
  */
-import { Validatable } from '../util/Validatable';
+import { Validatable } from '../../util/Validatable';
 import hex2rgb = PIXI.utils.hex2rgb;
 
 export class MapSpriteCollection {

@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { Renderer } from '../Renderer';
+import { Renderer } from './Renderer';
 
 export class MapGrid extends PIXI.Container {
 

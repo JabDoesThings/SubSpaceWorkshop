@@ -1,8 +1,8 @@
-import { UpdatedObject } from '../util/UpdatedObject';
+import { UpdatedObject } from '../../util/UpdatedObject';
 import * as PIXI from "pixi.js";
-import { LVL } from './lvl/LVLUtils';
-import { Renderer } from '../Renderer';
-import { LVLArea } from './lvl/LVL';
+import { LVL } from '../lvl/LVLUtils';
+import { Renderer } from './Renderer';
+import { LVLArea } from '../lvl/LVL';
 
 /**
  * The <i>LVZChunkEntry</i> interface. TODO: Document.

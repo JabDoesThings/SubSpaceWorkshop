@@ -7,3 +7,4 @@ assets/css/
 package-lock.json
 node_modules/
 .idea/
+stats.bat

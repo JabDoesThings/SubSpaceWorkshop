@@ -616,7 +616,12 @@ export class ELVLRegionTileMapHandler extends ELVLRegionChunkHandler<ELVLRegionT
 
     // @Override
     write(chunk: ELVLRegionTileData): Buffer {
-        return undefined;
+
+        let buffer: Buffer;
+
+        // TODO: Implement.
+
+        return buffer;
     }
 }
 

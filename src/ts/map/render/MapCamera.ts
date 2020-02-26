@@ -1,7 +1,7 @@
-import { UpdatedObject } from '../util/UpdatedObject';
+import { UpdatedObject } from '../../util/UpdatedObject';
 import { Vector2 } from 'three';
-import { KeyListener } from '../util/KeyListener';
-import { LVL } from './lvl/LVLUtils';
+import { KeyListener } from '../../util/KeyListener';
+import { LVL } from '../lvl/LVLUtils';
 
 export class MapCamera extends UpdatedObject {
 

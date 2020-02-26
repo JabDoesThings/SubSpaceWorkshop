@@ -1,5 +1,5 @@
 import { MapSprite, MapSpriteCollection } from './MapSprite';
-import { LVLMap } from './lvl/LVL';
+import { LVLMap } from '../lvl/LVL';
 
 export class LVLSpriteCollection extends MapSpriteCollection {
 

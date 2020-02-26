@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
-import { Renderer } from '../Renderer';
-import { LVZMapObject } from './lvz/LVZ';
+import { Renderer } from './Renderer';
+import { LVZMapObject } from '../lvz/LVZ';
 import { MapSprite } from './MapSprite';
 
 /**
