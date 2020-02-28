@@ -27,7 +27,7 @@ export class KeyListener {
 
         //The `downHandler`
         this.downHandler = event => {
-            console.log("key: " + event.key);
+            // console.log("key: " + event.key);
             if (event.key == this.value) {
                 if (this.isUp) {
                     if (this.press) {

@@ -6,10 +6,11 @@ export class Radar {
     private readonly view: Renderer;
     private readonly canvas: HTMLCanvasElement;
     private readonly drawCanvas: HTMLCanvasElement;
-    private large: boolean;
+    private readonly largeSize: number;
+    private readonly smallSize: number;
 
-    private largeSize: number;
-    private smallSize: number;
+    private large: boolean;
+    lock: boolean;
 
     constructor(view: Renderer) {
         this.view = view;
@@ -19,11 +20,12 @@ export class Radar {
         this.drawCanvas.height = 1024;
         this.largeSize = 768;
         this.smallSize = 256;
+
+        this.lock = false;
     }
 
     update(): void {
 
-        let copy = false;
         let map = this.view.map;
         let alt = this.view.camera.alt.isDown;
 
@@ -36,7 +38,7 @@ export class Radar {
             this.canvas.height = largeSize;
             this.canvas.parentElement.style.width = largeSize + 'px';
             this.canvas.parentElement.style.height = largeSize + 'px';
-            copy = true;
+            this.apply();
         } else if (this.large && !alt) {
             this.large = false;
             this.canvas.parentElement.classList.remove("large");
@@ -44,22 +46,24 @@ export class Radar {
             this.canvas.height = this.smallSize;
             this.canvas.parentElement.style.width = this.smallSize + 'px';
             this.canvas.parentElement.style.height = this.smallSize + 'px';
-            copy = true;
+            this.apply();
         }
 
-        if (map.isDirty()) {
-            this.draw();
-            copy = true;
-        }
-
-        if (copy) {
-            let ctx = this.canvas.getContext('2d');
-            let size = this.large ? largeSize : this.smallSize;
-            ctx.drawImage(this.drawCanvas, 0, 0, 1024, 1024, 0, 0, size, size);
-        }
+        // if (!this.lock && map.isDirty()) {
+        //     this.draw().then(() => {
+        //         this.apply();
+        //     });
+        // }
     }
 
-    draw(): void {
+    apply(): void {
+        let largeSize = Math.min(this.largeSize, this.view.app.screen.height - 24);
+        let ctx = this.canvas.getContext('2d');
+        let size = this.large ? largeSize : this.smallSize;
+        ctx.drawImage(this.drawCanvas, 0, 0, 1024, 1024, 0, 0, size, size);
+    }
+
+    async draw() {
 
         let map = this.view.map;
         let tileset = map.tileset;

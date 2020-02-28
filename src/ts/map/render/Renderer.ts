@@ -333,9 +333,22 @@ export class Renderer extends UpdatedObject {
             .on('pointerout', onButtonOut)
             .on('pointermove', onButtonMove);
 
+        let drawn = false;
+
         this.mouseListeners.push((event: MapMouseEvent): void => {
 
             console.log(event.type);
+
+            if (event.type === MapMouseEventType.UP) {
+                if (drawn) {
+                    console.log("draw");
+                    this.radar.draw().then(() => {
+                        console.log("apply");
+                        this.radar.apply();
+                    });
+                }
+                drawn = false;
+            }
 
             if (event.type !== MapMouseEventType.DOWN && event.type !== MapMouseEventType.DRAG) {
                 return;
@@ -346,6 +359,7 @@ export class Renderer extends UpdatedObject {
             let y = data.tileY;
             if (x >= 0 && x < 1024 && y >= 0 && y < 1024) {
                 this.map.setTile(x, y, 170);
+                drawn = true;
             }
         });
 
