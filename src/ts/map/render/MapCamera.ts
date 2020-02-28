@@ -17,6 +17,10 @@ export class MapCamera extends UpdatedObject {
 
     bounds: PIXI.Rectangle;
     private shift: boolean;
+    private wListener: KeyListener;
+    private sListener: KeyListener;
+    private aListener: KeyListener;
+    private dListener: KeyListener;
 
     /**
      * Main constructor.
@@ -42,6 +46,11 @@ export class MapCamera extends UpdatedObject {
         this.downArrowListener = new KeyListener("ArrowDown");
         this.leftArrowListener = new KeyListener("ArrowLeft");
         this.rightArrowListener = new KeyListener("ArrowRight");
+
+        this.wListener = new KeyListener("w");
+        this.sListener = new KeyListener("s");
+        this.aListener = new KeyListener("a");
+        this.dListener = new KeyListener("d");
 
         new KeyListener("1", () => {
             this.position.x = 0;
@@ -92,14 +101,19 @@ export class MapCamera extends UpdatedObject {
             speed = 2;
         }
 
-        if (this.upArrowListener.isDown != this.downArrowListener.isDown) {
+        let up = this.upArrowListener.isDown || this.wListener.isDown;
+        let down = this.downArrowListener.isDown || this.sListener.isDown;
+        let left = this.leftArrowListener.isDown || this.aListener.isDown;
+        let right = this.rightArrowListener.isDown || this.dListener.isDown;
 
-            if (this.upArrowListener.isDown) {
+        if (up != down) {
+
+            if (up) {
                 this.position.y -= speed;
                 this.setDirty(true);
             }
 
-            if (this.downArrowListener.isDown) {
+            if (down) {
                 this.position.y += speed;
                 this.setDirty(true);
             }
@@ -111,14 +125,14 @@ export class MapCamera extends UpdatedObject {
             }
         }
 
-        if (this.leftArrowListener.isDown != this.rightArrowListener.isDown) {
+        if (left != right) {
 
-            if (this.leftArrowListener.isDown) {
+            if (left) {
                 this.position.x -= speed;
                 this.setDirty(true);
             }
 
-            if (this.rightArrowListener.isDown) {
+            if (right) {
                 this.position.x += speed;
                 this.setDirty(true);
             }

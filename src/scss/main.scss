@@ -1,17 +1,8 @@
-#test {
-  display: none;
-}
-
-html, body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-* {
-  font-family: Arial, Helvetica, sans-serif;
-}
+@import 'palette';
+@import "default";
+@import 'frame';
+@import 'tab';
+@import 'viewport';
 
 #map-viewer-container {
   position: relative;
@@ -21,7 +12,20 @@ html, body {
   padding: 0;
 
   canvas {
+
+    position: absolute;
+    top: 0;
     margin: 0;
     padding: 0;
+
+    left: 24px;
+
+    border: 1px solid $color5;
   }
+}
+
+#editor-left-tab-menu {
+  top: 100%;
+  transform: rotate(-90deg);
+  transform-origin: left top 0;
 }

@@ -111,8 +111,8 @@ export class Renderer extends UpdatedObject {
 
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-        this.stats.dom.style.top = "calc(100% - 48px)";
-        this.stats.dom.style.left = "calc(100% - 80px)";
+        this.stats.dom.style.left = "calc(100% - 362px)";
+        this.stats.dom.style.top = "calc(100% - 74px)";
         this.container.appendChild(this.stats.dom);
 
         // Use the native window resolution as the default resolution will support high-density
@@ -255,8 +255,13 @@ export class Renderer extends UpdatedObject {
             // Resize the renderer
             let width = parent.clientWidth;
             let height = parent.clientHeight;
-            ctx.app.renderer.resize(width, height);
+            ctx.app.renderer.resize(width - 2 - 24, height - 26 - 24);
             ctx.setDirty(true);
+
+            let $leftTabMenu = $('#editor-left-tab-menu');
+
+            let lWidth = window.innerHeight - 48;
+            $leftTabMenu.css({top: lWidth + 'px'});
 
         }
 
@@ -325,10 +330,6 @@ export class Renderer extends UpdatedObject {
             .on('pointermove', onButtonMove);
 
         this.mouseListeners.push((event: MapMouseEvent): void => {
-
-            // if (event.button !== 0) {
-            //     return;
-            // }
 
             console.log(event.type);
 

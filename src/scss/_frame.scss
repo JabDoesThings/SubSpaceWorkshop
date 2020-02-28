@@ -1,0 +1,27 @@
+@import 'palette';
+
+$workspace_width: 256px;
+
+.editor_frame {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  .viewport-frame {
+    display: inline-block;
+    position: relative;
+    width: calc(100% - #{$workspace_width});
+    height: 100%;
+    background-color: $color3;
+  }
+
+  .workspace-frame {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: $workspace_width;
+    height: 100%;
+    background-color: $color3;
+  }
+}

@@ -54,8 +54,8 @@
         const main = require("./assets/js/main.js");
 
         $(function () {
-            main.start();
             // Start application.
+            main.start();
         });
 
     </script>
@@ -64,8 +64,31 @@
 </head>
 <body>
 
-<!-- The Map viewer goes in here. -->
-<div id="map-viewer-container" style="display: block"></div>
+<div class="editor_frame dark">
+
+    <div class="viewport-frame">
+
+        <div id="editor-tab-menu" class="tab-menu">
+            <div class="tab"><label>Map</label></div>
+            <div class="tab selected"><label>Library</label></div>
+        </div>
+
+        <!-- The PixiJS canvas goes in here. -->
+        <div id="map-viewer-container" style="display: block">
+            <div id="editor-left-tab-menu" class="tab-menu left">
+                <div class="tab selected"><label>Tileset</label></div>
+                <div class="tab"><label>LVZ</label></div>
+                <div class="tab"><label>Regions</label></div>
+            </div>
+        </div>
+
+    </div>
+    <div class="workspace-frame">
+
+    </div>
+</div>
+
+
 
 </body>
 </html>
