@@ -220,6 +220,7 @@ export class LVLTileSet implements Dirtable {
 
     private readonly tiles: PIXI.Texture[];
     private readonly tileCoordinates: number[][];
+    readonly tileColor: string[];
 
     source: HTMLCanvasElement;
     texture: PIXI.Texture;
@@ -247,6 +248,52 @@ export class LVLTileSet implements Dirtable {
         for (let y = 0; y < 4; y++) {
             for (let x = 0; x < 19; x++) {
                 this.tileCoordinates.push([16 * x, 16 * y]);
+            }
+        }
+
+        let ctx = this.source.getContext('2d');
+
+        this.tileColor = [];
+        this.tileColor.push('black');
+        for (let y = 0; y < 4; y++) {
+            for (let x = 0; x < 19; x++) {
+
+                let imgData = ctx.getImageData(x * 16, y * 16, 16, 16).data;
+
+                let pixelCount = 0;
+                let ar = 0;
+                let ag = 0;
+                let ab = 0;
+
+                let offset = 0;
+                for (let py = 0; py < 16; py++) {
+                    for (let px = 0; px < 16; px++) {
+                        let r = imgData[offset];
+                        let g = imgData[offset + 1];
+                        let b = imgData[offset + 2];
+
+                        if (r !== 0 && g !== 0 && b !== 0) {
+                            pixelCount++;
+                            ar += r;
+                            ag += g;
+                            ab += b;
+                        }
+
+                        offset += 4;
+                    }
+                }
+
+                let color = '#aaaaaa';
+
+                if (pixelCount != 0) {
+                    ar /= pixelCount;
+                    ag /= pixelCount;
+                    ab /= pixelCount;
+                    color = 'rgb(' + ar + ',' + ag + ',' + ab + ')';
+                }
+
+                console.log(this.tileColor.length + ": " + color);
+                this.tileColor.push(color);
             }
         }
 

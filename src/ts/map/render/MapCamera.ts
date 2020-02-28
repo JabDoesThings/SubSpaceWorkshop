@@ -21,6 +21,7 @@ export class MapCamera extends UpdatedObject {
     private sListener: KeyListener;
     private aListener: KeyListener;
     private dListener: KeyListener;
+    alt: KeyListener;
 
     /**
      * Main constructor.
@@ -87,6 +88,8 @@ export class MapCamera extends UpdatedObject {
         }, null, () => {
             this.shift = false;
         });
+
+        this.alt = new KeyListener('Alt');
 
         // Make sure anything dependent on the camera being dirty renders on the first
         // render call.

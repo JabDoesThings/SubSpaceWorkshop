@@ -46,6 +46,10 @@ function createWindow() {
         }
     });
 
+    mainWindow.setMenuBarVisibility(false);
+    mainWindow.setAutoHideMenuBar(true);
+    mainWindow.setMenu(null);
+
     mainWindow.webContents.openDevTools({
         mode: "detach"
     });

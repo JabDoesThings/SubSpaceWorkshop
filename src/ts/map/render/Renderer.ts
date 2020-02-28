@@ -13,6 +13,7 @@ import { LVZChunk } from './LVZChunk';
 import { ELVLRegionRender } from './ELVLRegionRender';
 import { Background } from './Background';
 import InteractionEvent = PIXI.interaction.InteractionEvent;
+import { Radar } from './Radar';
 
 const Stats = require("stats.js");
 
@@ -67,6 +68,7 @@ export class Renderer extends UpdatedObject {
 
     readonly map: LVLMap;
     readonly lvz: LVZCollection;
+    readonly radar: Radar;
 
     app: PIXI.Application;
     camera: MapCamera;
@@ -104,6 +106,8 @@ export class Renderer extends UpdatedObject {
 
         this.camera = new MapCamera();
 
+        this.radar = new Radar(this);
+
         this.initPixi();
     }
 
@@ -111,9 +115,8 @@ export class Renderer extends UpdatedObject {
 
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-        this.stats.dom.style.left = "calc(100% - 362px)";
-        this.stats.dom.style.top = "calc(100% - 74px)";
-        this.container.appendChild(this.stats.dom);
+        this.stats.dom.style.left = "0px";
+        this.stats.dom.style.bottom = "0px";
 
         // Use the native window resolution as the default resolution will support high-density
         //   displays when rendering
@@ -201,6 +204,7 @@ export class Renderer extends UpdatedObject {
             }
         }
 
+        this.app.view.id = 'viewport';
         this.container.appendChild(this.app.view);
 
         this.setDirty(true);
@@ -255,7 +259,7 @@ export class Renderer extends UpdatedObject {
             // Resize the renderer
             let width = parent.clientWidth;
             let height = parent.clientHeight;
-            ctx.app.renderer.resize(width - 2 - 24, height - 26 - 24);
+            ctx.app.renderer.resize(width - 2 - 48, height - 26 - 24);
             ctx.setDirty(true);
 
             let $leftTabMenu = $('#editor-left-tab-menu');
@@ -345,6 +349,8 @@ export class Renderer extends UpdatedObject {
             }
         });
 
+        this.app.view.appendChild(this.stats.dom);
+
     }
 
     //@Override
@@ -368,6 +374,8 @@ export class Renderer extends UpdatedObject {
                 this.regions[index].update();
             }
         }
+
+        this.radar.update();
 
         this.map.setDirty(false);
         this.lvz.setDirty(false);
