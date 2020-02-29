@@ -43,7 +43,8 @@ function createWindow() {
 
             // experimentalFeatures: true,
             preload: path.join(__dirname, 'preload.js')
-        }
+        },
+        icon: "levi.png"
     });
 
     mainWindow.setMenuBarVisibility(false);

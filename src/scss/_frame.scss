@@ -14,18 +14,12 @@
     background-color: $color3;
 
     .workspace-radar {
-      display: block;
-      position: absolute;
-      z-index: 2;
+      @extend .viewport-window;
 
       width: 256px;
       height: 256px;
       bottom: 60px;
       right: 36px;
-
-      border: 1px solid $color4;
-      background-color: $color1;
-      box-shadow: rgb(0, 0, 0) 0 0 5px 1px;
 
       .radar {
         display: block;
@@ -34,5 +28,45 @@
         left: 0;
       }
     }
+
+    .workspace-tileset {
+      @extend .viewport-window;
+      left: 36px;
+      bottom: 60px;
+      width: 304px;
+      height: 160px;
+
+      .tileset {
+
+      }
+
+      .tile-selector {
+        display: block;
+        position: absolute;
+        z-index: 3;
+        top: 0;
+        left: 0;
+        width: 14px;
+        height: 14px;
+
+        border: 1px solid transparent;
+      }
+
+      .tile-selector.primary {
+        border-color: red;
+      }
+
+      .tile-selector.secondary {
+        border-color: yellow;
+      }
+    }
   }
+}
+
+.viewport-window {
+  z-index: 2;
+  position: absolute;
+  border: 1px solid $color4;
+  background-color: $color1;
+  box-shadow: rgb(0, 0, 0) 0 0 5px 1px;
 }

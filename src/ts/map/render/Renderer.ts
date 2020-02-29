@@ -14,6 +14,7 @@ import { ELVLRegionRender } from './ELVLRegionRender';
 import { Background } from './Background';
 import InteractionEvent = PIXI.interaction.InteractionEvent;
 import { Radar } from './Radar';
+import { TilesetWindow } from './TilesetWindow';
 
 const Stats = require("stats.js");
 
@@ -77,6 +78,8 @@ export class Renderer extends UpdatedObject {
     _border: LVLBorder;
     _map: PIXI.Container;
     _lvz: PIXI.Container;
+
+    tilesetWindow: TilesetWindow;
 
     public constructor(container: HTMLElement, map: LVLMap, lvz: LVZCollection = new LVZCollection()) {
 
@@ -156,6 +159,8 @@ export class Renderer extends UpdatedObject {
         this._lvz.filterArea = this.app.renderer.screen;
 
         this._background = new Background(this);
+
+        this.tilesetWindow = new TilesetWindow(this);
 
         let stage = this.app.stage;
 
@@ -335,15 +340,27 @@ export class Renderer extends UpdatedObject {
 
         let drawn = false;
 
+        let downPrimary = false;
+        let downSecondary = false;
+
         this.mouseListeners.push((event: MapMouseEvent): void => {
 
-            console.log(event.type);
+            let button = event.button;
+
+            if (event.type === MapMouseEventType.DRAG) {
+                button = downPrimary ? 0 : downSecondary ? 2 : 99;
+            }
 
             if (event.type === MapMouseEventType.UP) {
+
+                if (button == 0) {
+                    downPrimary = false;
+                } else if (button == 2) {
+                    downSecondary = false;
+                }
+
                 if (drawn) {
-                    console.log("draw");
                     this.radar.draw().then(() => {
-                        console.log("apply");
                         this.radar.apply();
                     });
                 }
@@ -354,14 +371,33 @@ export class Renderer extends UpdatedObject {
                 return;
             }
 
+            if (event.type === MapMouseEventType.DOWN) {
+                if (button == 0) {
+                    downPrimary = true;
+                } else if (button == 2) {
+                    downSecondary = true;
+                }
+            }
+
             let data = event.data;
             let x = data.tileX;
             let y = data.tileY;
-            if (x >= 0 && x < 1024 && y >= 0 && y < 1024) {
-                this.map.setTile(x, y, 170);
+            if ((downPrimary || downSecondary) && x >= 0 && x < 1024 && y >= 0 && y < 1024) {
+
+                console.log(event.button);
+
+                let tileId = downPrimary ? this.tilesetWindow.primary : this.tilesetWindow.secondary;
+
+                this.map.setTile(x, y, tileId);
                 drawn = true;
             }
         });
+
+        this.radar.draw().then(() => {
+            this.radar.apply();
+        });
+
+        this.tilesetWindow.draw();
 
         this.app.view.appendChild(this.stats.dom);
 
@@ -392,6 +428,7 @@ export class Renderer extends UpdatedObject {
         this.radar.update();
 
         this.map.setDirty(false);
+        this.map.tileset.setDirty(false);
         this.lvz.setDirty(false);
 
         return true;
