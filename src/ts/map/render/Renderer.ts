@@ -5,7 +5,7 @@ import { LVLMap } from '../lvl/LVL';
 import { UpdatedObject } from '../../util/UpdatedObject';
 import { MapSpriteCollection } from './MapSprite';
 import { MapGrid } from './MapGrid';
-import { MapCamera } from './MapCamera';
+import { RenderCamera } from './RenderCamera';
 import Filter = PIXI.Filter;
 import { LVZCollection, LVZMapObject } from '../lvz/LVZ';
 import { LVLSpriteCollection } from './LVLSpriteCollection';
@@ -72,7 +72,7 @@ export class Renderer extends UpdatedObject {
     readonly radar: Radar;
 
     app: PIXI.Application;
-    camera: MapCamera;
+    camera: RenderCamera;
     grid: MapGrid;
     _background: Background;
     _border: LVLBorder;
@@ -107,7 +107,7 @@ export class Renderer extends UpdatedObject {
             }
         }
 
-        this.camera = new MapCamera();
+        this.camera = new RenderCamera();
 
         this.radar = new Radar(this);
 
@@ -268,7 +268,7 @@ export class Renderer extends UpdatedObject {
             ctx.setDirty(true);
 
             let $leftTabMenu = $('#editor-left-tab-menu');
-            $leftTabMenu.css({top: window.innerHeight + 'px'});
+            $leftTabMenu.css({top: (window.innerHeight - 49) + 'px'});
 
         }
 
@@ -381,8 +381,6 @@ export class Renderer extends UpdatedObject {
             let x = data.tileX;
             let y = data.tileY;
             if ((downPrimary || downSecondary) && x >= 0 && x < 1024 && y >= 0 && y < 1024) {
-
-                console.log(event.button);
 
                 let tileId = downPrimary ? this.tilesetWindow.primary : this.tilesetWindow.secondary;
 

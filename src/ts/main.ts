@@ -1,29 +1,25 @@
 import { LVL } from './map/lvl/LVLUtils';
 import { LVZ } from './map/lvz/LVZUtils';
 import { Renderer } from './map/render/Renderer';
-import { LVZPackage } from './map/lvz/LVZ';
+import { LVZCollection, LVZPackage } from './map/lvz/LVZ';
 import { KeyListener } from './util/KeyListener';
-import * as fs from 'fs';
-import InteractionEvent = PIXI.interaction.InteractionEvent;
 
 function debugLVL() {
 
     let container
         = <HTMLDivElement> document.getElementsByClassName("map-viewport-canvas-container").item(0);
 
-    let arena = "zone66";
-    let lvlFile = "assets/lvl/" + arena + ".lvl";
-    let lvlFile2 = "assets/lvl/" + arena + "3.lvl";
-
+    let lvlFile = "assets/lvl/zone66.lvl";
+    
+    let lvz: LVZCollection = new LVZCollection();
     let map = LVL.read(lvlFile);
-    LVL.write(map, lvlFile2);
 
     console.log("save");
 
     // let lvzPackage = LVZ.read("assets/lvz/thefield.lvz");
-    // let lvz = lvzPackage.inflate().collect();
+    // lvz = lvzPackage.inflate().collect();
 
-    let view = new Renderer(container, map);
+    let view = new Renderer(container, map, lvz);
 
     // Screenshot button.
     new KeyListener("F12", () => {
@@ -37,10 +33,6 @@ function debugLVL() {
         link.setAttribute("download", "screenshot.png");
         link.click();
     });
-
-    // setTimeout(() => {
-    //     map.fill(217, 32, 32, 127, 127);
-    // }, 5000);
 }
 
 function debugLVZ() {
@@ -74,11 +66,10 @@ function debugLVZ() {
 
 export let start = function () {
 
-    console.log("### START ###");
-
-    debugLVL();
-    // debugLVZ();
-    // debugEditor();
+    setTimeout(() => {
+        console.log("### START ###");
+        debugLVL();
+    }, 10);
 };
 
 

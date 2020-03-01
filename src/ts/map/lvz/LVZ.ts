@@ -1408,8 +1408,6 @@ export class LVZImage extends Printable implements Validatable, Dirtable {
                     }
                 }
 
-                console.log(sequence);
-
                 this.sprite.sequence = sequence;
                 this.sprite.frameWidth = img.width / this.xFrames;
                 this.sprite.frameHeight = img.height / this.yFrames;

@@ -2,26 +2,27 @@ import { UpdatedObject } from '../../util/UpdatedObject';
 import { Vector2 } from 'three';
 import { KeyListener } from '../../util/KeyListener';
 import { LVL } from '../lvl/LVLUtils';
+import { Path, PathCoordinates, PathMode } from '../../util/Path';
 
-export class MapCamera extends UpdatedObject {
+export class RenderCamera extends UpdatedObject {
+
+    path: Path;
+    alt: KeyListener;
+    bounds: PIXI.Rectangle;
+    coordinateMin: number;
+    coordinateMax: number;
 
     private position: Vector2;
-    private scale: number;
     private upArrowListener: KeyListener;
     private downArrowListener: KeyListener;
     private leftArrowListener: KeyListener;
     private rightArrowListener: KeyListener;
-
-    coordinateMin: number;
-    coordinateMax: number;
-
-    bounds: PIXI.Rectangle;
-    private shift: boolean;
     private wListener: KeyListener;
     private sListener: KeyListener;
     private aListener: KeyListener;
     private dListener: KeyListener;
-    alt: KeyListener;
+    private scale: number;
+    private shift: boolean;
 
     /**
      * Main constructor.
@@ -29,6 +30,8 @@ export class MapCamera extends UpdatedObject {
     constructor() {
 
         super();
+
+        this.path = new Path();
 
         this.shift = false;
 
@@ -54,41 +57,25 @@ export class MapCamera extends UpdatedObject {
         this.dListener = new KeyListener("d");
 
         new KeyListener("1", () => {
-            this.position.x = 0;
-            this.position.y = 0;
-            this.setDirty(true);
+            this.pathTo({x: 0, y: 0});
         });
-
         new KeyListener("2", () => {
-            this.position.x = this.coordinateMax;
-            this.position.y = 0;
-            this.setDirty(true);
+            this.pathTo({x: this.coordinateMax, y: 0});
         });
-
         new KeyListener("3", () => {
-            this.position.x = 0;
-            this.position.y = this.coordinateMax;
-            this.setDirty(true);
+            this.pathTo({x: 0, y: this.coordinateMax});
         });
-
         new KeyListener("4", () => {
-            this.position.x = this.coordinateMax;
-            this.position.y = this.coordinateMax;
-            this.setDirty(true);
+            this.pathTo({x: this.coordinateMax, y: this.coordinateMax});
         });
-
         new KeyListener("5", () => {
-            this.position.x = this.coordinateMax / 2;
-            this.position.y = this.coordinateMax / 2;
-            this.setDirty(true);
+            this.pathTo({x: this.coordinateMax / 2, y: this.coordinateMax / 2});
         });
-
         new KeyListener("Shift", () => {
             this.shift = true;
         }, null, () => {
             this.shift = false;
         });
-
         this.alt = new KeyListener('Alt');
 
         // Make sure anything dependent on the camera being dirty renders on the first
@@ -97,7 +84,9 @@ export class MapCamera extends UpdatedObject {
     }
 
     // @Override
-    public onUpdate(delta: number): boolean {
+    onUpdate(delta: number): boolean {
+
+        this.path.update();
 
         let speed = 1;
         if (this.shift) {
@@ -150,29 +139,29 @@ export class MapCamera extends UpdatedObject {
         return true;
     }
 
+    pathTo(coordinates: PathCoordinates, ticks: number = 1, mode: PathMode = PathMode.LINEAR) {
+
+        let callback = (x: number, y: number): void => {
+            this.position.x = x;
+            this.position.y = y;
+            this.setDirty(true);
+        };
+
+        this.path.to(coordinates, [callback], ticks, mode);
+    }
+
     /**
      * @Return Returns a copy of the position of the camera.
      * <br><b>NOTE:</b> Modifying this copy will not modify the position of the camera.
      */
-    public getPosition(): Vector2 {
+    getPosition(): Vector2 {
         return new Vector2(this.position.x, this.position.y);
-    }
-
-    /**
-     *
-     * @param x The x-coordinate to set.
-     * @param y The y-coordinate to set.
-     */
-    public setPosition(x: number, y: number): void {
-        this.position.x = x; // Math.floor(x);
-        this.position.y = y; // Math.floor(y);
-        this.setDirty(true);
     }
 
     /**
      * @return Returns the scale of the camera.
      */
-    public getScale(): number {
+    getScale(): number {
         return this.scale;
     }
 
@@ -181,7 +170,7 @@ export class MapCamera extends UpdatedObject {
      *
      * @param value The value to set.
      */
-    public setScale(value: number): void {
+    setScale(value: number): void {
         this.scale = value;
         this.setDirty(true);
     }

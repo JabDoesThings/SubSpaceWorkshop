@@ -8,6 +8,7 @@ import { LVZCollection } from '../map/lvz/LVZ';
 
 export class Project {
 
+    compile: CompiledProject;
     layers: [];
 
     /**
@@ -15,6 +16,8 @@ export class Project {
      */
     constructor() {
 
+        this.layers = [];
+        this.compile = new CompiledProject(this);
     }
 }
 
