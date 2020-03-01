@@ -40,6 +40,9 @@ export class TilesetWindow {
             }
         }
 
+        let down = false;
+        let downButton = -99999;
+
         let update = (button: number, mx: number, my: number): void => {
 
             let tx = (mx - (mx % 16)) / 16;
@@ -57,12 +60,11 @@ export class TilesetWindow {
             }
         };
 
-        let down = false;
-
         $(document).on('mousedown', '#' + this.canvas.id, (e: MouseDownEvent) => {
             down = true;
 
             let button = e.button;
+            downButton = button;
             let mx = e.offsetX;
             let my = e.offsetY;
 
@@ -71,6 +73,7 @@ export class TilesetWindow {
 
         $(document).on('mouseup', (e: MouseUpEvent) => {
             down = false;
+            downButton = -99999;
         });
 
         $(document).on('mousemove', '#' + this.canvas.id, (e: MouseMoveEvent) => {
@@ -81,6 +84,10 @@ export class TilesetWindow {
                 let mx = e.offsetX;
                 let my = e.offsetY;
 
+                if(downButton !== -99999) {
+                    button = downButton;
+                }
+
                 update(button, mx, my);
             }
         });
@@ -90,13 +97,13 @@ export class TilesetWindow {
     }
 
     setPrimary(id: number): void {
+
         if (this.primary !== id) {
+
             this.primary = id;
 
             if (this.primary <= 190) {
-                console.log(this.coordinates);
                 let coords = this.coordinates[this.primary];
-                console.log("coords[" + this.primary + "]: ", coords);
                 this.primaryBox.style.top = coords[1] + "px";
                 this.primaryBox.style.left = coords[0] + "px";
             }
@@ -105,7 +112,9 @@ export class TilesetWindow {
     }
 
     setSecondary(id: number): void {
+
         if (this.secondary !== id) {
+
             this.secondary = id;
 
             if (this.secondary <= 190) {

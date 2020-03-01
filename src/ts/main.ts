@@ -8,7 +8,8 @@ import InteractionEvent = PIXI.interaction.InteractionEvent;
 
 function debugLVL() {
 
-    let container = document.getElementById("map-viewer-container");
+    let container
+        = <HTMLDivElement> document.getElementsByClassName("map-viewport-canvas-container").item(0);
 
     let arena = "zone66";
     let lvlFile = "assets/lvl/" + arena + ".lvl";

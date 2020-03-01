@@ -4,21 +4,41 @@
 @import 'tab';
 @import 'viewport';
 
-#map-viewer-container {
+.map-viewport-container {
   position: relative;
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
 
-  #viewport {
-
+  .map-viewport-canvas-container {
     position: absolute;
     top: 0;
+    left: 24px;
+    width: calc(100% - 48px);
+    height: calc(100% - 48px);
+  }
+
+  .map-viewport-canvas-boxshadow {
+    z-index: 3;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    box-shadow: inset 0 0 2px 2px rgba(0, 0, 0, 0.5);
+
+    pointer-events: none;
+  }
+
+  #viewport {
+    position: absolute;
+    top: 0;
+    left: 0;
+
     margin: 0;
     padding: 0;
-
-    left: 24px;
 
     border: 1px solid $color5;
   }

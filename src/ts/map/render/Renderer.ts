@@ -264,13 +264,11 @@ export class Renderer extends UpdatedObject {
             // Resize the renderer
             let width = parent.clientWidth;
             let height = parent.clientHeight;
-            ctx.app.renderer.resize(width - 2 - 48, height - 26 - 24);
+            ctx.app.renderer.resize(width - 2, height - 2);
             ctx.setDirty(true);
 
             let $leftTabMenu = $('#editor-left-tab-menu');
-
-            let lWidth = window.innerHeight - 48;
-            $leftTabMenu.css({top: lWidth + 'px'});
+            $leftTabMenu.css({top: window.innerHeight + 'px'});
 
         }
 
