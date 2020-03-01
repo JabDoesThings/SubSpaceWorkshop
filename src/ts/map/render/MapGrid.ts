@@ -108,7 +108,7 @@ export class MapGrid extends PIXI.Container {
             }
 
             // Vertical lines.
-            for (let x = Math.max(-offsetX, startX); x <= Math.min(1023 * 16, endX); x += 16) {
+            for (let x = Math.max(-offsetX, startX); x <= Math.min(1023 * 16, endX + 16); x += 16) {
                 this.baseGrid.moveTo(Math.floor((x - x1) + offsetX), Math.max(0, top));
                 this.baseGrid.lineTo(Math.floor((x - x1) + offsetX), Math.min(sh, bottom));
             }

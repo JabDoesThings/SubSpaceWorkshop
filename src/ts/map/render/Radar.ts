@@ -1,5 +1,10 @@
 import { LVLMap } from '../lvl/LVL';
 import { Renderer } from './Renderer';
+import MouseDownEvent = JQuery.MouseDownEvent;
+import MouseUpEvent = JQuery.MouseUpEvent;
+import MouseMoveEvent = JQuery.MouseMoveEvent;
+import { Vector2 } from 'three';
+import { PathMode } from '../../util/Path';
 
 export class Radar {
 
@@ -22,11 +27,73 @@ export class Radar {
         this.smallSize = 256;
 
         this.lock = false;
+
+        let down = false;
+        let downButton = -99999;
+
+        let update = (button: number, mx: number, my: number): void => {
+            let lx = mx / this.canvas.width;
+            let ly = my / this.canvas.height;
+
+            let mapX = Math.floor(lx * 1024);
+            let mapY = Math.floor(ly * 1024);
+
+            let cPos = this.view.camera.getPosition();
+            let v1 = new Vector2(mapX, mapY);
+            let v2 = new Vector2(cPos.x, cPos.y);
+
+            let dist = v1.distanceTo(v2);
+
+            if (dist == 0) {
+                return;
+            }
+
+            let ticks = Math.floor(dist / 10);
+
+            if (ticks < 10) {
+                ticks = 10;
+            } else if (ticks > 60) {
+                ticks = 60;
+            }
+
+            this.view.camera.pathTo({x: mapX, y: mapY}, ticks, PathMode.EASE_OUT);
+        };
+
+        $(document).on('mousedown', '#' + this.canvas.id, (e: MouseDownEvent) => {
+            down = true;
+
+            let button = e.button;
+            downButton = button;
+            let mx = e.offsetX;
+            let my = e.offsetY;
+
+            update(button, mx, my);
+        });
+
+        $(document).on('mouseup', (e: MouseUpEvent) => {
+            down = false;
+            downButton = -99999;
+        });
+
+        $(document).on('mousemove', '#' + this.canvas.id, (e: MouseMoveEvent) => {
+
+            if (down) {
+
+                let button = e.button;
+                let mx = e.offsetX;
+                let my = e.offsetY;
+
+                if (downButton !== -99999) {
+                    button = downButton;
+                }
+
+                update(button, mx, my);
+            }
+        });
     }
 
     update(): void {
 
-        let map = this.view.map;
         let alt = this.view.camera.alt.isDown;
 
         let largeSize = Math.min(this.largeSize, this.view.app.screen.height - 24);
@@ -48,12 +115,6 @@ export class Radar {
             this.canvas.parentElement.style.height = this.smallSize + 'px';
             this.apply();
         }
-
-        // if (!this.lock && map.isDirty()) {
-        //     this.draw().then(() => {
-        //         this.apply();
-        //     });
-        // }
     }
 
     apply(): void {

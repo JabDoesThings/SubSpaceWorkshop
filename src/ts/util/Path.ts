@@ -35,25 +35,28 @@ export class Path {
             this.tick++;
 
             let lerp = this.tick / this.ticks;
-            let tickLerpFactor = this.tick / this.ticks;
 
-            if (this.mode == PathMode.EASE_IN) {
-                tickLerpFactor = Path.easeIn(lerp);
-            } else if (this.mode == PathMode.EASE_OUT) {
-                tickLerpFactor = Path.easeOut(lerp);
-            } else if (this.mode == PathMode.EASE_IN_OUT) {
-                tickLerpFactor = Path.easeInOut(lerp);
-            } else if (this.mode === PathMode.LINEAR) {
-                tickLerpFactor = lerp;
-            }
+            if (!isNaN(lerp) && isFinite(lerp)) {
 
-            this.x = Path.lerp(this._from.x, this._to.x, tickLerpFactor);
-            this.y = Path.lerp(this._from.y, this._to.y, tickLerpFactor);
+                let tickLerpFactor;
+                if (this.mode == PathMode.EASE_IN) {
+                    tickLerpFactor = Path.easeIn(lerp);
+                } else if (this.mode == PathMode.EASE_OUT) {
+                    tickLerpFactor = Path.easeOut(lerp);
+                } else if (this.mode == PathMode.EASE_IN_OUT) {
+                    tickLerpFactor = Path.easeInOut(lerp);
+                } else if (this.mode === PathMode.LINEAR) {
+                    tickLerpFactor = lerp;
+                }
 
-            if (this.callbacks != null) {
+                this.x = Path.lerp(this._from.x, this._to.x, tickLerpFactor);
+                this.y = Path.lerp(this._from.y, this._to.y, tickLerpFactor);
 
-                for (let index = 0; index < this.callbacks.length; index++) {
-                    this.callbacks[index](this.x, this.y, lerp);
+                if (this.callbacks != null) {
+
+                    for (let index = 0; index < this.callbacks.length; index++) {
+                        this.callbacks[index](this.x, this.y, lerp);
+                    }
                 }
             }
 
@@ -78,6 +81,15 @@ export class Path {
         ticks: number = 60,
         mode: PathMode = PathMode.LINEAR
     ): void {
+
+        if (to.x == this.x && to.y == this.y) {
+            return;
+        }
+
+        if (ticks == 0) {
+            ticks = 1;
+        }
+
         this._to = to;
         this.callbacks = callbacks;
         this._from = {x: this.x, y: this.y};
