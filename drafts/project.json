@@ -1,0 +1,17 @@
+{
+  "name": "example",
+  "content": [
+    {
+      "type": "layer",
+      "visible": true,
+      "content": [
+        {
+          "type": "object",
+          "object_type": "a_type",
+          "x": 0,
+          "y": 0
+        }
+      ]
+    }
+  ]
+}

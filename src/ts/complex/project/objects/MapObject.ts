@@ -1,4 +1,4 @@
-import { InheritedObject } from '../../util/InheritedObject';
+import { InheritedObject } from '../../../util/InheritedObject';
 
 /**
  * The <i>MapObject</i>. TODO: Document.

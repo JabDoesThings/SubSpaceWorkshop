@@ -1,11 +1,11 @@
 import { LVZ, LVZErrorStatus } from './LVZUtils';
-import { Printable } from '../../util/Printable';
+import { Printable } from '../util/Printable';
 import * as zlib from "zlib";
-import { Validatable } from '../../util/Validatable';
+import { Validatable } from '../util/Validatable';
 import * as fs from 'fs';
-import { Dirtable } from '../../util/Dirtable';
-import { MapSprite } from '../render/MapSprite';
-import { LVL } from '../lvl/LVLUtils';
+import { Dirtable } from '../util/Dirtable';
+import { MapSprite } from '../simple/render/MapSprite';
+import { LVL } from './LVLUtils';
 import ImageResource = PIXI.resources.ImageResource;
 
 /**

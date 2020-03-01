@@ -1,10 +1,10 @@
 import * as fs from "fs";
 import { LVLMap, LVLTileSet } from './LVL';
-import { BufferUtils } from '../../util/BufferUtils';
-import { Bitmap } from '../../util/Bitmap';
+import { BufferUtils } from '../util/BufferUtils';
+import { Bitmap } from '../util/Bitmap';
 import * as PIXI from "pixi.js";
-import { ELVLCollection } from '../elvl/ELVL';
-import { ELVL } from '../elvl/ELVLUtils';
+import { ELVLCollection } from './ELVL';
+import { ELVL } from './ELVLUtils';
 
 export class LVL {
 

@@ -13,7 +13,7 @@ import {
     LVZScreenObject
 } from './LVZ';
 import * as zlib from 'zlib';
-import { BufferUtils } from '../../util/BufferUtils';
+import { BufferUtils } from '../util/BufferUtils';
 
 export class LVZ {
 

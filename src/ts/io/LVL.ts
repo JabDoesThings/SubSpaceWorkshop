@@ -1,7 +1,7 @@
-import { Dirtable } from '../../util/Dirtable';
+import { Dirtable } from '../util/Dirtable';
 import * as PIXI from "pixi.js";
 import { LVL } from './LVLUtils';
-import { ELVLCollection } from '../elvl/ELVL';
+import { ELVLCollection } from './ELVL';
 
 /**
  * The <i>LVLMap</i> class. TODO: Document.

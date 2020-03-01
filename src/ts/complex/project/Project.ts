@@ -3,8 +3,8 @@
  *
  * @author Jab
  */
-import { LVLMap } from '../map/lvl/LVL';
-import { LVZCollection } from '../map/lvz/LVZ';
+import { LVLMap } from '../../io/LVL';
+import { LVZCollection } from '../../io/LVZ';
 
 export class Project {
 

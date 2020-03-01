@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 
-import { ELVLRegion } from '../elvl/ELVL';
+import { ELVLRegion } from '../../io/ELVL';
 import { Renderer } from './Renderer';
 
 /**

@@ -1,0 +1,131 @@
+{
+  "name": "A Library",
+  "id": "a_library",
+  "contents": [
+    {
+      "type": "spritesheet",
+      "id": "a_sprite",
+      "file": "spritesheet.png",
+      "animation_time": 200,
+      "frames": {
+        "x": 2,
+        "y": 2
+      }
+    },
+    {
+      "type": "tileset",
+      "name": "A Tileset",
+      "id": "a_tileset",
+      "images": [
+        "a_tileset.png"
+      ],
+      "tiles": "ascending"
+    },
+    {
+      "type": "tileset",
+      "name": "Another Tileset",
+      "id": "another_tileset",
+      "images": [
+        "another_tileset.png"
+      ],
+      "tiles": [
+        {
+          "id": "",
+          "name": "A Tile",
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          }
+        }
+      ]
+    },
+    {
+      "type": "walltile",
+      "name": "A Walltile",
+      "id": "a_walltile",
+      "tileset": {
+        "library_id": null,
+        "tilset_id": "a_tileset"
+      },
+      "tile_width": 1,
+      "definitions": {
+        "center": 0,
+        "top_left_corner": 1,
+        "top_right_corner": 2,
+        "bottom_left_corner": 3,
+        "bottom_right_corner": 4,
+        "top_junction": 5,
+        "bottom_junction": 6,
+        "left_junction": 7,
+        "right_junction": 8,
+        "vertical_top_end": 9,
+        "vertical": 10,
+        "vertical_bottom_end": 10,
+        "horizontal_left_end": 11,
+        "horizontal": 12,
+        "horizontal_right_end": 13,
+        "dot": 14
+
+      }
+    },
+    {
+      "type": "generator",
+      "id": "a_generator",
+      "seed": 2389042834,
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 256,
+        "height": 256
+      },
+      "metadata": {
+
+      }
+    },
+    {
+      "version": 1,
+      "type": "stamp",
+      "name": "A stamp",
+      "id": "a_stamp",
+      "tile_data": "a_stamp.tdat",
+      "image_data": [
+        {
+          "library": null,
+          "sprite": "a_sprite",
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "library": "another_library",
+          "sprite": "another_sprite",
+          "position": {
+            "x": 4,
+            "y": 13
+          }
+        }
+      ]
+    },
+    {
+      "version": 1,
+      "type": "stamp",
+      "name": "Another stamp",
+      "id": "another_stamp",
+      "tile_data": "another_stamp.tdat",
+      "walltiles_enabled": true,
+      "walltiles": [
+        {
+          "library_id": null,
+          "id": "a_walltile"
+        },
+        {
+          "library_id": "another_library",
+          "id": "another_walltile"
+        }
+      ]
+    }
+  ]
+}

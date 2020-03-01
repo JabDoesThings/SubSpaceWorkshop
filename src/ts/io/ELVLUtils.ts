@@ -12,7 +12,7 @@ import {
     ELVLRegionRawChunk,
     ELVLRegionTileData, ELVLBookmarks
 } from './ELVL';
-import { BufferUtils } from '../../util/BufferUtils';
+import { BufferUtils } from '../util/BufferUtils';
 
 /**
  * The <i>ELVL</i> class. TODO: Document.

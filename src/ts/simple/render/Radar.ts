@@ -1,4 +1,4 @@
-import { LVLMap } from '../lvl/LVL';
+import { LVLMap } from '../../io/LVL';
 import { Renderer } from './Renderer';
 import MouseDownEvent = JQuery.MouseDownEvent;
 import MouseUpEvent = JQuery.MouseUpEvent;
@@ -132,7 +132,7 @@ export class Radar {
         let ctx = this.drawCanvas.getContext('2d');
 
         // Clear the radar to its clear color.
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = '#010201';
         ctx.fillRect(0, 0, 1024, 1024);
 
         for (let y = 0; y < 1024; y++) {

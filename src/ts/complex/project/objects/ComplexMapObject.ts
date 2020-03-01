@@ -1,4 +1,4 @@
-import { DirtyDataObject } from '../../util/DirtyDataObject';
+import { DirtyDataObject } from '../../../util/DirtyDataObject';
 import { RasterMapObject } from './RasterMapObject';
 
 /**

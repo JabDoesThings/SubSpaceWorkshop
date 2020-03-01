@@ -1,13 +1,13 @@
 import { LVLBorder, LVLChunk } from './LVLRender';
 import * as PIXI from "pixi.js";
 
-import { LVLMap } from '../lvl/LVL';
+import { LVLMap } from '../../io/LVL';
 import { UpdatedObject } from '../../util/UpdatedObject';
 import { MapSpriteCollection } from './MapSprite';
 import { MapGrid } from './MapGrid';
 import { RenderCamera } from './RenderCamera';
 import Filter = PIXI.Filter;
-import { LVZCollection, LVZMapObject } from '../lvz/LVZ';
+import { LVZCollection, LVZMapObject } from '../../io/LVZ';
 import { LVLSpriteCollection } from './LVLSpriteCollection';
 import { LVZChunk } from './LVZChunk';
 import { ELVLRegionRender } from './ELVLRegionRender';
@@ -144,6 +144,7 @@ export class Renderer extends UpdatedObject {
         this.grid = new MapGrid(this);
         this.grid.filters = [];
         this.grid.filterArea = this.app.renderer.screen;
+        // this.grid.visible = false;
 
         this.elvlContainer = new PIXI.Container();
         this.elvlContainer.alpha = 0.2;
@@ -403,7 +404,9 @@ export class Renderer extends UpdatedObject {
     public onUpdate(delta: number): boolean {
 
         if (this.camera.isDirty()) {
-            this.grid.draw();
+            if (this.grid.visible) {
+                this.grid.draw();
+            }
             this._background.update();
             this._border.update();
         }

@@ -1,7 +1,7 @@
 import { UpdatedObject } from '../../util/UpdatedObject';
 import { Vector2 } from 'three';
 import { KeyListener } from '../../util/KeyListener';
-import { LVL } from '../lvl/LVLUtils';
+import { LVL } from '../../io/LVLUtils';
 import { Path, PathCoordinates, PathMode } from '../../util/Path';
 
 export class RenderCamera extends UpdatedObject {

@@ -1,7 +1,7 @@
-import { LVL } from './map/lvl/LVLUtils';
-import { LVZ } from './map/lvz/LVZUtils';
-import { Renderer } from './map/render/Renderer';
-import { LVZCollection, LVZPackage } from './map/lvz/LVZ';
+import { LVL } from './io/LVLUtils';
+import { LVZ } from './io/LVZUtils';
+import { Renderer } from './simple/render/Renderer';
+import { LVZCollection, LVZPackage } from './io/LVZ';
 import { KeyListener } from './util/KeyListener';
 
 function debugLVL() {
@@ -71,5 +71,4 @@ export let start = function () {
         debugLVL();
     }, 10);
 };
-
 
