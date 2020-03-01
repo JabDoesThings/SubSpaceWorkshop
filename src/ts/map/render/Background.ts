@@ -60,17 +60,19 @@ export class Background extends PIXI.Container {
 
         if (camera.isDirty()) {
 
+            let sw2 = this.view.app.screen.width / 2.0;
+            let sh2 = this.view.app.screen.height / 2.0;
             let cPos = camera.getPosition();
-            let cx = cPos.x * 16;
-            let cy = cPos.y * 16;
+            let cx = (cPos.x * 16) - sw2;
+            let cy = (cPos.y * 16) - sh2;
 
-            let next = this.layer1;
-            next.x = Math.floor(-(cx / next._scale));
-            next.y = Math.floor(-(cy / next._scale));
+            let layer1 = this.layer1;
+            layer1.x = Math.floor(-(cx / layer1._scale));
+            layer1.y = Math.floor(-(cy / layer1._scale));
 
-            next = this.layer2;
-            next.x = Math.floor(-(cx / next._scale));
-            next.y = Math.floor(-(cy / next._scale));
+            let layer2 = this.layer2;
+            layer2.x = Math.floor(-(cx / layer2._scale));
+            layer2.y = Math.floor(-(cy / layer2._scale));
 
             let next2 = this.texLayer;
             next2.x = Math.floor(-(cx / 2));
