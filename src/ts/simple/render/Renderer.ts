@@ -18,6 +18,8 @@ import { TilesetWindow } from './TilesetWindow';
 
 const Stats = require("stats.js");
 
+import * as fs from 'fs';
+
 export interface MapMouseEvent {
     type: MapMouseEventType,
     data: MapSpace,
@@ -42,16 +44,7 @@ export enum MapMouseEventType {
 
 export class Renderer extends UpdatedObject {
 
-    static fragmentSrc = [
-        "varying vec2 vTextureCoord;" +
-        "uniform sampler2D uSampler;" +
-        "void main(void) {" +
-        "   gl_FragColor = texture2D(uSampler, vTextureCoord);" +
-        "   if(gl_FragColor.r == 0.0 && gl_FragColor.g == 0.0 && gl_FragColor.b == 0.0) {" +
-        "       gl_FragColor.a = 0.0;" +
-        "   }" +
-        "}"
-    ].join("\n");
+    static fragmentSrc = fs.readFileSync("assets/glsl/pixi_chroma.frag").toString();
 
     static chromaFilter = new Filter(undefined, Renderer.fragmentSrc, undefined);
 
@@ -453,4 +446,3 @@ export class Renderer extends UpdatedObject {
         }
     }
 }
-

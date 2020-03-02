@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SubSpace Workshop</title>
+
+    <script type="module">
+
+        let overrideTilemapShader = () => {
+
+            const fs = require('fs');
+            const tilemapChromaFragmentShader = fs.readFileSync("assets/glsl/tilemap_chroma.frag").toString();
+            window.tilemapChromaFragmentShader = tilemapChromaFragmentShader;
+
+            PIXI.tilemap.shaderGenerator.generateFragmentSrc = (maxTextures) => {
+                return tilemapChromaFragmentShader.replace(/%count%/gi, maxTextures + "")
+                    .replace(/%forloop%/gi, PIXI.tilemap.shaderGenerator.generateSampleSrc(maxTextures));
+            };
+        };
+
+        // JS libraries.
+        // const fs = require('fs');
+        const remote = require('electron');
+        const THREE = window.THREE = require('three');
+        // const customTitlebar = require('custom-electron-titlebar');
+        const stats = require("stats.js");
+        const uuid = require('uuid');
+
+        const PIXI = window.PIXI = require("pixi.js");
+        require("pixi-tilemap");
+
+        overrideTilemapShader();
+
+        window.$ = window.jQuery = require('jquery');
+
+        // Project JS files.
+        const main = require("./assets/js/main.js");
+
+        $(function () {
+            // Start application.
+            main.start();
+        });
+
+    </script>
+
+    <link rel="stylesheet" href="assets/css/project.min.css"/>
+</head>
+<body>
+
+<div class="editor_frame dark">
+
+    <div class="viewport-frame">
+
+        <div id="editor-tab-menu" class="tab-menu">
+            <div class="tab"><label>Map</label></div>
+            <div class="tab"><label>Library</label></div>
+        </div>
+
+        <div class="map-viewport-container" style="display: block">
+
+            <!-- Options above the viewport. -->
+            <div id="editor-left-tab-menu" class="tab-menu left">
+                <div class="tab"><label>Tileset</label></div>
+                <div class="tab"><label>LVZ</label></div>
+                <div class="tab"><label>Regions</label></div>
+            </div>
+
+            <!-- The PixiJS canvas goes in here. -->
+            <div class="map-viewport-canvas-container">
+                <div class="map-viewport-canvas-boxshadow"></div>
+            </div>
+
+            <!-- The Layer Window -->
+            <div class="workspace-layers" style="display: none">
+                <div class="layers">
+
+                    <div class="layer">
+                        <div class="icon-container"></div>
+                        <div class="name"><label>Layer</label></div>
+                    </div>
+
+                    <div class="layer">
+                        <div class="icon-container"></div>
+                        <div class="name"><label>Layer</label></div>
+                        <div class="contents">
+                            <div class="object">
+                                <div class="icon-container"></div>
+                                <div class="name"><label>Object</label></div>
+                            </div>
+                            <div class="layer">
+                                <div class="icon-container"></div>
+                                <div class="name"><label>Layer</label></div>
+                                <div class="contents">
+                                    <div class="object selected">
+                                        <div class="icon-container"></div>
+                                        <div class="name"><label>Object</label></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+                <div class="buttons">
+
+                </div>
+            </div>
+
+            <!-- The Tileset Window -->
+            <div class="workspace-tileset">
+                <canvas id="tileset" class="tileset" width="304" height="160"></canvas>
+                <div id="tileset-primary" class="tile-selector primary"></div>
+                <div id="tileset-secondary" class="tile-selector secondary"></div>
+            </div>
+
+            <!-- The Radar Window -->
+            <div class="workspace-radar">
+                <canvas id="radar" class="radar" width="256" height="256"></canvas>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+</body>
+</html>
