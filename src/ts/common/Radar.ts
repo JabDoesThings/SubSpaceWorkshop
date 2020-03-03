@@ -1,16 +1,14 @@
-import { LVLMap } from '../../io/LVL';
-import { Renderer } from './Renderer';
 import MouseDownEvent = JQuery.MouseDownEvent;
-import MouseUpEvent = JQuery.MouseUpEvent;
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import { Vector2 } from 'three';
-import { PathMode } from '../../util/Path';
+import { Renderer } from './Renderer';
+import { PathMode } from '../util/Path';
 
 export class Radar {
 
-    private readonly view: Renderer;
+    protected readonly view: Renderer;
     private readonly canvas: HTMLCanvasElement;
-    private readonly drawCanvas: HTMLCanvasElement;
+    protected readonly drawCanvas: HTMLCanvasElement;
     private readonly largeSize: number;
     private readonly smallSize: number;
 
@@ -18,6 +16,7 @@ export class Radar {
     lock: boolean;
 
     constructor(view: Renderer) {
+
         this.view = view;
         this.canvas = <HTMLCanvasElement> document.getElementById('radar');
         this.drawCanvas = document.createElement('canvas');
@@ -32,6 +31,7 @@ export class Radar {
         let downButton = -99999;
 
         let update = (button: number, mx: number, my: number): void => {
+
             let lx = mx / this.canvas.width;
             let ly = my / this.canvas.height;
 
@@ -70,7 +70,7 @@ export class Radar {
             update(button, mx, my);
         });
 
-        $(document).on('mouseup', (e: MouseUpEvent) => {
+        $(document).on('mouseup', () => {
             down = false;
             downButton = -99999;
         });
@@ -125,45 +125,5 @@ export class Radar {
     }
 
     async draw() {
-
-        let map = this.view.map;
-        let tileset = map.tileset;
-
-        let ctx = this.drawCanvas.getContext('2d');
-
-        // Clear the radar to its clear color.
-        ctx.fillStyle = '#010201';
-        ctx.fillRect(0, 0, 1024, 1024);
-
-        for (let y = 0; y < 1024; y++) {
-            for (let x = 0; x < 1024; x++) {
-                let tileId = map.getTile(x, y);
-                if (tileId != 0) {
-
-                    if (tileId <= 190) {
-                        ctx.fillStyle = tileset.tileColor[tileId];
-                        ctx.fillRect(x, y, 1, 1);
-                    } else if (tileId == 216) {
-                        ctx.fillStyle = '#4b3225';
-                        ctx.fillRect(x, y, 1, 1);
-                    } else if (tileId == 217) {
-                        ctx.fillStyle = '#4b3225';
-                        ctx.fillRect(x, y, 2, 2);
-                    } else if (tileId == 218) {
-                        ctx.fillStyle = '#4b3225';
-                        ctx.fillRect(x, y, 1, 1);
-                    } else if (tileId == 219) {
-                        ctx.fillStyle = '#4b4b4b';
-                        ctx.fillRect(x, y, 6, 6);
-                    } else if (tileId == 220) {
-                        ctx.fillStyle = '#710066';
-                        ctx.fillRect(x, y, 5, 5);
-                    } else {
-                        ctx.fillStyle = '#d500d5';
-                        ctx.fillRect(x, y, 1, 1);
-                    }
-                }
-            }
-        }
     }
 }

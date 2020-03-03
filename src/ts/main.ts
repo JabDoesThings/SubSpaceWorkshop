@@ -1,25 +1,24 @@
 import { LVL } from './io/LVLUtils';
 import { LVZ } from './io/LVZUtils';
-import { Renderer } from './simple/render/Renderer';
+import { MapRenderer } from './simple/render/MapRenderer';
 import { LVZCollection, LVZPackage } from './io/LVZ';
 import { KeyListener } from './util/KeyListener';
 
 function debugLVL() {
-
-    let container
-        = <HTMLDivElement> document.getElementsByClassName("map-viewport-canvas-container").item(0);
 
     let lvlFile = "assets/lvl/zone66.lvl";
     
     let lvz: LVZCollection = new LVZCollection();
     let map = LVL.read(lvlFile);
 
-    console.log("save");
-
     // let lvzPackage = LVZ.read("assets/lvz/thefield.lvz");
     // lvz = lvzPackage.inflate().collect();
 
-    let view = new Renderer(container, map, lvz);
+    let view = new MapRenderer(map, lvz);
+
+    let container
+        = <HTMLDivElement> document.getElementsByClassName("map-viewport-canvas-container").item(0);
+    view.init(container, 'viewport', true);
 
     // Screenshot button.
     new KeyListener("F12", () => {

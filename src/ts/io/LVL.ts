@@ -292,7 +292,6 @@ export class LVLTileSet implements Dirtable {
                     color = 'rgb(' + ar + ',' + ag + ',' + ab + ')';
                 }
 
-                console.log(this.tileColor.length + ": " + color);
                 this.tileColor.push(color);
             }
         }

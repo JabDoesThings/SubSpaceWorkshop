@@ -1,12 +1,11 @@
-import { Renderer } from './Renderer';
-import ClickEvent = JQuery.ClickEvent;
+import { MapRenderer } from './MapRenderer';
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
 import MouseUpEvent = JQuery.MouseUpEvent;
 
 export class TilesetWindow {
 
-    private view: Renderer;
+    private view: MapRenderer;
     private canvas: HTMLCanvasElement;
 
     primary: number;
@@ -17,7 +16,7 @@ export class TilesetWindow {
     private coordinates: number[][];
     private atlas: number[][];
 
-    constructor(view: Renderer) {
+    constructor(view: MapRenderer) {
         this.view = view;
         this.canvas = <HTMLCanvasElement> document.getElementById('tileset');
         this.primaryBox = document.getElementById('tileset-primary');

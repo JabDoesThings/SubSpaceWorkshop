@@ -1,9 +1,9 @@
 import * as PIXI from "pixi.js";
-import { Renderer } from './Renderer';
+import { MapRenderer } from './MapRenderer';
 
 export class MapGrid extends PIXI.Container {
 
-    private view: Renderer;
+    private view: MapRenderer;
 
     renderBaseGrid: boolean;
     renderAxisLines: boolean;
@@ -15,7 +15,7 @@ export class MapGrid extends PIXI.Container {
     private centerLines: PIXI.Graphics;
     private borderLines: PIXI.Graphics;
 
-    constructor(view: Renderer) {
+    constructor(view: MapRenderer) {
 
         super();
 

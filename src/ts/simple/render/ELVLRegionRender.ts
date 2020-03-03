@@ -1,7 +1,7 @@
 import * as PIXI from "pixi.js";
 
 import { ELVLRegion } from '../../io/ELVL';
-import { Renderer } from './Renderer';
+import { MapRenderer } from './MapRenderer';
 
 /**
  * The <i>TileEntry</i> interface. TODO: Document.
@@ -28,14 +28,14 @@ export class ELVLRegionRender {
     container: PIXI.Container;
 
     private bounds: PIXI.Rectangle;
-    private view: Renderer;
+    private view: MapRenderer;
 
     /**
      * Main constructor.
      *
      * @param region The region to render.
      */
-    constructor(view: Renderer, region: ELVLRegion) {
+    constructor(view: MapRenderer, region: ELVLRegion) {
 
         this.view = view;
         this.region = region;

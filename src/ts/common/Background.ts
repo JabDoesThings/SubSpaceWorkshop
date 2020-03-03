@@ -1,15 +1,15 @@
 import * as PIXI from "pixi.js";
+import { MapRenderer } from '../simple/render/MapRenderer';
 import { Renderer } from './Renderer';
 
 export class Background extends PIXI.Container {
 
     view: Renderer;
+    g: PIXI.Graphics;
+
     private layer1: StarFieldLayer;
     private layer2: StarFieldLayer;
     private texLayer: BackgroundObjectLayer;
-
-    g: PIXI.Graphics;
-
     private lw: number;
     private lh: number;
 
@@ -95,7 +95,7 @@ export class BackgroundObjectLayer extends PIXI.Container {
         this.background = background;
         this.draw();
 
-        this.filters = [Renderer.chromaFilter];
+        this.filters = [MapRenderer.chromaFilter];
         this.filterArea = this.background.view.app.screen;
     }
 
@@ -117,7 +117,7 @@ export class BackgroundObjectLayer extends PIXI.Container {
             let tex = Math.floor(Math.random() * BackgroundObjectLayer.starTextures.length);
 
             let sprite = new PIXI.Sprite(BackgroundObjectLayer.starTextures[tex]);
-            sprite.filters = [Renderer.chromaFilter];
+            sprite.filters = [MapRenderer.chromaFilter];
             sprite.filterArea = this.background.view.app.screen;
             sprite.x = Math.floor(minX + (Math.random() * dx));
             sprite.y = Math.floor(minY + (Math.random() * dy));
@@ -130,7 +130,7 @@ export class BackgroundObjectLayer extends PIXI.Container {
             let tex = Math.floor(Math.random() * BackgroundObjectLayer.backgroundTextures.length);
 
             let sprite = new PIXI.Sprite(BackgroundObjectLayer.backgroundTextures[tex]);
-            sprite.filters = [Renderer.chromaFilter];
+            sprite.filters = [MapRenderer.chromaFilter];
             sprite.filterArea = this.background.view.app.screen;
             sprite.x = Math.floor(minX + (Math.random() * dx));
             sprite.y = Math.floor(minY + (Math.random() * dy));
@@ -155,7 +155,7 @@ export class StarFieldLayer extends PIXI.Container {
         this._color = color;
         this._scale = scale;
 
-        this.filters = [Renderer.chromaFilter];
+        this.filters = [MapRenderer.chromaFilter];
         this.filterArea = this.background.view.app.screen;
 
         this.draw();
@@ -196,7 +196,6 @@ BackgroundObjectLayer.backgroundTextures = [];
 for (let index = 1; index <= 14; index++) {
     let ext = index < 10 ? "0" + index : "" + index;
     let path = "assets/media/bg" + ext + ".bm2";
-    console.log("Loading " + path + "...");
     BackgroundObjectLayer.backgroundTextures[index] = PIXI.Texture.from(path);
 }
 
@@ -205,6 +204,5 @@ BackgroundObjectLayer.starTextures = [];
 for (let index = 1; index <= 7; index++) {
     let ext = index < 10 ? "0" + index : "" + index;
     let path = "assets/media/star" + ext + ".bm2";
-    console.log("Loading " + path + "...");
     BackgroundObjectLayer.starTextures[index] = PIXI.Texture.from(path);
 }

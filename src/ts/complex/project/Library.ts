@@ -1,14 +1,26 @@
 import uuid = require('uuid');
 
+/**
+ * The <i>Library</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class Library {
 
     name: string;
     contents: Content[];
 
-    constructor() {
+    constructor(name: string, contents: Content[] = []) {
+        this.name = name;
+        this.contents = contents;
     }
 }
 
+/**
+ * The <i>Content</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 abstract class Content {
 
     readonly id: string;

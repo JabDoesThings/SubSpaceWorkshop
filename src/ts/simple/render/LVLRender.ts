@@ -1,7 +1,7 @@
 import { UpdatedObject } from '../../util/UpdatedObject';
 import * as PIXI from "pixi.js";
 import { LVL } from '../../io/LVLUtils';
-import { Renderer } from './Renderer';
+import { MapRenderer } from './MapRenderer';
 import { LVLArea } from '../../io/LVL';
 
 /**
@@ -25,7 +25,7 @@ export class LVLChunk extends UpdatedObject {
 
     tileMap: any;
     tileMapAnim: any;
-    private view: Renderer;
+    private view: MapRenderer;
     private readonly x: number;
     private readonly y: number;
 
@@ -33,7 +33,7 @@ export class LVLChunk extends UpdatedObject {
 
     private tilesAnim: LVLChunkEntry[];
 
-    constructor(view: Renderer, x: number, y: number) {
+    constructor(view: MapRenderer, x: number, y: number) {
 
         super();
 
@@ -252,9 +252,9 @@ export class LVLChunk extends UpdatedObject {
 
 export class LVLBorder extends PIXI.Container {
 
-    private view: Renderer;
+    private view: MapRenderer;
 
-    constructor(view: Renderer) {
+    constructor(view: MapRenderer) {
         super();
 
         this.view = view;

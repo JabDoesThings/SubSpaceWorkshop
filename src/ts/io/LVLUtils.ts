@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { LVLMap, LVLTileSet } from './LVL';
 import { BufferUtils } from '../util/BufferUtils';
-import { Bitmap } from '../util/Bitmap';
+import { Bitmap } from './Bitmap';
 import * as PIXI from "pixi.js";
 import { ELVLCollection } from './ELVL';
 import { ELVL } from './ELVLUtils';

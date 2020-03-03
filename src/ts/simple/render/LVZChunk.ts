@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { Renderer } from './Renderer';
+import { MapRenderer } from './MapRenderer';
 import { LVZMapObject } from '../../io/LVZ';
 import { MapSprite } from './MapSprite';
 
@@ -24,7 +24,7 @@ export class LVZChunk {
 
     container: PIXI.Container;
 
-    private view: Renderer;
+    private view: MapRenderer;
     private readonly x: number;
     private readonly y: number;
 
@@ -32,7 +32,7 @@ export class LVZChunk {
 
     private animatedObjects: LVZChunkEntry[];
 
-    constructor(view: Renderer, x: number, y: number) {
+    constructor(view: MapRenderer, x: number, y: number) {
 
         this.view = view;
         this.x = x;

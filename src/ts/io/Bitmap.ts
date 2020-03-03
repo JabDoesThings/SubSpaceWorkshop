@@ -154,8 +154,6 @@ export class Bitmap {
                 m_image[index] = this.pixels[index];
             }
 
-            console.log(this.colorTableRGB);
-
             for (let y = 0; y < header.biHeight; y++) {
                 for (let x = 0; x < header.biWidth; x++) {
 
