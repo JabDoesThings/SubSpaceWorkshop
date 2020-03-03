@@ -192,6 +192,23 @@ export class RenderEvents {
             .on('pointerover', onButtonOver)
             .on('pointerout', onButtonOut)
             .on('pointermove', onButtonMove);
+
+        this.renderer.app.view.addEventListener('wheel', (e: WheelEvent) => {
+
+            console.log(e);
+
+            let sx = e.offsetX;
+            let sy = e.offsetY;
+            let sw = this.renderer.app.screen.width;
+            let sh = this.renderer.app.screen.height;
+
+            let mapSpace = this.renderer.camera.toMapSpace(sx, sy, sw, sh);
+
+            let type = e.deltaY > 0 ? MapMouseEventType.WHEEL_UP : MapMouseEventType.WHEEL_DOWN;
+
+            this.dispatch({data: mapSpace, type: type, button: 1});
+            return false;
+        }, false);
     }
 
     dispatch(event: MapMouseEvent): void {
@@ -465,5 +482,7 @@ export enum MapMouseEventType {
     DRAG = 'drag',
     HOVER = 'hover',
     ENTER = 'enter',
-    EXIT = 'exit'
+    EXIT = 'exit',
+    WHEEL_UP = 'wheel_up',
+    WHEEL_DOWN = 'wheel_down'
 }
