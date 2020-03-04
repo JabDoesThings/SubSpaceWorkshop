@@ -1,9 +1,6 @@
 import { MapSprite, MapSpriteCollection } from './MapSprite';
-import { LVLMap } from '../../io/LVL';
 
 export class LVLSpriteCollection extends MapSpriteCollection {
-
-    private readonly map: LVLMap;
 
     mapSpriteFlag: MapSprite;
     mapSpriteGoal: MapSprite;
@@ -16,11 +13,9 @@ export class LVLSpriteCollection extends MapSpriteCollection {
     mapSpriteDoor1: MapSprite;
     mapSpriteDoor2: MapSprite;
 
-    constructor(map: LVLMap) {
+    constructor() {
 
         super();
-
-        this.map = map;
 
         this.mapSpriteFlag = new MapSprite(16, 16, 10, 2, 90, 0, 0, 9, 0);
         this.mapSpriteGoal = new MapSprite(16, 16, 9, 2, 90, 0, 1, 8, 1);

@@ -1,7 +1,7 @@
 import { LVLBorder, LVLChunk } from './LVLRender';
 import * as PIXI from "pixi.js";
 
-import { LVLMap } from '../../io/LVL';
+import { LVLArea, LVLMap } from '../../io/LVL';
 import { MapSpriteCollection } from './MapSprite';
 import { MapGrid } from './MapGrid';
 import { LVZCollection, LVZMapObject } from '../../io/LVZ';
@@ -10,10 +10,10 @@ import { LVZChunk } from './LVZChunk';
 import { ELVLRegionRender } from './ELVLRegionRender';
 import { MapRadar } from './MapRadar';
 import { TilesetWindow } from './TilesetWindow';
-
 import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Renderer';
 import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
+import { Background } from '../../common/Background';
 
 /**
  * The <i>SimpleRenderer</i> class. TODO: Document.
@@ -24,9 +24,10 @@ export class MapRenderer extends Renderer {
 
     readonly lvlSprites: LVLSpriteCollection;
     readonly lvzSprites: MapSpriteCollection;
-    readonly map: LVLMap;
-    readonly lvz: LVZCollection;
+    map: LVLMap;
+    lvz: LVZCollection;
 
+    background: Background;
     private chunks: LVLChunk[][];
     private lvzChunks: LVZChunk[][];
     private regions: ELVLRegionRender[];
@@ -41,31 +42,14 @@ export class MapRenderer extends Renderer {
 
     tilesetWindow: TilesetWindow;
 
-    public constructor(name: string, map: LVLMap, lvz: LVZCollection = new LVZCollection()) {
+    tab: HTMLDivElement;
 
-        super(name);
+    public constructor() {
 
-        this.map = map;
-        this.lvz = lvz;
+        super();
 
-        this.lvlSprites = new LVLSpriteCollection(this.map);
+        this.lvlSprites = new LVLSpriteCollection();
         this.lvzSprites = new MapSpriteCollection();
-
-        this.regions = [];
-
-        let elvl = map.getMetadata();
-        let regions = elvl.getRegions();
-
-        if (regions.length != 0) {
-            for (let index = 0; index < regions.length; index++) {
-
-                let next = regions[index];
-
-                let renderer = new ELVLRegionRender(this, next);
-                this.regions.push(renderer);
-            }
-        }
-
         this.radar = new MapRadar(this);
     }
 
@@ -76,6 +60,8 @@ export class MapRenderer extends Renderer {
         this.grid.filters = [];
         this.grid.filterArea = this.app.renderer.screen;
         // this.grid.visible = false;
+
+        this.background = new Background(this, 0);
 
         this.elvlContainer = new PIXI.Container();
         this.elvlContainer.alpha = 0.2;
@@ -91,8 +77,6 @@ export class MapRenderer extends Renderer {
         this._lvz.filterArea = this.app.renderer.screen;
 
         this.tilesetWindow = new TilesetWindow(this);
-
-        this.buildLVZSpriteCollection();
 
         // Create chunks to view.
         this.chunks = new Array(16);
@@ -111,26 +95,8 @@ export class MapRenderer extends Renderer {
             }
         }
 
-        for (let x = 0; x < 16; x++) {
-            for (let y = 0; y < 16; y++) {
-                this._map.addChild(this.chunks[x][y].tileMap);
-                this._map.addChild(this.chunks[x][y].tileMapAnim);
-            }
-        }
-
-        for (let x = 0; x < 16; x++) {
-            for (let y = 0; y < 16; y++) {
-                this._lvz.addChild(this.lvzChunks[x][y].container);
-            }
-        }
-
-        if (this.regions.length != 0) {
-            for (let index = 0; index < this.regions.length; index++) {
-                this.elvlContainer.addChild(this.regions[index].container);
-            }
-        }
-
         let stage = this.app.stage;
+        stage.addChild(this.background);
         stage.addChild(this.elvlContainer);
         stage.addChild(this._border);
         stage.addChild(this.grid);
@@ -209,6 +175,10 @@ export class MapRenderer extends Renderer {
 
         this.events.addMouseListener((event: MapMouseEvent): void => {
 
+            if (this.map == null) {
+                return;
+            }
+
             let button = event.button;
 
             if (event.type === MapMouseEventType.DRAG) {
@@ -267,10 +237,13 @@ export class MapRenderer extends Renderer {
     public onUpdate(delta: number): boolean {
 
         if (this.camera.isDirty()) {
+            if (this.background.visible) {
+                this.background.update();
+            }
+            this._border.update();
             if (this.grid.visible) {
                 this.grid.draw();
             }
-            this._border.update();
         }
 
         for (let x = 0; x < 16; x++) {
@@ -288,9 +261,18 @@ export class MapRenderer extends Renderer {
 
         this.radar.update();
 
-        this.map.setDirty(false);
-        this.map.tileset.setDirty(false);
-        this.lvz.setDirty(false);
+        if (this.map != null) {
+
+            this.map.setDirty(false);
+
+            if (this.map.tileset != null) {
+                this.map.tileset.setDirty(false);
+            }
+        }
+
+        if (this.lvz != null) {
+            this.lvz.setDirty(false);
+        }
 
         return true;
     }
@@ -300,17 +282,99 @@ export class MapRenderer extends Renderer {
         return super.isDirty() || this.camera.isDirty() || this.map.isDirty();
     }
 
-    private buildLVZSpriteCollection() {
+    setMap(map: LVLMap) {
 
+        this.map = map;
+
+        this.regions = [];
+        this._map.removeChildren();
+
+        if (this.map == null) {
+            console.log("Active map: none.");
+        } else {
+            console.log("Active map: " + this.map.name);
+        }
+
+        if (this.map != null) {
+
+            // Create chunks to view.
+            for (let x = 0; x < 16; x++) {
+                for (let y = 0; y < 16; y++) {
+                    this.chunks[x][y].init();
+                    this._map.addChild(this.chunks[x][y].tileMap);
+                    this._map.addChild(this.chunks[x][y].tileMapAnim);
+                }
+            }
+
+            this.map.setDirty(true, new LVLArea(0, 0, 1023, 1023));
+            let tileset = this.map.tileset;
+            if (tileset != null) {
+                tileset.setDirty(true);
+            }
+
+            let name = this.map.name;
+            let seed = 0;
+            for (let index = 0; index < name.length; index++) {
+                seed += name.charCodeAt(index);
+            }
+            this.background.setSeed(seed);
+            this.background.texLayer.draw();
+
+            let elvl = map.getMetadata();
+            let regions = elvl.getRegions();
+
+            this.elvlContainer.removeChildren();
+
+            if (regions.length != 0) {
+                for (let index = 0; index < regions.length; index++) {
+
+                    let next = regions[index];
+
+                    let renderer = new ELVLRegionRender(this, next);
+                    this.regions.push(renderer);
+                }
+
+                if (this.regions.length != 0) {
+                    for (let index = 0; index < this.regions.length; index++) {
+                        this.elvlContainer.addChild(this.regions[index].container);
+                    }
+                }
+            }
+        }
+
+        this.tilesetWindow.draw();
+        this.tilesetWindow.update();
+        this.radar.draw().then(() => {
+            this.radar.apply();
+        });
+    }
+
+    setLvz(lvz: LVZCollection) {
+
+        this.lvz = lvz;
+
+        this._lvz.removeChildren();
         this.lvzSprites.clear();
-        let mapObjects: LVZMapObject[] = this.lvz.getMapObjects();
-        for (let index = 0; index < mapObjects.length; index++) {
 
-            let next = mapObjects[index];
-            let sprite = next.image.getSprite();
+        if (this.lvz != null) {
 
-            if (this.lvzSprites.getIndex(sprite) == -1) {
-                this.lvzSprites.addSprite(sprite);
+            this.lvz.setDirty(true);
+
+            let mapObjects: LVZMapObject[] = this.lvz.getMapObjects();
+            for (let index = 0; index < mapObjects.length; index++) {
+
+                let next = mapObjects[index];
+                let sprite = next.image.getSprite();
+
+                if (this.lvzSprites.getIndex(sprite) == -1) {
+                    this.lvzSprites.addSprite(sprite);
+                }
+            }
+
+            for (let x = 0; x < 16; x++) {
+                for (let y = 0; y < 16; y++) {
+                    this._lvz.addChild(this.lvzChunks[x][y].container);
+                }
             }
         }
     }

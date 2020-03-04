@@ -1,11 +1,12 @@
 import * as fs from "fs";
 import * as PIXI from "pixi.js";
-import Filter = PIXI.Filter;
+import { AdvancedBloomFilter } from '@pixi/filter-advanced-bloom';
+
 import { UpdatedObject } from '../util/UpdatedObject';
 import { Path, PathCoordinates, PathMode } from '../util/Path';
 import { KeyListener } from '../util/KeyListener';
 import { LVL } from '../io/LVLUtils';
-import { Background } from './Background';
+import Filter = PIXI.Filter;
 
 const Stats = require("stats.js");
 
@@ -23,14 +24,13 @@ export abstract class Renderer extends UpdatedObject {
     camera: Camera;
     stats: Stats;
     events: RenderEvents;
+    bloomFilter: AdvancedBloomFilter;
 
-    background: Background;
+    protected constructor() {
 
-    protected constructor(name: string) {
+        super();
 
-        super(name);
-
-        this.camera = new Camera();
+        this.camera = new Camera(this);
     }
 
     init(container: HTMLElement, id: string = 'viewport', stats: boolean): void {
@@ -52,18 +52,23 @@ export abstract class Renderer extends UpdatedObject {
             clearBeforeRender: true
         });
 
+        let enableTicks = 90;
+        let enableLerp = 0;
+        this.app.stage.alpha = 0;
+        this.camera.pathTo({x: 512, y: 512, scale: 1}, enableTicks, PathMode.EASE_OUT);
+
         this.app.ticker.add((delta) => {
 
             if (this.stats != null) {
                 this.stats.begin();
             }
 
-            this.updateCamera(delta);
-
-            if (this.background.visible && this.camera.isDirty()) {
-                this.background.update();
+            if (enableLerp < enableTicks) {
+                enableLerp++;
+                this.app.stage.alpha = (enableLerp / enableTicks);
             }
 
+            this.updateCamera(delta);
             this.onPreUpdate(delta);
             this.update(delta);
 
@@ -79,12 +84,20 @@ export abstract class Renderer extends UpdatedObject {
             this.initStats();
         }
 
-        this.background = new Background(this);
-
-        let stage = this.app.stage;
-        stage.addChild(this.background);
-
         this.events = new RenderEvents(this);
+
+        this.bloomFilter = new AdvancedBloomFilter({
+            threshold: 0.1,
+            bloomScale: 0.1,
+            brightness: 1,
+            blur: 1,
+            quality: 5
+        });
+
+        this.app.stage.filters = [this.bloomFilter];
+        this.app.stage.filterArea = this.app.screen;
+        this.bloomFilter.enabled = false;
+        this.bloomFilter.bloomScale = 0;
 
         this.onInit();
 
@@ -113,6 +126,9 @@ export abstract class Renderer extends UpdatedObject {
     private initStats(): void {
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        this.stats.dom.style.top = "26px";
+        this.stats.dom.style.left = "unset";
+        this.stats.dom.style.right = "26px";
         document.body.appendChild(this.stats.dom);
     }
 
@@ -299,13 +315,16 @@ export class Camera extends UpdatedObject {
     private positionPrevious: { x: number, y: number, scale: number };
     private shift: boolean;
     private readonly keys: { [key: string]: boolean };
+    private renderer: Renderer;
 
     /**
      * Main constructor.
      */
-    constructor() {
+    constructor(renderer: Renderer) {
 
         super();
+
+        this.renderer = renderer;
 
         this.keys = {};
         window.onkeyup = (e) => {
@@ -326,9 +345,9 @@ export class Camera extends UpdatedObject {
 
         // Set the initial position to be the center of the map with the default scale.
         this.position = {
-            x: 0, //this.coordinateMax / 2,
-            y: 0, //this.coordinateMax / 2,
-            scale: 0.5
+            x: this.coordinateMax / 2,
+            y: this.coordinateMax / 2,
+            scale: 0.25
         };
 
         this.positionPrevious = {
@@ -457,7 +476,7 @@ export class Camera extends UpdatedObject {
 
     pathTo(coordinates: PathCoordinates, ticks: number = 1, mode: PathMode = PathMode.LINEAR) {
 
-        let callback = (x: number, y: number, scale: number): void => {
+        let callback = (x: number, y: number, scale: number, lerp: number): void => {
 
             if (x != null) {
                 this.position.x = x;
@@ -471,6 +490,8 @@ export class Camera extends UpdatedObject {
             if (x != null || y != null || scale != null) {
                 this.setDirty(true);
             }
+            this.renderer.bloomFilter.enabled = lerp < 1;
+            this.renderer.bloomFilter.bloomScale = (1 - lerp) / 4;
         };
 
         this.path.x = this.position.x;

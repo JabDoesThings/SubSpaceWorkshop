@@ -354,6 +354,15 @@ export class LVZCollection extends Printable implements Dirtable, Validatable {
         // The package does not contain the screen object.
         return false;
     }
+
+    addAll(other: LVZCollection) {
+        for (let index = 0; index < other.mapObjects.length; index++) {
+            this.mapObjects.push(other.mapObjects[index]);
+        }
+        for (let index = 0; index < other.screenObjects.length; index++) {
+            this.screenObjects.push(other.screenObjects[index]);
+        }
+    }
 }
 
 /**

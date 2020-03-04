@@ -64,7 +64,10 @@ export class LVL {
             tileCount++;
         }
 
-        return new LVLMap(tiles, tileSet, elvlData);
+        let split = path.split("/");
+        let name = split[split.length - 1].split('.')[0];
+
+        return new LVLMap(name, tiles, tileSet, elvlData);
     }
 
     static write(map: LVLMap, path: string) {

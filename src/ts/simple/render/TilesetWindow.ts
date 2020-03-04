@@ -17,6 +17,7 @@ export class TilesetWindow {
     private atlas: number[][];
 
     constructor(view: MapRenderer) {
+
         this.view = view;
         this.canvas = <HTMLCanvasElement> document.getElementById('tileset');
         this.primaryBox = document.getElementById('tileset-primary');
@@ -83,7 +84,7 @@ export class TilesetWindow {
                 let mx = e.offsetX;
                 let my = e.offsetY;
 
-                if(downButton !== -99999) {
+                if (downButton !== -99999) {
                     button = downButton;
                 }
 
@@ -125,18 +126,32 @@ export class TilesetWindow {
     }
 
     update(): void {
+
+        let map = this.view.map;
+        if (map == null) {
+            return;
+        }
+
         let tileset = this.view.map.tileset;
-        if (tileset.isDirty()) {
+        if (tileset != null && tileset.isDirty()) {
             this.draw();
         }
     }
 
     draw(): void {
-        let tileset = this.view.map.tileset;
         let ctx = this.canvas.getContext('2d');
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, 304, 160);
-        ctx.drawImage(tileset.source, 0, 0);
+
+        let map = this.view.map;
+        if (map == null) {
+            return;
+        }
+
+        let tileset = this.view.map.tileset;
+        if (tileset != null) {
+            ctx.drawImage(tileset.source, 0, 0);
+        }
     }
 
 }

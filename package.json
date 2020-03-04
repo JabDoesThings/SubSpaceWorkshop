@@ -34,6 +34,8 @@
   },
   "dependencies": {
     "@material/animation": "^3.1.0",
+    "@pixi/filter-advanced-bloom": "^3.1.0",
+    "@pixi/filter-ascii": "^3.1.0",
     "@types/chart.js": "^2.8.5",
     "@types/stats": "^0.16.30",
     "@types/uuid": "^3.4.7",

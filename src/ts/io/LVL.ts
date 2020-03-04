@@ -16,15 +16,17 @@ export class LVLMap implements Dirtable {
 
     readonly tiles: number[][];
     dirtyAreas: LVLArea[];
+    name: string;
 
     private dirty: boolean;
 
-    public constructor(
-        tiles: number[][] = null,
-        tileSet: LVLTileSet = LVL.DEFAULT_TILESET,
-        metadata: ELVLCollection = new ELVLCollection()
+    public constructor(name: string,
+                       tiles: number[][] = null,
+                       tileSet: LVLTileSet = LVL.DEFAULT_TILESET,
+                       metadata: ELVLCollection = new ELVLCollection()
     ) {
 
+        this.name = name;
         this.tileset = tileSet;
         this.metadata = metadata;
         this.dirtyAreas = [];
@@ -166,16 +168,21 @@ export class LVLMap implements Dirtable {
     }
 
     // @Override
-    public setDirty(flag: boolean): void {
+    public setDirty(flag: boolean, area: LVLArea = null): void {
 
         if (flag != this.dirty) {
 
             this.dirty = flag;
 
-            if (!flag) {
+            if (flag) {
+                if (area != null) {
+                    this.dirtyAreas.push(area);
+                }
+            } else {
                 this.dirtyAreas = [];
             }
         }
+
     }
 
     private setAreaDirty(x1: number, y1: number, x2: number, y2: number) {

@@ -23,16 +23,15 @@
     border-bottom: 2px solid transparent;
     box-shadow: 0 0 2px 2px transparent;
 
-    transition: unset;
+    transition: border-bottom-color 200ms, box-shadow 200ms, background-color 200ms;
 
     cursor: pointer;
 
     &:hover {
-      border-bottom-color: $color6;
+      border-bottom-color: $color7;
       box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.5);
       background-color: $color4;
-
-      transition: border-bottom-color 200ms, box-shadow 200ms, background-color 200ms;
+      transition: unset;
     }
 
     label {
@@ -42,7 +41,7 @@
   }
 
   .tab.selected {
-    border-bottom-color: $color6;
+    border-bottom-color: $color6 !important;
     box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.5);
     background-color: $color4;
   }

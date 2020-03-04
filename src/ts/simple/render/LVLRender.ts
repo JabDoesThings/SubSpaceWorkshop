@@ -42,8 +42,28 @@ export class LVLChunk extends UpdatedObject {
         this.view = view;
         this.x = x;
         this.y = y;
+        this.area = new LVLArea(x * 64, y * 64, ((x + 1) * 64) - 1, ((y + 1) * 64) - 1);
+    }
+
+    init(): void {
+
+        if (this.tileMap != null) {
+            this.tileMap.clear();
+            this.tileMap = null;
+        }
+
+        if (this.tileMapAnim != null) {
+            this.tileMapAnim.clear();
+            this.tileMapAnim = null;
+        }
 
         this.tilesAnim = [];
+
+        let map = this.view.map;
+
+        if (map == null) {
+            return;
+        }
 
         // @ts-ignore
         this.tileMap = new PIXI.tilemap.CompositeRectTileLayer(0,
@@ -68,8 +88,6 @@ export class LVLChunk extends UpdatedObject {
             ]
         );
 
-        this.area = new LVLArea(x * 64, y * 64, ((x + 1) * 64) - 1, ((y + 1) * 64) - 1);
-
         this.setDirty(true);
     }
 
@@ -81,8 +99,17 @@ export class LVLChunk extends UpdatedObject {
     // @Override
     public onUpdate(delta: number): boolean {
 
-        let camera = this.view.camera;
+        if (this.tileMap == null) {
+            return;
+        }
+
         let map = this.view.map;
+
+        if (map == null) {
+            return;
+        }
+
+        let camera = this.view.camera;
         let tiles = map.tiles;
 
         let tileset = map.tileset;
@@ -296,6 +323,12 @@ export class LVLBorder extends PIXI.Container {
     draw(): void {
 
         this.removeChildren();
+
+        let map = this.view.map;
+
+        if (map == null) {
+            return;
+        }
 
         let borderTexture = this.view.map.tileset.borderTile;
 

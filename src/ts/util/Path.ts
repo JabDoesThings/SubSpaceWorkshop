@@ -83,7 +83,7 @@ export class Path {
 
     to(
         to: PathCoordinates,
-        callbacks: [(x: number, y: number, lerp: number) => void] = null,
+        callbacks: [(x: number, y: number, scale: number, lerp: number) => void] = null,
         ticks: number = 60,
         mode: PathMode = PathMode.LINEAR
     ): void {
@@ -204,6 +204,12 @@ export class Path {
         }
         if (coordinates.scale != null) {
             this.scale = coordinates.scale;
+        }
+
+        if (this.callbacks != null && this.callbacks.length !== 0) {
+            for (let index = 0; index < this.callbacks.length; index++) {
+                this.callbacks[index](this.x, this.y, this.scale, 1);
+            }
         }
 
         this._from = null;

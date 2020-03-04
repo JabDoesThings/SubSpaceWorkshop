@@ -46,6 +46,11 @@ export class LVZChunk {
 
     public onUpdate(): void {
 
+        let lvz = this.view.lvz;
+        if(lvz == null) {
+            return;
+        }
+
         let draw = (objects: LVZChunkEntry[]) => {
 
             for (let index = 0; index < objects.length; index++) {
@@ -98,12 +103,10 @@ export class LVZChunk {
             return true;
         };
 
-        let lvz = this.view.lvz;
-
         let cpos = camera.position;
         let cx = cpos.x * 16;
         let cy = cpos.y * 16;
-        let scale = cpos.scale; // 1;
+        let scale = cpos.scale;
 
         if (camera.isDirty()) {
             let invScale = 1 / scale;

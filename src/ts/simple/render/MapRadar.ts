@@ -11,13 +11,17 @@ export class MapRadar extends Radar {
     async draw() {
 
         let map = (<MapRenderer> this.view).map;
-        let tileset = map.tileset;
-
         let ctx = this.drawCanvas.getContext('2d');
 
         // Clear the radar to its clear color.
         ctx.fillStyle = '#010201';
         ctx.fillRect(0, 0, 1024, 1024);
+
+        if(map == null) {
+            return;
+        }
+
+        let tileset = map.tileset;
 
         for (let y = 0; y < 1024; y++) {
             for (let x = 0; x < 1024; x++) {
@@ -25,7 +29,11 @@ export class MapRadar extends Radar {
                 if (tileId != 0) {
 
                     if (tileId <= 190) {
-                        ctx.fillStyle = tileset.tileColor[tileId];
+                        if(tileset != null) {
+                            ctx.fillStyle = tileset.tileColor[tileId];
+                        } else {
+                            ctx.fillStyle = '#eeeeee';
+                        }
                         ctx.fillRect(x, y, 1, 1);
                     } else if (tileId == 216) {
                         ctx.fillStyle = '#4b3225';
