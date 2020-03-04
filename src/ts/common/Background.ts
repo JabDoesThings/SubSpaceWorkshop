@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
 import { MapRenderer } from '../simple/render/MapRenderer';
 import { Renderer } from './Renderer';
+import { SeededRandom } from '../util/SeededRandom';
 
 export class Background extends PIXI.Container {
 
@@ -62,7 +63,7 @@ export class Background extends PIXI.Container {
 
         let alpha = 1;
         if (scale >= 0.25 && scale <= 0.5) {
-            alpha = (scale - 0.25) * 2;
+            alpha = (scale - 0.25) * 4;
             if (alpha > 1) {
                 alpha = 1;
             } else if (alpha < 0) {
@@ -104,6 +105,7 @@ export class BackgroundObjectLayer extends PIXI.Container {
     static starTextures: PIXI.Texture[];
 
     private background: Background;
+    private random: SeededRandom;
 
     _scale: number;
 
@@ -111,9 +113,18 @@ export class BackgroundObjectLayer extends PIXI.Container {
 
         super();
 
+        this.background = background;
+
+        let name = this.background.view.getName();
+        let value = 0;
+        for (let index = 0; index < name.length; index++) {
+            value += name.charCodeAt(index);
+        }
+
+        this.random = new SeededRandom(value);
+
         this._scale = 2;
 
-        this.background = background;
         this.draw();
 
         this.filters = [MapRenderer.chromaFilter];
@@ -171,13 +182,13 @@ export class BackgroundObjectLayer extends PIXI.Container {
 
         for (let index = 0; index < 256; index++) {
 
-            let tex = Math.floor(Math.random() * BackgroundObjectLayer.starTextures.length);
+            let tex = Math.floor(this.random.nextDouble() * BackgroundObjectLayer.starTextures.length);
 
             let sprite = new PIXI.Sprite(BackgroundObjectLayer.starTextures[tex]);
             sprite.filters = [MapRenderer.chromaFilter];
             sprite.filterArea = this.background.view.app.screen;
-            sprite.x = Math.floor(minX + (Math.random() * dx));
-            sprite.y = Math.floor(minY + (Math.random() * dy));
+            sprite.x = Math.floor(minX + (this.random.nextDouble() * dx));
+            sprite.y = Math.floor(minY + (this.random.nextDouble() * dy));
 
             // @ts-ignore
             sprite._x = sprite.x;
@@ -189,13 +200,13 @@ export class BackgroundObjectLayer extends PIXI.Container {
 
         for (let index = 0; index < 32; index++) {
 
-            let tex = Math.floor(Math.random() * BackgroundObjectLayer.backgroundTextures.length);
+            let tex = Math.floor(this.random.nextDouble() * BackgroundObjectLayer.backgroundTextures.length);
 
             let sprite = new PIXI.Sprite(BackgroundObjectLayer.backgroundTextures[tex]);
             sprite.filters = [MapRenderer.chromaFilter];
             sprite.filterArea = this.background.view.app.screen;
-            sprite.x = Math.floor(minX + (Math.random() * dx));
-            sprite.y = Math.floor(minY + (Math.random() * dy));
+            sprite.x = Math.floor(minX + (this.random.nextDouble() * dx));
+            sprite.y = Math.floor(minY + (this.random.nextDouble() * dy));
 
             // @ts-ignore
             sprite._x = sprite.x;

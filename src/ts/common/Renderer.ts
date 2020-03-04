@@ -26,9 +26,9 @@ export abstract class Renderer extends UpdatedObject {
 
     background: Background;
 
-    protected constructor() {
+    protected constructor(name: string) {
 
-        super();
+        super(name);
 
         this.camera = new Camera();
     }

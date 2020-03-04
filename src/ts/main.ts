@@ -6,7 +6,7 @@ import { KeyListener } from './util/KeyListener';
 
 function debugLVL() {
 
-    let lvlFile = "assets/lvl/hz.lvl";
+    let lvlFile = "assets/lvl/zone66.lvl";
     
     let lvz: LVZCollection = new LVZCollection();
     let map = LVL.read(lvlFile);
@@ -14,7 +14,7 @@ function debugLVL() {
     // let lvzPackage = LVZ.read("assets/lvz/thefield.lvz");
     // lvz = lvzPackage.inflate().collect();
 
-    let view = new MapRenderer(map, lvz);
+    let view = new MapRenderer("zone66", map, lvz);
 
     let container
         = <HTMLDivElement> document.getElementsByClassName("map-viewport-canvas-container").item(0);

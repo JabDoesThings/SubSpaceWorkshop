@@ -41,9 +41,9 @@ export class MapRenderer extends Renderer {
 
     tilesetWindow: TilesetWindow;
 
-    public constructor(map: LVLMap, lvz: LVZCollection = new LVZCollection()) {
+    public constructor(name: string, map: LVLMap, lvz: LVZCollection = new LVZCollection()) {
 
-        super();
+        super(name);
 
         this.map = map;
         this.lvz = lvz;
