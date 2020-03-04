@@ -7,26 +7,29 @@ export enum PathMode {
 
 export interface PathCoordinates {
     x: number,
-    y: number
+    y: number,
+    scale: number
 }
 
 export class Path {
 
     private _from: PathCoordinates;
     private _to: PathCoordinates;
-    private tick: number;
+    tick: number;
 
     x: number;
     y: number;
-    private ticks: number;
+    scale: number;
+    ticks: number;
     private mode: PathMode;
 
-    private callbacks: ((x: number, y: number, lerp: number) => void)[];
+    private callbacks: ((x: number, y: number, scale: number, lerp: number) => void)[];
 
     constructor() {
         this.callbacks = [];
         this.x = 0;
         this.y = 0;
+        this.scale = 1;
     }
 
     update(): void {
@@ -49,28 +52,31 @@ export class Path {
                     tickLerpFactor = lerp;
                 }
 
-                this.x = Path.lerp(this._from.x, this._to.x, tickLerpFactor);
-                this.y = Path.lerp(this._from.y, this._to.y, tickLerpFactor);
+                if (this._to.x != null) {
+                    this.x = Path.lerp(this._from.x, this._to.x, tickLerpFactor);
+                } else {
+                    this.x = null;
+                }
+                if (this._to.y != null) {
+                    this.y = Path.lerp(this._from.y, this._to.y, tickLerpFactor);
+                } else {
+                    this.y = null;
+                }
+                if (this._to.scale != null) {
+                    this.scale = Path.lerp(this._from.scale, this._to.scale, tickLerpFactor);
+                } else {
+                    this.scale = null;
+                }
 
                 if (this.callbacks != null) {
-
                     for (let index = 0; index < this.callbacks.length; index++) {
-                        this.callbacks[index](this.x, this.y, lerp);
+                        this.callbacks[index](this.x, this.y, this.scale, lerp);
                     }
                 }
             }
 
             if (this.tick >= this.ticks) {
-
-                this.x = this._to.x;
-                this.y = this._to.y;
-
-                this._from = null;
-                this._to = null;
-                this.callbacks = null;
-                this.mode = null;
-                this.tick = 0;
-                this.ticks = 0;
+                this.resetTo(this._to);
             }
         }
     }
@@ -82,17 +88,30 @@ export class Path {
         mode: PathMode = PathMode.LINEAR
     ): void {
 
-        if (to.x == this.x && to.y == this.y) {
+        if (to.x == this.x && to.y == this.y && this.scale == to.scale) {
             return;
+        }
+
+        this._to = {x: to.x, y: to.y, scale: to.scale};
+
+        if (to.x == this.x) {
+            this._to.x = null;
+        }
+
+        if (to.y == this.y) {
+            this._to.y = null;
+        }
+
+        if (to.scale == this.scale) {
+            this._to.scale = null;
         }
 
         if (ticks == 0) {
             ticks = 1;
         }
 
-        this._to = to;
         this.callbacks = callbacks;
-        this._from = {x: this.x, y: this.y};
+        this._from = {x: this.x, y: this.y, scale: this.scale};
         this.tick = 0;
         this.ticks = ticks;
         this.mode = mode;
@@ -147,5 +166,55 @@ export class Path {
         } else {
             return (value - start) / (stop - start);
         }
+    }
+
+    cancel(x: boolean | number = true, y: boolean | number = true, scale: boolean | number = true) {
+
+        if (this._to == null) {
+            return;
+        }
+
+        if ((typeof x === 'boolean' && x) || typeof x === 'number') {
+            if (typeof x === 'number') {
+                this.x = x;
+            }
+            this._to.x = null;
+        }
+        if ((typeof y === 'boolean' && y) || typeof y === 'number') {
+            if (typeof y === 'number') {
+                this.y = y;
+            }
+            this._to.y = null;
+        }
+        if ((typeof scale === 'boolean' && scale) || typeof scale === 'number') {
+            if (typeof scale === 'number') {
+                this.scale = scale;
+            }
+            this._to.scale = null;
+        }
+    }
+
+    resetTo(coordinates: PathCoordinates) {
+
+        if (coordinates.x != null) {
+            this.x = coordinates.x;
+        }
+        if (coordinates.y != null) {
+            this.y = coordinates.y;
+        }
+        if (coordinates.scale != null) {
+            this.scale = coordinates.scale;
+        }
+
+        this._from = null;
+        this._to = null;
+        this.callbacks = null;
+        this.mode = null;
+        this.tick = 0;
+        this.ticks = 0;
+    }
+
+    isActive(): boolean {
+        return this._to != null;
     }
 }

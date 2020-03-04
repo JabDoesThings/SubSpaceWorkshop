@@ -64,38 +64,23 @@ export class LVZChunk {
 
         let camera = this.view.camera;
 
-        // let isOverlapping = (other: PIXI.Rectangle): boolean => {
-        //
-        //     let sx1 = camera.bounds.x;
-        //     let sy1 = camera.bounds.y;
-        //     let sx2 = camera.bounds.x + camera.bounds.width;
-        //     let sy2 = camera.bounds.y + camera.bounds.height;
-        //
-        //     let tx1 = other.x;
-        //     let ty1 = other.y;
-        //     let tx2 = other.x + other.width;
-        //     let ty2 = other.y + other.height;
-        //
-        //     if (sy1 < ty2 || sy2 > ty1) {
-        //         return false;
-        //     } else if (sx2 < tx1 || sx1 > tx2) {
-        //         return false;
-        //     }
-        //     return true;
-        // };
-
         let contains = (): boolean => {
 
-            let sw = this.view.app.view.width;
-            let sh = this.view.app.view.height;
-            let cpos = camera.getPosition();
+            let cpos = camera.position;
             let cx = cpos.x * 16;
             let cy = cpos.y * 16;
+            let scale = cpos.scale;
+            let invScale = 1 / scale;
+            let sw = this.view.app.view.width;
+            let sh = this.view.app.view.height;
 
-            let cx1 = cx - (sw / 2);
-            let cy1 = cy - (sh / 2);
-            let cx2 = cx + (sw / 2);
-            let cy2 = cy + (sh / 2);
+            let sw2 = (sw / 2) * invScale;
+            let sh2 = (sh / 2) * invScale;
+
+            let cx1 = cx - sw2;
+            let cy1 = cy - sh2;
+            let cx2 = cx + sw2;
+            let cy2 = cy + sh2;
 
             let bx1 = this.bounds.x;
             let by1 = this.bounds.y;
@@ -115,14 +100,21 @@ export class LVZChunk {
 
         let lvz = this.view.lvz;
 
+        let cpos = camera.position;
+        let cx = cpos.x * 16;
+        let cy = cpos.y * 16;
+        let scale = cpos.scale; // 1;
+
         if (camera.isDirty()) {
-            let sw = this.view.app.view.width;
-            let sh = this.view.app.view.height;
-            let cpos = camera.getPosition();
-            let cx = cpos.x * 16;
-            let cy = cpos.y * 16;
+            let invScale = 1 / scale;
+            let sw = this.view.app.view.width * invScale;
+            let sh = this.view.app.view.height * invScale;
             this.container.x = Math.floor((-1 + ((this.x * 64) - cx + sw / 2)) - (this.x * 64));
             this.container.y = 1 + Math.floor(((this.y * 64) - cy + sh / 2) - (this.y * 64));
+            this.container.x *= scale;
+            this.container.y *= scale;
+            this.container.scale.x = scale;
+            this.container.scale.y = scale;
         }
 
         if (lvz.isDirty()) {

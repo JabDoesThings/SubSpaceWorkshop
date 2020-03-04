@@ -13,6 +13,7 @@ import { TilesetWindow } from './TilesetWindow';
 
 import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Renderer';
 import { Radar } from '../../common/Radar';
+import { PathMode } from '../../util/Path';
 
 /**
  * The <i>SimpleRenderer</i> class. TODO: Document.
@@ -74,6 +75,7 @@ export class MapRenderer extends Renderer {
         this.grid = new MapGrid(this);
         this.grid.filters = [];
         this.grid.filterArea = this.app.renderer.screen;
+        // this.grid.visible = false;
 
         this.elvlContainer = new PIXI.Container();
         this.elvlContainer.alpha = 0.2;
@@ -130,8 +132,8 @@ export class MapRenderer extends Renderer {
 
         let stage = this.app.stage;
         stage.addChild(this.elvlContainer);
-        stage.addChild(this.grid);
         stage.addChild(this._border);
+        stage.addChild(this.grid);
         stage.addChild(this._map);
         stage.addChild(this._lvz);
 
@@ -144,6 +146,66 @@ export class MapRenderer extends Renderer {
         let drawn = false;
         let downPrimary = false;
         let downSecondary = false;
+
+        let scales = [
+            2,
+            1,
+            0.5,
+            0.25,
+            0.1
+        ];
+
+        let scaleIndex = 1;
+
+        this.events.addMouseListener((event: MapMouseEvent) => {
+
+            if (event.type !== MapMouseEventType.WHEEL_UP && event.type !== MapMouseEventType.WHEEL_DOWN) {
+                return;
+            }
+
+            let path = this.camera.path;
+            let active = path.isActive();
+            if (active && path.tick / path.ticks < 0.1) {
+                return;
+            }
+
+            let sx = event.e.offsetX;
+            let sy = event.e.offsetY;
+            let sw = this.app.screen.width;
+            let sh = this.app.screen.height;
+
+            let mapSpace = this.camera.toMapSpace(sx, sy, sw, sh, this.camera.position.scale * 2);
+
+            let x = mapSpace.tileX;
+            let y = mapSpace.tileY;
+
+            if (x < 0) {
+                x = 0;
+            } else if (x > 1023) {
+                x = 1023;
+            }
+
+            if (y < 0) {
+                y = 0;
+            } else if (y > 1023) {
+                y = 1023;
+            }
+
+            if (event.type == MapMouseEventType.WHEEL_DOWN) {
+                scaleIndex++;
+            } else {
+                scaleIndex--;
+            }
+
+            if (scaleIndex < 0) {
+                scaleIndex = 0;
+            } else if (scaleIndex > scales.length - 1) {
+                scaleIndex = scales.length - 1;
+            }
+
+            let ticks = active ? 20 : 30;
+            this.camera.pathTo({x: x, y: y, scale: scales[scaleIndex]}, ticks, PathMode.EASE_OUT);
+        });
 
         this.events.addMouseListener((event: MapMouseEvent): void => {
 
@@ -184,6 +246,7 @@ export class MapRenderer extends Renderer {
             let data = event.data;
             let x = data.tileX;
             let y = data.tileY;
+
             if ((downPrimary || downSecondary) && x >= 0 && x < 1024 && y >= 0 && y < 1024) {
 
                 let tileId = downPrimary ? this.tilesetWindow.primary : this.tilesetWindow.secondary;

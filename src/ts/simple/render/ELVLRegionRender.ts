@@ -43,6 +43,7 @@ export class ELVLRegionRender {
         this.entries = [];
 
         this.container = new PIXI.Container();
+        this.container.cacheAsBitmap = true;
         this.bounds = new PIXI.Rectangle(0, 0, 0, 0);
 
         this.compile();
@@ -115,21 +116,25 @@ export class ELVLRegionRender {
 
         if (camera.isDirty()) {
 
-            let sw = this.view.app.view.width;
-            let sh = this.view.app.view.height;
-
-            let cpos = camera.getPosition();
+            let cpos = camera.position;
+            let cx = cpos.x * 16;
+            let cy = cpos.y * 16;
+            let scale = cpos.scale;
+            let invScale = 1 / scale;
+            let sw = this.view.app.screen.width;
+            let sh = this.view.app.screen.height;
+            let sw2 = (sw / 2) * invScale;
+            let sh2 = (sh / 2) * invScale;
 
             let x1 = this.bounds.x;
             let y1 = this.bounds.y;
+            let cx1 = cx - sw2;
+            let cy1 = cy - sh2;
 
-            let cx = cpos.x * 16;
-            let cy = cpos.y * 16;
-            let cx1 = cx - (sw / 2);
-            let cy1 = cy - (sh / 2);
-
-            this.container.x = Math.round(x1 - cx1);
-            this.container.y = Math.round(y1 - cy1);
+            this.container.x = Math.floor(x1 - cx1) * scale;
+            this.container.y = Math.floor(y1 - cy1) * scale;
+            this.container.scale.x = scale;
+            this.container.scale.y = scale;
         }
     }
 

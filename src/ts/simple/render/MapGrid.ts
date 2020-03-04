@@ -8,12 +8,12 @@ export class MapGrid extends PIXI.Container {
     renderBaseGrid: boolean;
     renderAxisLines: boolean;
     renderBorderLines: boolean;
-    renderChunkLines: boolean;
+    renderChunkGrid: boolean;
 
-    private baseGrid: PIXI.Graphics;
-    private chunkGrid: PIXI.Graphics;
-    private centerLines: PIXI.Graphics;
-    private borderLines: PIXI.Graphics;
+    private readonly baseGrid: PIXI.Graphics;
+    private readonly chunkGrid: PIXI.Graphics;
+    private readonly axisLines: PIXI.Graphics;
+    private readonly borderLines: PIXI.Graphics;
 
     constructor(view: MapRenderer) {
 
@@ -25,167 +25,141 @@ export class MapGrid extends PIXI.Container {
         this.renderBaseGrid = true;
         this.renderAxisLines = true;
         this.renderBorderLines = true;
-        this.renderChunkLines = true;
+        this.renderChunkGrid = true;
 
         this.baseGrid = new PIXI.Graphics();
         this.chunkGrid = new PIXI.Graphics();
-        this.centerLines = new PIXI.Graphics();
+        this.axisLines = new PIXI.Graphics();
         this.borderLines = new PIXI.Graphics();
-
         this.addChild(this.baseGrid);
         this.addChild(this.chunkGrid);
-        this.addChild(this.centerLines);
+        this.addChild(this.axisLines);
         this.addChild(this.borderLines);
+
+        this.drawActual();
     }
 
-    draw() {
+    private drawActual(): void {
 
-        // Grab the dimensions of the app view.
-        let sw = Math.floor(this.view.app.view.width);
-        let sh = Math.floor(this.view.app.view.height);
-        let sw2 = sw / 2;
-        let sh2 = sh / 2;
+        let camera = this.view.camera;
+        let cpos = camera.position;
+        let scale = cpos.scale;
 
-        // Grab the camera's position on the app view.
-        let camPos = this.view.camera.getPosition();
-        let cx = camPos.x * 16.0;
-        let cy = camPos.y * 16.0;
+        let mapLength = 1024;
+        let tileLength = 16 * scale;
 
-        // Grab the edge coordinates of the view.
-        let x1 = Math.floor(cx - sw2);
-        let y1 = Math.floor(cy - sh2);
-        let x2 = Math.floor(cx + sw2);
-        let y2 = Math.floor(cy + sh2);
+        this.baseGrid.clear();
+        this.chunkGrid.clear();
+        this.axisLines.clear();
+        this.borderLines.clear();
 
-        let center = 512 * 16;
-        let screenCenterX = center - x1;
-        let screenCenterY = center - y1;
+        if (this.renderBaseGrid && scale > 0.25) {
 
-        let left = -x1;
-        let top = -y1;
-        let right = (1024 * 16) - x1;
-        let bottom = (1024 * 16) - y1;
+            let alpha = (scale - 0.25) * 2;
 
-        let startX = Math.floor(x1);
-        let startY = Math.floor(y1);
-        let endX = Math.ceil(x2);
-        let endY = Math.ceil(y2);
-
-        let offsetX = screenCenterX;
-        let offsetY = screenCenterY;
-
-        if (screenCenterX > 0) {
-            while (offsetX >= 0) {
-                offsetX -= 16;
+            if (alpha > 1) {
+                alpha = 1;
+            } else if (alpha <= 0) {
+                alpha = 0;
             }
-        } else if (screenCenterX < 0) {
-            while (offsetX <= 0) {
-                offsetX += 16;
-            }
-        }
-        if (screenCenterY > 0) {
-            while (offsetY >= 0) {
-                offsetY -= 16;
-            }
-        } else if (screenCenterY < 0) {
-            while (offsetY <= 0) {
-                offsetY += 16;
+
+            this.baseGrid.alpha = alpha;
+
+            if (alpha > 0) {
+                this.baseGrid.lineStyle(1, 0x444444, 0.1, 0.5, true);
+                for (let index = 0; index < 1025; index++) {
+                    let x1 = index * tileLength;
+                    let y1 = 0;
+                    let x2 = index * tileLength;
+                    let y2 = mapLength * tileLength;
+                    this.baseGrid.moveTo(x1, y1);
+                    this.baseGrid.lineTo(x2, y2);
+                    this.baseGrid.moveTo(y1, x1);
+                    this.baseGrid.lineTo(y2, x2);
+                }
             }
         }
 
-        offsetX = Math.floor(offsetX);
-        offsetY = Math.floor(offsetY);
-
-        if (this.renderBaseGrid) {
-
-            this.baseGrid.clear();
-            this.baseGrid.lineStyle(1, 0x444444, 0.1);
-
-            // Horizontal lines.
-            for (let y = Math.max(-offsetY, startY); y <= Math.min(1023 * 16, endY + 16); y += 16) {
-                this.baseGrid.moveTo(Math.max(0, left), Math.floor((y - y1) + offsetY));
-                this.baseGrid.lineTo(Math.min(right, sw), Math.floor((y - y1) + offsetY));
+        if (scale > 0.1) {
+            let alpha = (scale - 0.1) * 4;
+            if (alpha > 1) {
+                alpha = 1;
+            } else if (alpha < 0) {
+                alpha = 0;
             }
 
-            // Vertical lines.
-            for (let x = Math.max(-offsetX, startX); x <= Math.min(1023 * 16, endX + 16); x += 16) {
-                this.baseGrid.moveTo(Math.floor((x - x1) + offsetX), Math.max(0, top));
-                this.baseGrid.lineTo(Math.floor((x - x1) + offsetX), Math.min(sh, bottom));
-            }
-        }
+            this.chunkGrid.alpha = alpha;
+            this.axisLines.alpha = alpha;
 
-        if (this.renderChunkLines) {
+            if (alpha > 0) {
 
-            this.chunkGrid.clear();
-            this.chunkGrid.lineStyle(1, 0xff0000, 0.2);
-
-            for (let z = 64 * 16; z < 1024 * 16; z += 64 * 16) {
-
-                if (y1 <= z && y2 >= z) {
-                    let y = z - y1;
-                    let xMin = Math.max(left, 0);
-                    let xMax = Math.min(right, sw);
-                    this.chunkGrid.moveTo(xMin, y);
-                    this.chunkGrid.lineTo(xMax, y);
+                if (this.renderChunkGrid) {
+                    this.chunkGrid.lineStyle(1, 0x770000, 1, 0.5, true);
+                    for (let index = 0; index <= 16; index++) {
+                        let x1 = (index * 64) * tileLength;
+                        let y1 = 0;
+                        let y2 = (16 * 64) * tileLength;
+                        this.chunkGrid.moveTo(x1, y1);
+                        this.chunkGrid.lineTo(x1, y2);
+                        this.chunkGrid.moveTo(y1, x1);
+                        this.chunkGrid.lineTo(y2, x1);
+                    }
                 }
 
-                if (x1 <= z && x2 >= z) {
-                    let x = z - x1;
-                    let yMin = Math.max(top, 0);
-                    let yMax = Math.min(bottom, sh);
-                    this.chunkGrid.moveTo(x, yMin);
-                    this.chunkGrid.lineTo(x, yMax);
+                if (this.renderAxisLines) {
+                    this.axisLines.lineStyle(3, 0x7777ff, 1, 0.5, true);
+                    this.axisLines.moveTo((mapLength / 2) * 16 * scale, 0);
+                    this.axisLines.lineTo((mapLength / 2) * 16 * scale, 1024 * 16 * scale);
+                    this.axisLines.moveTo(0, (mapLength / 2) * 16 * scale);
+                    this.axisLines.lineTo(1024 * 16 * scale, (mapLength / 2) * 16 * scale);
                 }
-
-            }
-        }
-
-        if (this.renderAxisLines) {
-
-            this.centerLines.clear();
-            this.centerLines.lineStyle(1, 0x0000ff, 0.2);
-
-            let drawCenterX = screenCenterX > 0 && screenCenterX <= sw;
-            let drawCenterY = screenCenterY > 0 && screenCenterY <= sh;
-
-            if (drawCenterX) {
-                this.centerLines.moveTo(Math.floor(screenCenterX), Math.max(0, top));
-                this.centerLines.lineTo(Math.floor(screenCenterX), Math.min(sh, bottom));
-            }
-
-            if (drawCenterY) {
-                this.centerLines.moveTo(Math.max(0, left), Math.floor(screenCenterY));
-                this.centerLines.lineTo(Math.min(right, sw), Math.floor(screenCenterY));
             }
         }
 
         if (this.renderBorderLines) {
-
-            this.borderLines.clear();
-            this.borderLines.lineStyle(1.5, 0x0000ff, 0.2);
-
-            let drawLeft = left > 0 && left <= sw;
-            let drawTop = top > 0 && top <= sh;
-            let drawRight = right > 0 && right <= sw;
-            let drawBottom = bottom > 0 && bottom <= sh;
-
-            if (drawLeft) {
-                this.borderLines.moveTo(Math.floor(left), Math.max(0, top));
-                this.borderLines.lineTo(Math.floor(left), Math.min(sh, bottom));
-            }
-            if (drawTop) {
-                this.borderLines.moveTo(Math.max(0, left), Math.floor(top));
-                this.borderLines.lineTo(Math.min(right, sw), Math.floor(top));
-            }
-            if (drawRight) {
-                this.borderLines.moveTo(Math.floor(right), Math.max(0, top));
-                this.borderLines.lineTo(Math.floor(right), Math.min(sh, bottom));
-            }
-            if (drawBottom) {
-                this.borderLines.moveTo(Math.max(0, left), Math.floor(bottom));
-                this.borderLines.lineTo(Math.min(right, sw), Math.floor(bottom));
-            }
+            let length = mapLength * tileLength;
+            this.borderLines.lineStyle(3, 0x7777ff, 0.5, 0.5, true);
+            this.borderLines.moveTo(0, 0);
+            this.borderLines.lineTo(0, length);
+            this.borderLines.moveTo(0, 0);
+            this.borderLines.lineTo(length, 0);
+            this.borderLines.moveTo(length, 0);
+            this.borderLines.lineTo(length, length);
+            this.borderLines.moveTo(0, length);
+            this.borderLines.lineTo(length, length);
         }
+    }
+
+    scalePrevious: number = -1;
+
+    draw() {
+
+        let camera = this.view.camera;
+        let cpos = camera.position;
+        let cx = cpos.x * 16;
+        let cy = cpos.y * 16;
+        let scale = cpos.scale;
+
+        if (scale != this.scalePrevious) {
+            this.drawActual();
+            this.scalePrevious = scale;
+        }
+
+        let screen = this.view.app.screen;
+        let sw2 = screen.width / 2;
+        let sh2 = screen.height / 2;
+
+        let gx = (sw2 - (cx * scale));
+        let gy = (sh2 - (cy * scale));
+
+        this.baseGrid.position.x = gx;
+        this.baseGrid.position.y = gy;
+        this.borderLines.position.x = gx;
+        this.borderLines.position.y = gy;
+        this.chunkGrid.position.x = gx;
+        this.chunkGrid.position.y = gy;
+        this.axisLines.position.x = gx;
+        this.axisLines.position.y = gy;
     }
 
 }

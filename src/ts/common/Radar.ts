@@ -38,7 +38,7 @@ export class Radar {
             let mapX = Math.floor(lx * 1024);
             let mapY = Math.floor(ly * 1024);
 
-            let cPos = this.view.camera.getPosition();
+            let cPos = this.view.camera.position;
             let v1 = new Vector2(mapX, mapY);
             let v2 = new Vector2(cPos.x, cPos.y);
 
@@ -56,7 +56,11 @@ export class Radar {
                 ticks = 60;
             }
 
-            this.view.camera.pathTo({x: mapX, y: mapY}, ticks, PathMode.EASE_OUT);
+            this.view.camera.pathTo({
+                x: mapX,
+                y: mapY,
+                scale: this.view.camera.position.scale
+            }, ticks, PathMode.EASE_OUT);
         };
 
         $(document).on('mousedown', '#' + this.canvas.id, (e: MouseDownEvent) => {
@@ -94,7 +98,7 @@ export class Radar {
 
     update(): void {
 
-        let alt = this.view.camera.alt.isDown;
+        let alt = this.view.camera.isKeyDown("alt");
 
         let largeSize = Math.min(this.largeSize, this.view.app.screen.height - 24);
 

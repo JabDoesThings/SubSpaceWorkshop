@@ -1,11 +1,9 @@
 import * as fs from "fs";
 import * as PIXI from "pixi.js";
 import Filter = PIXI.Filter;
-import InteractionEvent = PIXI.interaction.InteractionEvent;
 import { UpdatedObject } from '../util/UpdatedObject';
 import { Path, PathCoordinates, PathMode } from '../util/Path';
 import { KeyListener } from '../util/KeyListener';
-import { Vector2 } from 'three';
 import { LVL } from '../io/LVLUtils';
 import { Background } from './Background';
 
@@ -81,11 +79,12 @@ export abstract class Renderer extends UpdatedObject {
             this.initStats();
         }
 
-        this.events = new RenderEvents(this);
         this.background = new Background(this);
 
         let stage = this.app.stage;
         stage.addChild(this.background);
+
+        this.events = new RenderEvents(this);
 
         this.onInit();
 
@@ -114,16 +113,14 @@ export abstract class Renderer extends UpdatedObject {
     private initStats(): void {
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-        this.stats.dom.style.left = "0px";
-        this.stats.dom.style.bottom = "0px";
-        this.app.view.appendChild(this.stats.dom);
+        document.body.appendChild(this.stats.dom);
     }
 
     private updateCamera(delta: number): void {
         let sw = this.app.view.width;
         let sh = this.app.view.height;
 
-        let cPos = this.camera.getPosition();
+        let cPos = this.camera.position;
         let cx = cPos.x * 16;
         let cy = cPos.y * 16;
 
@@ -148,65 +145,74 @@ export class RenderEvents {
     constructor(renderer: Renderer) {
 
         this.renderer = renderer;
-
         this.mouseListeners = [];
 
-        let toMapSpace = (e: InteractionEvent): MapSpace => {
-            let camera = this.renderer.camera;
-            let sx = e.data.global.x;
-            let sy = e.data.global.y;
-            let sw = this.renderer.app.screen.width;
-            let sh = this.renderer.app.screen.height;
-            return camera.toMapSpace(sx, sy, sw, sh);
-        };
+        renderer.app.stage.interactive = true;
 
         let down = false;
 
-        let onButtonDown = (e: InteractionEvent) => {
-            down = true;
-            this.dispatch({data: toMapSpace(e), type: MapMouseEventType.DOWN, button: e.data.button});
-        };
-
-        let onButtonMove = (e: InteractionEvent) => {
-            this.dispatch({
-                data: toMapSpace(e),
-                type: down ? MapMouseEventType.DRAG : MapMouseEventType.HOVER,
-                button: e.data.button
-            });
-        };
-
-        let onButtonUp = (e: InteractionEvent) => {
+        this.renderer.app.view.addEventListener('pointerupoutside', (e) => {
             down = false;
-            this.dispatch({data: toMapSpace(e), type: MapMouseEventType.UP, button: e.data.button});
-        };
-        let onButtonOver = (e: InteractionEvent) => {
-            this.dispatch({data: toMapSpace(e), type: MapMouseEventType.ENTER, button: e.data.button});
-        };
-        let onButtonOut = (e: InteractionEvent) => {
-            this.dispatch({data: toMapSpace(e), type: MapMouseEventType.EXIT, button: e.data.button});
-        };
 
-        this.renderer.app.stage.on('pointerdown', onButtonDown)
-            .on('pointerup', onButtonUp)
-            .on('pointerupoutside', onButtonUp)
-            .on('pointerover', onButtonOver)
-            .on('pointerout', onButtonOut)
-            .on('pointermove', onButtonMove);
+            let sw = this.renderer.app.screen.width;
+            let sh = this.renderer.app.screen.height;
+            let mapSpace = this.renderer.camera.toMapSpace(-999999, -999999, sw, sh);
 
-        this.renderer.app.view.addEventListener('wheel', (e: WheelEvent) => {
+            this.dispatch({
+                data: mapSpace,
+                type: MapMouseEventType.UP,
+                button: -999999,
+                e: null
+            });
+        });
 
-            console.log(e);
+        this.renderer.app.view.addEventListener('pointerdown', (e) => {
+            down = true;
 
             let sx = e.offsetX;
             let sy = e.offsetY;
             let sw = this.renderer.app.screen.width;
             let sh = this.renderer.app.screen.height;
-
             let mapSpace = this.renderer.camera.toMapSpace(sx, sy, sw, sh);
 
-            let type = e.deltaY > 0 ? MapMouseEventType.WHEEL_UP : MapMouseEventType.WHEEL_DOWN;
+            this.dispatch({data: mapSpace, type: MapMouseEventType.DOWN, button: e.button, e: e});
+        });
 
-            this.dispatch({data: mapSpace, type: type, button: 1});
+        this.renderer.app.view.addEventListener('pointerup', (e) => {
+            down = false;
+
+            let sx = e.offsetX;
+            let sy = e.offsetY;
+            let sw = this.renderer.app.screen.width;
+            let sh = this.renderer.app.screen.height;
+            let mapSpace = this.renderer.camera.toMapSpace(sx, sy, sw, sh);
+
+            this.dispatch({data: mapSpace, type: MapMouseEventType.UP, button: e.button, e: e});
+        });
+
+        this.renderer.app.view.addEventListener('pointermove', (e) => {
+            let sx = e.offsetX;
+            let sy = e.offsetY;
+            let sw = this.renderer.app.screen.width;
+            let sh = this.renderer.app.screen.height;
+            let mapSpace = this.renderer.camera.toMapSpace(sx, sy, sw, sh);
+
+            this.dispatch({
+                data: mapSpace,
+                type: down ? MapMouseEventType.DRAG : MapMouseEventType.HOVER,
+                button: e.button,
+                e: e
+            });
+        });
+
+        this.renderer.app.view.addEventListener('wheel', (e: WheelEvent) => {
+            let sx = e.offsetX;
+            let sy = e.offsetY;
+            let sw = this.renderer.app.screen.width;
+            let sh = this.renderer.app.screen.height;
+            let mapSpace = this.renderer.camera.toMapSpace(sx, sy, sw, sh);
+            let type = e.deltaY < 0 ? MapMouseEventType.WHEEL_UP : MapMouseEventType.WHEEL_DOWN;
+            this.dispatch({data: mapSpace, type: type, button: 1, e: e});
             return false;
         }, false);
     }
@@ -289,17 +295,10 @@ export class Camera extends UpdatedObject {
     coordinateMin: number;
     coordinateMax: number;
 
-    private position: { x: number, y: number };
-    private upArrowListener: KeyListener;
-    private downArrowListener: KeyListener;
-    private leftArrowListener: KeyListener;
-    private rightArrowListener: KeyListener;
-    private wListener: KeyListener;
-    private sListener: KeyListener;
-    private aListener: KeyListener;
-    private dListener: KeyListener;
-    private scale: number;
+    position: { x: number, y: number, scale: number };
+    private positionPrevious: { x: number, y: number, scale: number };
     private shift: boolean;
+    private readonly keys: { [key: string]: boolean };
 
     /**
      * Main constructor.
@@ -307,6 +306,14 @@ export class Camera extends UpdatedObject {
     constructor() {
 
         super();
+
+        this.keys = {};
+        window.onkeyup = (e) => {
+            this.keys[e.key.toLowerCase()] = false;
+        };
+        window.onkeydown = (e) => {
+            this.keys[e.key.toLowerCase()] = true;
+        };
 
         this.path = new Path();
 
@@ -318,42 +325,25 @@ export class Camera extends UpdatedObject {
         this.coordinateMax = LVL.MAP_LENGTH;
 
         // Set the initial position to be the center of the map with the default scale.
-        this.position = new Vector2(this.coordinateMax / 2, this.coordinateMax / 2);
-        this.scale = 1.0;
+        this.position = {
+            x: 0, //this.coordinateMax / 2,
+            y: 0, //this.coordinateMax / 2,
+            scale: 0.5
+        };
+
+        this.positionPrevious = {
+            x: this.position.x,
+            y: this.position.y,
+            scale: this.position.scale
+        };
 
         this.bounds = new PIXI.Rectangle(0, 0, 0, 0);
 
-        this.upArrowListener = new KeyListener("ArrowUp");
-        this.downArrowListener = new KeyListener("ArrowDown");
-        this.leftArrowListener = new KeyListener("ArrowLeft");
-        this.rightArrowListener = new KeyListener("ArrowRight");
-
-        this.wListener = new KeyListener("w");
-        this.sListener = new KeyListener("s");
-        this.aListener = new KeyListener("a");
-        this.dListener = new KeyListener("d");
-
-        new KeyListener("1", () => {
-            this.pathTo({x: 0, y: 0});
-        });
-        new KeyListener("2", () => {
-            this.pathTo({x: this.coordinateMax, y: 0});
-        });
-        new KeyListener("3", () => {
-            this.pathTo({x: 0, y: this.coordinateMax});
-        });
-        new KeyListener("4", () => {
-            this.pathTo({x: this.coordinateMax, y: this.coordinateMax});
-        });
-        new KeyListener("5", () => {
-            this.pathTo({x: this.coordinateMax / 2, y: this.coordinateMax / 2});
-        });
-        new KeyListener("Shift", () => {
-            this.shift = true;
-        }, null, () => {
-            this.shift = false;
-        });
-        this.alt = new KeyListener('Alt');
+        // new KeyListener("Shift", () => {
+        //     this.shift = true;
+        // }, null, () => {
+        //     this.shift = false;
+        // });
 
         // Make sure anything dependent on the camera being dirty renders on the first
         // render call.
@@ -365,32 +355,36 @@ export class Camera extends UpdatedObject {
 
         this.path.update();
 
-        let speed = 1;
-        if (this.shift) {
-            speed = 2;
+        let speed = 1 / this.position.scale;
+        if (this.isKeyDown("shift")) {
+            speed *= 2;
         }
 
-        let up = this.upArrowListener.isDown || this.wListener.isDown;
-        let down = this.downArrowListener.isDown || this.sListener.isDown;
-        let left = this.leftArrowListener.isDown || this.aListener.isDown;
-        let right = this.rightArrowListener.isDown || this.dListener.isDown;
+        let up = this.isKeyDown("arrowup") || this.isKeyDown("w");
+        let down = this.isKeyDown("arrowdown") || this.isKeyDown("s");
+        let left = this.isKeyDown("arrowleft") || this.isKeyDown("a");
+        let right = this.isKeyDown("arrowright") || this.isKeyDown("d");
 
         if (up != down) {
 
             if (up) {
                 this.position.y -= speed;
+                this.path.cancel(this.position.x, this.position.y, false);
                 this.setDirty(true);
             }
 
             if (down) {
                 this.position.y += speed;
+                this.path.cancel(this.position.x, this.position.y, false);
                 this.setDirty(true);
             }
 
             if (this.position.y <= this.coordinateMin) {
                 this.position.y = this.coordinateMin;
+                this.path.cancel(this.position.x, this.position.y, false);
             } else if (this.position.y >= this.coordinateMax) {
                 this.position.y = this.coordinateMax;
+                this.path.cancel(this.position.x, this.position.y, false);
             }
         }
 
@@ -398,75 +392,104 @@ export class Camera extends UpdatedObject {
 
             if (left) {
                 this.position.x -= speed;
+                this.path.cancel(this.position.x, this.position.y, false);
                 this.setDirty(true);
             }
 
             if (right) {
                 this.position.x += speed;
+                this.path.cancel(this.position.x, this.position.y, false);
                 this.setDirty(true);
             }
 
             if (this.position.x <= this.coordinateMin) {
                 this.position.x = this.coordinateMin;
+                this.path.cancel(this.position.x, this.position.y, false);
             } else if (this.position.x >= this.coordinateMax) {
                 this.position.x = this.coordinateMax;
+                this.path.cancel(this.position.x, this.position.y, false);
             }
+        }
+
+        if (this.positionPrevious.x !== this.position.x || this.positionPrevious.y !== this.position.y || this.positionPrevious.scale !== this.position.scale) {
+
+            this.setDirty(true);
+
+            this.positionPrevious.x = this.position.x;
+            this.positionPrevious.y = this.position.y;
+            this.positionPrevious.scale = this.position.scale;
+        }
+
+        if (this.isKeyDown('1')) {
+            this.pathTo({x: 0, y: 0, scale: 1});
+        }
+        if (this.isKeyDown('2')) {
+            this.pathTo({x: this.coordinateMax, y: 0, scale: 1});
+        }
+        if (this.isKeyDown('3')) {
+            this.pathTo({x: 0, y: this.coordinateMax, scale: 1});
+        }
+        if (this.isKeyDown('4')) {
+            this.pathTo({x: this.coordinateMax, y: this.coordinateMax, scale: 1});
+        }
+        if (this.isKeyDown('5')) {
+            this.pathTo({x: this.coordinateMax / 2, y: this.coordinateMax / 2, scale: 1});
         }
 
         return true;
     }
 
-    toMapSpace(sx: number, sy: number, sw: number, sh: number): MapSpace {
-        let cx = this.position.x * 16.0;
-        let cy = this.position.y * 16.0;
+    toMapSpace(sx: number, sy: number, sw: number, sh: number, scale: number = null): MapSpace {
+
+        if (scale == null) {
+            scale = this.position.scale;
+        }
+
+        let tileLength = 16 * scale;
+        let cx = this.position.x * tileLength;
+        let cy = this.position.y * tileLength;
         let mx = Math.floor(cx + (sx - (sw / 2.0)));
         let my = Math.floor(cy + (sy - (sh / 2.0)));
-        let tx = Math.floor(mx / 16.0);
-        let ty = Math.floor(my / 16.0);
+        let tx = Math.floor(mx / tileLength);
+        let ty = Math.floor(my / tileLength);
         return {x: mx, y: my, tileX: tx, tileY: ty};
     };
 
     pathTo(coordinates: PathCoordinates, ticks: number = 1, mode: PathMode = PathMode.LINEAR) {
 
-        let callback = (x: number, y: number): void => {
-            this.position.x = x;
-            this.position.y = y;
-            this.setDirty(true);
+        let callback = (x: number, y: number, scale: number): void => {
+
+            if (x != null) {
+                this.position.x = x;
+            }
+            if (y != null) {
+                this.position.y = y;
+            }
+            if (scale != null) {
+                this.position.scale = scale;
+            }
+            if (x != null || y != null || scale != null) {
+                this.setDirty(true);
+            }
         };
+
+        this.path.x = this.position.x;
+        this.path.y = this.position.y;
+        this.path.scale = this.position.scale;
 
         this.path.to(coordinates, [callback], ticks, mode);
     }
 
-    /**
-     * @Return Returns a copy of the position of the camera.
-     * <br><b>NOTE:</b> Modifying this copy will not modify the position of the camera.
-     */
-    getPosition(): Vector2 {
-        return new Vector2(this.position.x, this.position.y);
-    }
-
-    /**
-     * @return Returns the scale of the camera.
-     */
-    getScale(): number {
-        return this.scale;
-    }
-
-    /**
-     * Sets the scale of the camera.
-     *
-     * @param value The value to set.
-     */
-    setScale(value: number): void {
-        this.scale = value;
-        this.setDirty(true);
+    isKeyDown(key: string) {
+        return this.keys[key] === true;
     }
 }
 
 export interface MapMouseEvent {
     type: MapMouseEventType,
     data: MapSpace,
-    button: number
+    button: number,
+    e: MouseEvent
 }
 
 export interface MapSpace {

@@ -6,7 +6,7 @@ import { KeyListener } from './util/KeyListener';
 
 function debugLVL() {
 
-    let lvlFile = "assets/lvl/zone66.lvl";
+    let lvlFile = "assets/lvl/hz.lvl";
     
     let lvz: LVZCollection = new LVZCollection();
     let map = LVL.read(lvlFile);

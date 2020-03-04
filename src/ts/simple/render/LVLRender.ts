@@ -88,11 +88,23 @@ export class LVLChunk extends UpdatedObject {
         let tileset = map.tileset;
 
         if (camera.isDirty()) {
-            let sw = this.view.app.view.width;
-            let sh = this.view.app.view.height;
-            let cpos = camera.getPosition();
-            this.tileMap.x = this.tileMapAnim.x = Math.floor((-1 + ((this.x * 64) - (cpos.x * 16) + sw / 2)) - (this.x * 64));
-            this.tileMap.y = this.tileMapAnim.y = 1 + Math.floor(((this.y * 64) - (cpos.y * 16) + sh / 2) - (this.y * 64));
+            let cpos = camera.position;
+            let scale = cpos.scale;
+            let invScale = 1 / scale;
+
+            let sw = this.view.app.view.width * invScale;
+            let sh = this.view.app.view.height * invScale;
+
+            let _64 = 64;
+            let _16 = 16;
+
+            let tilemapX = Math.floor((-1 + ((this.x * _64) - (cpos.x * _16) + sw / 2)) - (this.x * _64));
+            let tilemapY = 1 + Math.floor(((this.y * _64) - (cpos.y * _16) + sh / 2) - (this.y * _64));
+
+            this.tileMap.x = this.tileMapAnim.x = tilemapX * scale;
+            this.tileMap.y = this.tileMapAnim.y = tilemapY * scale;
+            this.tileMap.scale.x = this.tileMap.scale.y = cpos.scale;
+            this.tileMapAnim.scale.x = this.tileMapAnim.scale.y = cpos.scale;
         }
 
         if (map.isDirty() && map.containsDirtyArea(this.area.x1, this.area.y1, this.area.x2, this.area.y2)) {
@@ -267,14 +279,17 @@ export class LVLBorder extends PIXI.Container {
         let camera = this.view.camera;
 
         if (camera.isDirty()) {
-            let sw = this.view.app.view.width;
-            let sh = this.view.app.view.height;
-            let cPos = camera.getPosition();
-            let cx = (cPos.x * 16) - (sw / 2.0);
-            let cy = (cPos.y * 16) - (sh / 2.0);
-
-            this.x = -16 - cx;
-            this.y = -16 - cy;
+            let cpos = camera.position;
+            let scale = cpos.scale;
+            let invScale = 1 / scale;
+            let sw2 = invScale * (this.view.app.screen.width / 2.0);
+            let sh2 = invScale * (this.view.app.screen.height / 2.0);
+            let cx = (cpos.x * 16);
+            let cy = (cpos.y * 16);
+            this.x = (-16 + sw2 - cx) * scale;
+            this.y = (-16 + sh2 - cy) * scale;
+            this.scale.x = scale;
+            this.scale.y = scale;
         }
     }
 
