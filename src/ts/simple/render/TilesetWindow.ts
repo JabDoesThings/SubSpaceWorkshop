@@ -1,7 +1,6 @@
 import { MapRenderer } from './MapRenderer';
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
-import MouseUpEvent = JQuery.MouseUpEvent;
 
 export class TilesetWindow {
 
@@ -13,8 +12,8 @@ export class TilesetWindow {
     private primaryBox: HTMLElement;
     private secondaryBox: HTMLElement;
 
-    private coordinates: number[][];
-    private atlas: number[][];
+    private readonly coordinates: number[][];
+    private readonly atlas: number[][];
 
     constructor(view: MapRenderer) {
 
@@ -71,7 +70,7 @@ export class TilesetWindow {
             update(button, mx, my);
         });
 
-        $(document).on('mouseup', (e: MouseUpEvent) => {
+        $(document).on('mouseup', () => {
             down = false;
             downButton = -99999;
         });
@@ -127,12 +126,16 @@ export class TilesetWindow {
 
     update(): void {
 
-        let map = this.view.map;
+        let session = this.view.session;
+        if(session == null) {
+            return;
+        }
+        let map = session.map;
         if (map == null) {
             return;
         }
 
-        let tileset = this.view.map.tileset;
+        let tileset = map.tileset;
         if (tileset != null && tileset.isDirty()) {
             this.draw();
         }
@@ -143,12 +146,16 @@ export class TilesetWindow {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, 304, 160);
 
-        let map = this.view.map;
+        let session = this.view.session;
+        if(session == null) {
+            return;
+        }
+        let map = session.map;
         if (map == null) {
             return;
         }
 
-        let tileset = this.view.map.tileset;
+        let tileset = map.tileset;
         if (tileset != null) {
             ctx.drawImage(tileset.source, 0, 0);
         }

@@ -386,4 +386,11 @@ export class MapSprite implements Validatable {
         this.current[2] = this.frameWidth;
         this.current[3] = this.frameHeight;
     }
+
+    destroy() {
+        if (this.texture != null) {
+            this.texture.destroy(true);
+            this.texture = null;
+        }
+    }
 }

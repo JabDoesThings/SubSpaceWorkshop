@@ -1,8 +1,6 @@
-import { LVLMap } from '../io/LVL';
 import { MapRenderer } from './render/MapRenderer';
 import { KeyListener } from '../util/KeyListener';
 import { Session } from './Session';
-import { LVZCollection } from '../io/LVZ';
 
 export class SimpleEditor {
 
@@ -15,21 +13,22 @@ export class SimpleEditor {
 
     constructor(sessions: Session[]) {
 
+        // @ts-ignore
+        global.editor = this;
+
         this.sessions = sessions;
 
         this.tabGroup = <HTMLDivElement> document.getElementById('editor-tab-menu');
 
         for (let index = 0; index < sessions.length; index++) {
             let next = sessions[index];
+            next.editor = this;
             this.tabGroup.appendChild(next.tab);
             const _i = index;
-            next.tab.addEventListener('click', (ev) => {
+            next.tab.addEventListener('click', () => {
                 this.setActiveSession(_i);
             });
         }
-
-        // @ts-ignore
-        global.editor = this;
 
         this.renderer = new MapRenderer();
 
@@ -68,35 +67,15 @@ export class SimpleEditor {
         }
 
         if (index == -1) {
-            this.renderer.setMap(null);
+            this.renderer.setSession(null);
         } else {
 
             let session = this.sessions[this.activeSession];
-
             if (!session.loaded) {
                 session.load();
             }
 
-            let map = session.map;
-
-            this.renderer.setMap(map);
-
-            let lvzPackages = session.lvzPackages;
-
-            if (lvzPackages.length !== 0) {
-
-                let collection = new LVZCollection();
-
-                for (let index = 0; index < lvzPackages.length; index++) {
-                    let next = lvzPackages[index];
-                    collection.addAll(next.collect());
-                }
-
-                this.renderer.setLvz(collection);
-
-            } else {
-                this.renderer.setLvz(null);
-            }
+            this.renderer.setSession(session);
         }
     }
 }

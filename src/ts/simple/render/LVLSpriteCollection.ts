@@ -40,4 +40,16 @@ export class LVLSpriteCollection extends MapSpriteCollection {
         this.addSprite(this.mapSpriteDoor2);
     }
 
+    reset() {
+        this.mapSpriteFlag.reset();
+        this.mapSpriteGoal.reset();
+        this.mapSpritePrize.reset();
+        this.mapSpriteOver1.reset();
+        this.mapSpriteOver2.reset();
+        this.mapSpriteOver3.reset();
+        this.mapSpriteOver4.reset();
+        this.mapSpriteOver5.reset();
+        this.mapSpriteDoor1.reset();
+        this.mapSpriteDoor2.reset();
+    }
 }

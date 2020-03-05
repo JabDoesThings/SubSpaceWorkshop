@@ -46,8 +46,12 @@ export class LVZChunk {
 
     public onUpdate(): void {
 
-        let lvz = this.view.lvz;
-        if(lvz == null) {
+        let session = this.view.session;
+        if (session == null) {
+            return;
+        }
+        let lvz = session.cache.lvz;
+        if (lvz == null) {
             return;
         }
 

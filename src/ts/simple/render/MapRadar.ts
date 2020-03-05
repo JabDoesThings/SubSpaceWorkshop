@@ -10,14 +10,19 @@ export class MapRadar extends Radar {
     // @Override
     async draw() {
 
-        let map = (<MapRenderer> this.view).map;
+        let session = (<MapRenderer> this.view).session;
+        if (session == null) {
+            return;
+        }
+        let map = session.map;
+
         let ctx = this.drawCanvas.getContext('2d');
 
         // Clear the radar to its clear color.
         ctx.fillStyle = '#010201';
         ctx.fillRect(0, 0, 1024, 1024);
 
-        if(map == null) {
+        if (map == null) {
             return;
         }
 
@@ -29,7 +34,7 @@ export class MapRadar extends Radar {
                 if (tileId != 0) {
 
                     if (tileId <= 190) {
-                        if(tileset != null) {
+                        if (tileset != null) {
                             ctx.fillStyle = tileset.tileColor[tileId];
                         } else {
                             ctx.fillStyle = '#eeeeee';

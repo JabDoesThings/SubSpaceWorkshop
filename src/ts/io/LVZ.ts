@@ -1142,6 +1142,10 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
 
         return texture;
     }
+
+    destroy() {
+        this.image = null;
+    }
 }
 
 /**
@@ -1430,6 +1434,14 @@ export class LVZImage extends Printable implements Validatable, Dirtable {
 
     isAnimated(): boolean {
         return this.xFrames > 1 || this.yFrames > 1;
+    }
+
+    destroy(): void {
+        this.resource.destroy();
+        if(this.sprite != null) {
+            this.sprite.destroy();
+            this.sprite = null;
+        }
     }
 }
 

@@ -59,16 +59,16 @@ export class LVLChunk extends UpdatedObject {
 
         this.tilesAnim = [];
 
-        let map = this.view.map;
-
-        if (map == null) {
+        let session = this.view.session;
+        if (session == null) {
             return;
         }
+        let map = session.map;
 
         // @ts-ignore
         this.tileMap = new PIXI.tilemap.CompositeRectTileLayer(0,
             [
-                this.view.map.tileset.texture,
+                map.tileset.texture,
                 LVL.EXTRAS_TEXTURE
             ]
         );
@@ -76,7 +76,7 @@ export class LVLChunk extends UpdatedObject {
         // @ts-ignore
         this.tileMapAnim = new PIXI.tilemap.CompositeRectTileLayer(0,
             [
-                this.view.map.tileset.texture,
+                map.tileset.texture,
                 LVL.OVER1_TEXTURE,
                 LVL.OVER2_TEXTURE,
                 LVL.OVER3_TEXTURE,
@@ -93,7 +93,12 @@ export class LVLChunk extends UpdatedObject {
 
     // @Override
     public isDirty(): boolean {
-        return super.isDirty() || this.view.camera.isDirty() || this.view.map.isDirty();
+
+        let session = this.view.session;
+
+        return super.isDirty()
+            || this.view.camera.isDirty()
+            || session != null && session.loaded && session.map.isDirty();
     }
 
     // @Override
@@ -103,11 +108,12 @@ export class LVLChunk extends UpdatedObject {
             return;
         }
 
-        let map = this.view.map;
-
-        if (map == null) {
+        let session = this.view.session;
+        if (session == null) {
             return;
         }
+
+        let map = session.map;
 
         let camera = this.view.camera;
         let tiles = map.tiles;
@@ -252,7 +258,7 @@ export class LVLChunk extends UpdatedObject {
 
             let frame = null;
 
-            let sprites = this.view.lvlSprites;
+            let sprites = session.cache.lvlSprites;
 
             if (id >= 162 && id <= 165) {
                 frame = sprites.mapSpriteDoor1.current;
@@ -292,6 +298,7 @@ export class LVLChunk extends UpdatedObject {
 export class LVLBorder extends PIXI.Container {
 
     private view: MapRenderer;
+    texture: PIXI.Texture;
 
     constructor(view: MapRenderer) {
         super();
@@ -324,63 +331,66 @@ export class LVLBorder extends PIXI.Container {
 
         this.removeChildren();
 
-        let map = this.view.map;
-
+        let session = this.view.session;
+        if (session == null) {
+            return;
+        }
+        let map = session.map;
         if (map == null) {
             return;
         }
 
-        let borderTexture = this.view.map.tileset.borderTile;
+        this.texture = map.tileset.borderTile;
 
         let sprite: PIXI.Sprite;
 
         for (let index = 1; index < 1025; index++) {
 
             // TOP
-            let sprite = new PIXI.Sprite(borderTexture);
+            let sprite = new PIXI.Sprite(this.texture);
             sprite.x = index * 16;
             sprite.y = 0;
             this.addChild(sprite);
 
             // BOTTOM
-            sprite = new PIXI.Sprite(borderTexture);
+            sprite = new PIXI.Sprite(this.texture);
             sprite.x = index * 16;
             sprite.y = 16400;
             this.addChild(sprite);
 
             // LEFT
-            sprite = new PIXI.Sprite(borderTexture);
+            sprite = new PIXI.Sprite(this.texture);
             sprite.x = 0;
             sprite.y = index * 16;
             this.addChild(sprite);
 
             // RIGHT
-            sprite = new PIXI.Sprite(borderTexture);
+            sprite = new PIXI.Sprite(this.texture);
             sprite.x = 16400;
             sprite.y = index * 16;
             this.addChild(sprite);
         }
 
         // TOP-LEFT
-        sprite = new PIXI.Sprite(borderTexture);
+        sprite = new PIXI.Sprite(this.texture);
         sprite.x = 0;
         sprite.y = 0;
         this.addChild(sprite);
 
         // TOP-RIGHT
-        sprite = new PIXI.Sprite(borderTexture);
+        sprite = new PIXI.Sprite(this.texture);
         sprite.x = 16400;
         sprite.y = 0;
         this.addChild(sprite);
 
         // BOTTOM-RIGHT
-        sprite = new PIXI.Sprite(borderTexture);
+        sprite = new PIXI.Sprite(this.texture);
         sprite.x = 16400;
         sprite.y = 16400;
         this.addChild(sprite);
 
         // BOTTOM-LEFT
-        sprite = new PIXI.Sprite(borderTexture);
+        sprite = new PIXI.Sprite(this.texture);
         sprite.x = 0;
         sprite.y = 16400;
         this.addChild(sprite);
