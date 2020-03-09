@@ -1,9 +1,6 @@
 import * as PIXI from "pixi.js";
 import { MapSprite } from '../render/MapSprite';
 import { Dirtable } from '../../util/Dirtable';
-import { brotliCompress } from 'zlib';
-import { LVL } from '../../io/LVLUtils';
-import {OutlineFilter} from '@pixi/filter-outline';
 import Rectangle = PIXI.Rectangle;
 
 /**
@@ -23,6 +20,9 @@ export class ItemSelector implements Dirtable {
     maxWidthTiles: number;
     maxHeightTiles: number;
     tileSize: number;
+    primary: Item;
+    secondary: Item;
+    listener: ItemSelectorListener;
 
     constructor(container: HTMLElement) {
 
@@ -50,7 +50,6 @@ export class ItemSelector implements Dirtable {
         this.canvas = this.app.view;
         this.container.appendChild(this.canvas);
 
-        let lastWidth = -1;
         this.app.ticker.add(() => {
 
             // let width = this.canvas.clientWidth;
@@ -69,6 +68,9 @@ export class ItemSelector implements Dirtable {
                 next.update();
             }
         });
+
+        this.listener = new ItemSelectorListener(this);
+        this.listener.init();
     }
 
     private sort() {
@@ -214,9 +216,8 @@ export class ItemSelector implements Dirtable {
             console.log(next.id + ": {x:" + next.x + ", y:" + next.y + "}");
 
             this.app.stage.addChild(next.getContainer());
+            this.app.stage.addChild(next.outline);
 
-            let w = Math.ceil(next.getSourceWidth() / this.tileSize);
-            let h = Math.ceil(next.getSourceHeight() / this.tileSize);
             for (let y = spot.y; y < spot.y + next.ht; y++) {
                 for (let x = spot.x; x < spot.x + next.wt; x++) {
                     slots[x][y] = true;
@@ -228,7 +229,6 @@ export class ItemSelector implements Dirtable {
 
         this.app.screen.width = this.app.view.width;
         this.app.screen.height = this.app.view.height;
-        console.log(this.app.stage);
     }
 
     add(entry: Item): void {
@@ -270,11 +270,106 @@ export class ItemSelector implements Dirtable {
     setDirty(flag: boolean): void {
         this.dirty = flag;
     }
+
+    selectPrimary(item: Item): void {
+
+        if (item === this.primary) {
+            return;
+        }
+
+        this.primary = item;
+    }
+
+    selectSecondary(item: Item): void {
+
+        if (item === this.secondary) {
+            return;
+        }
+
+        this.secondary = item;
+    }
+}
+
+export class ItemSelectorListener {
+
+    listeners: ((item: Item) => boolean)[];
+    readonly selector: ItemSelector;
+
+    constructor(selector: ItemSelector) {
+        this.selector = selector;
+    }
+
+    init(): void {
+
+        this.listeners = [];
+        this.selector.app.stage.interactive = true;
+
+        let compare = new Rectangle(0, 0, 1, 1);
+        let select = (x: number, y: number, button: number): void => {
+
+            if (button !== 0 && button !== 2) {
+                return;
+            }
+
+            let item: Item = null;
+            for (let key in this.selector.items) {
+                let next = this.selector.items[key];
+
+                compare.x = next.x;
+                compare.y = next.y;
+                compare.width = next.w;
+                compare.height = next.h;
+
+                if (compare.contains(x, y)) {
+                    item = next;
+                    break;
+                }
+            }
+
+            if (button == 0) {
+                this.selector.selectPrimary(item);
+            } else if (button == 2) {
+                this.selector.selectSecondary(item);
+            }
+
+            console.log('select(x: ' + x + ", y: " + y + ", button: " + button + ") = " + item);
+        };
+
+        let down = false;
+        let button = -999999;
+
+        this.selector.app.view.addEventListener('pointerleave', () => {
+            down = false;
+        });
+
+        this.selector.app.view.addEventListener('pointerdown', (e: PointerEvent) => {
+            down = true;
+            button = e.button;
+            select(e.offsetX, e.offsetY, button);
+        });
+
+        this.selector.app.view.addEventListener('pointerup', () => {
+            down = false;
+            button = -999999;
+        });
+
+        this.selector.app.view.addEventListener('pointermove', (e) => {
+
+            if (!down) {
+                return;
+            }
+
+            select(e.offsetX, e.offsetY, button);
+        });
+    }
+
 }
 
 export abstract class Item implements Dirtable {
 
     readonly id: string;
+
+    outline: PIXI.Graphics;
     x: number;
     y: number;
     w: number;
@@ -295,6 +390,37 @@ export abstract class Item implements Dirtable {
         this.wt = 0;
         this.ht = 0;
         this.visible = false;
+        this.outline = new PIXI.Graphics();
+    }
+
+    drawOutline(): void {
+        
+        this.outline.clear();
+        this.outline.visible = false;
+
+        if (this.selector.primary === this || this.selector.secondary === this) {
+
+            let color = 0xFFFFFF;
+            if (this.selector.primary !== this) {
+                color = 0xFFFF00;
+            } else if (this.selector.secondary !== this) {
+                color = 0xFF0000;
+            }
+
+            this.outline.visible = true;
+            this.outline.lineStyle(1, color);
+
+            let x1 = this.x + 1;
+            let y1 = this.y;
+            let x2 = (x1 + this.w) - 1;
+            let y2 = (y1 + this.h) - 1;
+
+            this.outline.moveTo(x1, y1);
+            this.outline.lineTo(x2, y1);
+            this.outline.lineTo(x2, y2);
+            this.outline.lineTo(x1, y2);
+            this.outline.lineTo(x1, y1);
+        }
     }
 
     // @Override
@@ -307,7 +433,11 @@ export abstract class Item implements Dirtable {
         this.dirty = flag;
     }
 
-    abstract update(): void;
+    update(): void {
+        this.onUpdate();
+    }
+
+    abstract onUpdate(): void;
 
     abstract getSourceWidth(): number;
 
@@ -337,7 +467,7 @@ export class SpriteItem extends Item {
     }
 
     // @Override
-    update(): void {
+    onUpdate(): void {
 
         if (this.isDirty() || this.lastOffset !== this.sprite.offset) {
 
@@ -363,6 +493,8 @@ export class SpriteItem extends Item {
         if (sequence == null) {
             return;
         }
+
+        this.drawOutline();
 
         // this._sprite.texture = this.sprite.texture;
         this._sprite.texture = this.sprite.sequence[this.sprite.offset];
