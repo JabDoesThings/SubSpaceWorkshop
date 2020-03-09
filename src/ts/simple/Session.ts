@@ -11,25 +11,35 @@ import { Background } from '../common/Background';
 import { SimpleEditor } from './SimpleEditor';
 import * as PIXI from "pixi.js";
 import { Renderer } from '../common/Renderer';
+import { SelectionGroup, SelectionSlot, SelectionType, Selection} from './ui/Selection';
 
+/**
+ * The <i>Session</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class Session {
 
-    private lvlPath: string;
-    private lvzPaths: string[];
-
-    map: LVLMap;
     lvzPackages: LVZPackage[];
+    selectionGroup: SelectionGroup;
+    editor: SimpleEditor;
+    cache: SessionCache;
     tab: HTMLDivElement;
+    map: LVLMap;
     _name: string;
     loaded: boolean;
 
-    editor: SimpleEditor;
-    cache: SessionCache;
+    private lvzPaths: string[];
+    private lvlPath: string;
 
     constructor(lvlPath: string, lvzPaths: string[] = []) {
 
         this.lvlPath = lvlPath;
         this.lvzPaths = lvzPaths;
+
+        this.selectionGroup = new SelectionGroup();
+        this.selectionGroup.setSelection(SelectionSlot.PRIMARY, new Selection(SelectionType.TILE, 1));
+        this.selectionGroup.setSelection(SelectionSlot.SECONDARY, new Selection(SelectionType.TILE, 2));
 
         this.cache = new SessionCache(this);
 
@@ -59,9 +69,13 @@ export class Session {
             this.loaded = true;
         }
     }
-
 }
 
+/**
+ * The <i>SessionCache</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class SessionCache {
 
     readonly session: Session;
@@ -246,5 +260,4 @@ export class SessionCache {
         this.initialized = false;
         this._background = null;
     }
-
 }

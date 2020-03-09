@@ -10,34 +10,34 @@
   box-shadow: rgb(0, 0, 0) 0 0 5px 1px;
   cursor: pointer;
 
-  .tile-selector {
-    display: block;
-    position: absolute;
-    z-index: 3;
-    top: 0;
-    left: 0;
-    width: 14px;
-    height: 14px;
-
-    border: 1px solid transparent;
-    box-shadow: transparent 0 0 0 0;
-
-    pointer-events: none;
-
-    transition: box-shadow 50ms linear;
-
-    &:hover {
-      box-shadow: rgba(255, 255, 255, 0.5) 0 0 2px 1px;
-    }
-  }
-
-  .tile-selector.primary {
-    border-color: red;
-  }
-
-  .tile-selector.secondary {
-    border-color: yellow;
-  }
+  //.tile-selector {
+  //  display: block;
+  //  position: absolute;
+  //  z-index: 3;
+  //  top: 0;
+  //  left: 0;
+  //  width: 14px;
+  //  height: 14px;
+  //
+  //  border: 1px solid transparent;
+  //  box-shadow: transparent 0 0 0 0;
+  //
+  //  pointer-events: none;
+  //
+  //  transition: box-shadow 50ms linear;
+  //
+  //  &:hover {
+  //    box-shadow: rgba(255, 255, 255, 0.5) 0 0 2px 1px;
+  //  }
+  //}
+  //
+  //.tile-selector.primary {
+  //  border-color: red;
+  //}
+  //
+  //.tile-selector.secondary {
+  //  border-color: yellow;
+  //}
 }
 
 .tile-sprite {

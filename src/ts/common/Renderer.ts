@@ -96,6 +96,7 @@ export abstract class Renderer extends UpdatedObject {
             this.updateCamera(delta);
             this.onPreUpdate(delta);
             this.update(delta);
+            this.onPostUpdate(delta);
 
             if (this.stats != null) {
                 this.stats.end();
@@ -166,6 +167,7 @@ export abstract class Renderer extends UpdatedObject {
     protected abstract onInit(): void;
 
     protected abstract onPreUpdate(delta: number): void;
+    protected abstract onPostUpdate(delta: number): void;
 }
 
 export class RenderEvents {

@@ -2,6 +2,8 @@ import * as PIXI from "pixi.js";
 import { MapSprite } from '../render/MapSprite';
 import { Dirtable } from '../../util/Dirtable';
 import Rectangle = PIXI.Rectangle;
+import { AssetPanel } from './AssetPanel';
+import { SelectionSlot, Selection } from './Selection';
 
 /**
  * The <i>ItemSelector</i> class. TODO: Document.
@@ -20,12 +22,12 @@ export class ItemSelector implements Dirtable {
     maxWidthTiles: number;
     maxHeightTiles: number;
     tileSize: number;
-    primary: Item;
-    secondary: Item;
     listener: ItemSelectorListener;
+    panel: AssetPanel;
 
-    constructor(container: HTMLElement) {
+    constructor(panel: AssetPanel, container: HTMLElement) {
 
+        this.panel = panel;
         this.container = container;
 
         this.items = {};
@@ -59,7 +61,7 @@ export class ItemSelector implements Dirtable {
             // }
 
             if (this.isDirty()) {
-                this.sort();
+                this.draw();
                 this.setDirty(false);
             }
 
@@ -73,7 +75,7 @@ export class ItemSelector implements Dirtable {
         this.listener.init();
     }
 
-    private sort() {
+    draw() {
 
         this.app.stage.removeChildren();
 
@@ -213,8 +215,6 @@ export class ItemSelector implements Dirtable {
             next.y = spot.y * this.tileSize;
             next.setDirty(true);
 
-            console.log(next.id + ": {x:" + next.x + ", y:" + next.y + "}");
-
             this.app.stage.addChild(next.getContainer());
             this.app.stage.addChild(next.outline);
 
@@ -226,7 +226,6 @@ export class ItemSelector implements Dirtable {
         }
 
         this.canvas.height = ySlots * this.tileSize;
-
         this.app.screen.width = this.app.view.width;
         this.app.screen.height = this.app.view.height;
     }
@@ -261,6 +260,32 @@ export class ItemSelector implements Dirtable {
         this.setDirty(true);
     }
 
+    selectPrimary(item: Item): void {
+
+        let selectionGroup = this.panel.view.session.selectionGroup;
+        let primary = selectionGroup.getSelection(SelectionSlot.PRIMARY);
+
+        if (item.type === primary.type && item.id === primary.id) {
+            return;
+        }
+
+        let selection = new Selection(item.type, item.id);
+        this.panel.view.session.selectionGroup.setSelection(SelectionSlot.PRIMARY, selection);
+    }
+
+    selectSecondary(item: Item): void {
+
+        let selectionGroup = this.panel.view.session.selectionGroup;
+        let secondary = selectionGroup.getSelection(SelectionSlot.SECONDARY);
+
+        if (item.type === secondary.type && item.id === secondary.id) {
+            return;
+        }
+
+        let selection = new Selection(item.type, item.id);
+        this.panel.view.session.selectionGroup.setSelection(SelectionSlot.SECONDARY, selection);
+    }
+
     // @Override
     isDirty(): boolean {
         return this.dirty;
@@ -270,26 +295,13 @@ export class ItemSelector implements Dirtable {
     setDirty(flag: boolean): void {
         this.dirty = flag;
     }
-
-    selectPrimary(item: Item): void {
-
-        if (item === this.primary) {
-            return;
-        }
-
-        this.primary = item;
-    }
-
-    selectSecondary(item: Item): void {
-
-        if (item === this.secondary) {
-            return;
-        }
-
-        this.secondary = item;
-    }
 }
 
+/**
+ * The <i>ItemSelectorListener</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class ItemSelectorListener {
 
     listeners: ((item: Item) => boolean)[];
@@ -365,10 +377,16 @@ export class ItemSelectorListener {
 
 }
 
+/**
+ * The abstract <i>Item</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export abstract class Item implements Dirtable {
 
     readonly id: string;
 
+    type: string;
     outline: PIXI.Graphics;
     x: number;
     y: number;
@@ -380,9 +398,12 @@ export abstract class Item implements Dirtable {
     private dirty: boolean;
     selector: ItemSelector;
 
-    protected constructor(selector: ItemSelector, id: string) {
+    protected constructor(selector: ItemSelector, type: string, id: string) {
+
         this.selector = selector;
+        this.type = type;
         this.id = id;
+
         this.x = 0;
         this.y = 0;
         this.w = 0;
@@ -390,20 +411,28 @@ export abstract class Item implements Dirtable {
         this.wt = 0;
         this.ht = 0;
         this.visible = false;
+
         this.outline = new PIXI.Graphics();
     }
 
     drawOutline(): void {
-        
+
         this.outline.clear();
         this.outline.visible = false;
 
-        if (this.selector.primary === this || this.selector.secondary === this) {
+        let selectionGroup = this.selector.panel.view.session.selectionGroup;
+        let primary = selectionGroup.getSelection(SelectionSlot.PRIMARY);
+        let secondary = selectionGroup.getSelection(SelectionSlot.SECONDARY);
+
+        let isPrimary = primary.id === this.id && primary.type === this.type;
+        let isSecondary = secondary.id === this.id && secondary.type === this.type;
+
+        if (isPrimary || isSecondary) {
 
             let color = 0xFFFFFF;
-            if (this.selector.primary !== this) {
+            if (!isPrimary) {
                 color = 0xFFFF00;
-            } else if (this.selector.secondary !== this) {
+            } else if (!isSecondary) {
                 color = 0xFF0000;
             }
 
@@ -446,15 +475,20 @@ export abstract class Item implements Dirtable {
     abstract getContainer(): PIXI.Container;
 }
 
+/**
+ * The <i>SpriteItem</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class SpriteItem extends Item {
 
     _sprite: PIXI.Sprite;
     sprite: MapSprite;
     lastOffset: number;
 
-    constructor(selector: ItemSelector, id: string, sprite: MapSprite) {
+    constructor(selector: ItemSelector, type: string, id: string, sprite: MapSprite) {
 
-        super(selector, id);
+        super(selector, type, id);
 
         this.sprite = sprite;
         this.lastOffset = -1;

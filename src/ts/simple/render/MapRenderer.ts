@@ -1,10 +1,11 @@
 import { MapGrid } from './MapGrid';
 import { MapRadar } from './MapRadar';
-import { TilesetPanel } from './TilesetPanel';
+import { AssetPanel } from '../ui/AssetPanel';
 import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Renderer';
 import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
 import { Session } from '../Session';
+import { Selection, SelectionSlot, SelectionType } from '../ui/Selection';
 
 /**
  * The <i>SimpleRenderer</i> class. TODO: Document.
@@ -16,7 +17,7 @@ export class MapRenderer extends Renderer {
     grid: MapGrid;
     session: Session;
     radar: Radar;
-    tilesetWindow: TilesetPanel;
+    tilesetWindow: AssetPanel;
     tab: HTMLDivElement;
 
     public constructor() {
@@ -32,7 +33,7 @@ export class MapRenderer extends Renderer {
         this.grid.filterArea = this.app.renderer.screen;
         // this.grid.visible = false;
 
-        this.tilesetWindow = new TilesetPanel(this);
+        this.tilesetWindow = new AssetPanel(this);
 
         let drawn = false;
         let downPrimary = false;
@@ -144,9 +145,25 @@ export class MapRenderer extends Renderer {
 
             if ((downPrimary || downSecondary) && x >= 0 && x < 1024 && y >= 0 && y < 1024) {
 
-                let tileId = downPrimary ? this.tilesetWindow.primary : this.tilesetWindow.secondary;
+                let selectionGroup = this.session.selectionGroup;
 
-                this.session.map.setTile(x, y, tileId);
+                let selection: Selection = null;
+                if (downPrimary) {
+                    selection = selectionGroup.getSelection(SelectionSlot.PRIMARY);
+                } else if (downSecondary) {
+                    selection = selectionGroup.getSelection(SelectionSlot.SECONDARY);
+                }
+
+                if (selection != null && selection.type == SelectionType.TILE) {
+                    let tileId: number = 0;
+                    if (typeof selection.id == 'string') {
+                        tileId = parseInt(selection.id);
+                    } else {
+                        tileId = selection.id;
+                    }
+                    this.session.map.setTile(x, y, tileId);
+                }
+
                 drawn = true;
             }
         });
@@ -225,6 +242,13 @@ export class MapRenderer extends Renderer {
     }
 
     // @Override
+    onPostUpdate(delta: number): void {
+        if(this.session != null) {
+            this.session.selectionGroup.setDirty(false);
+        }
+    }
+
+    // @Override
     public isDirty(): boolean {
         return super.isDirty() || this.camera.isDirty() || this.session.map.isDirty();
     }
@@ -232,7 +256,7 @@ export class MapRenderer extends Renderer {
     setSession(session: Session) {
 
         this.session = session;
-        if(!this.session.cache.initialized) {
+        if (!this.session.cache.initialized) {
             this.session.cache.init();
         }
 
