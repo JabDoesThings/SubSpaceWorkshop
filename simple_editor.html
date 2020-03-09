@@ -45,40 +45,91 @@
     </script>
 
     <link rel="stylesheet" href="assets/css/project.min.css"/>
+
 </head>
 <body>
 
 <div class="editor_frame dark">
 
-    <div class="viewport-frame">
+    <div class="viewport-frame left-panel-open right-panel-open">
 
-        <div id="editor-tab-menu" class="tab-menu">
-        </div>
+        <div id="editor-tab-menu" class="tab-menu"></div>
 
         <div class="map-viewport-container" style="display: block">
 
             <!-- Options above the viewport. -->
             <div id="editor-left-tab-menu" class="tab-menu left">
-                <div class="tab"><label>Tileset</label></div>
-                <div class="tab"><label>Regions</label></div>
+                <div id="tileset-tab" class="tab selected"><label>Tileset</label></div>
+                <div id="regions-tab" class="tab"><label>Regions</label></div>
             </div>
 
             <!-- The PixiJS canvas goes in here. -->
             <div class="map-viewport-canvas-container">
-                <div class="map-viewport-canvas-boxshadow"></div>
+
+                <!-- ### Left Panel ### -->
+                <div class="side-panel left">
+
+                    <!-- Standard Tiles -->
+                    <div class="section">
+                        <div class="header">
+                            <div class="arrow"><label></label></div>
+                            <div class="title"><label>Standard Tiles</label></div>
+                        </div>
+                        <div class="content-frame">
+                            <div class="contents">
+                                <div id="standard-tileset" class="standard-tileset">
+                                    <canvas class="tileset" width="304" height="160"></canvas>
+                                    <div class="tile-selector primary"></div>
+                                    <div class="tile-selector secondary"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Tiles -->
+                    <div class="section">
+                        <div class="header">
+                            <div class="arrow"><label></label></div>
+                            <div class="title"><label>Special Tiles</label></div>
+                        </div>
+                        <div class="content-frame">
+                            <div id="special-tiles-section" class="contents">
+
+<!--                                <div id="over1" class="tile-sprite">-->
+<!--                                    <canvas width="16" height="16"></canvas>-->
+<!--                                </div>-->
+<!--                                <div id="over2" class="tile-sprite">-->
+<!--                                    <canvas width="32" height="32"></canvas>-->
+<!--                                </div>-->
+<!--                                <div id="over3" class="tile-sprite">-->
+<!--                                    <canvas width="16" height="16"></canvas>-->
+<!--                                </div>-->
+<!--                                <div id="over4" class="tile-sprite">-->
+<!--                                    <canvas width="96" height="96"></canvas>-->
+<!--                                </div>-->
+<!--                                <div id="over5" class="tile-sprite">-->
+<!--                                    <canvas width="80" height="80"></canvas>-->
+<!--                                </div>-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="viewport">
+                    <div class="map-viewport-canvas-boxshadow"></div>
+
+                    <!-- The Radar Window -->
+                    <div class="workspace-radar">
+                        <canvas id="radar" class="radar" width="256" height="256"></canvas>
+                    </div>
+
+                </div>
+                <div class="side-panel right">
+
+                </div>
             </div>
 
-            <!-- The Tileset Window -->
-            <div class="workspace-tileset">
-                <canvas id="tileset" class="tileset" width="304" height="160"></canvas>
-                <div id="tileset-primary" class="tile-selector primary"></div>
-                <div id="tileset-secondary" class="tile-selector secondary"></div>
-            </div>
 
-            <!-- The Radar Window -->
-            <div class="workspace-radar">
-                <canvas id="radar" class="radar" width="256" height="256"></canvas>
-            </div>
         </div>
     </div>
 </div>

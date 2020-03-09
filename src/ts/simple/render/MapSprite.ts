@@ -5,6 +5,7 @@
  */
 import { Validatable } from '../../util/Validatable';
 import hex2rgb = PIXI.utils.hex2rgb;
+import Rectangle = PIXI.Rectangle;
 
 export class MapSpriteCollection {
 
@@ -192,7 +193,7 @@ export class MapSprite implements Validatable {
     private endX: number;
     private endY: number;
 
-    private frameOffset: number;
+    frameOffset: number;
     private frameX: number;
     private frameY: number;
     private frameTime: number;
@@ -201,6 +202,7 @@ export class MapSprite implements Validatable {
     offset: number;
 
     sequence: PIXI.Texture[];
+    source: HTMLImageElement;
 
     /**
      * Main constructor.
@@ -391,6 +393,29 @@ export class MapSprite implements Validatable {
         if (this.texture != null) {
             this.texture.destroy(true);
             this.texture = null;
+        }
+    }
+
+    sequenceTexture(): void {
+
+        // Cleanup if present.
+        if (this.sequence != null && this.sequence.length != 0) {
+            for (let index = 0; index < this.sequence.length; index++) {
+                this.sequence[index].destroy(false);
+            }
+        }
+
+        this.sequence = [];
+
+        let w = this.frameWidth;
+        let h = this.frameHeight;
+        let base = this.texture.baseTexture;
+        for (let y = this.startY; y <= this.endY; y++) {
+            for (let x = this.startX; x <= this.endX; x++) {
+                let rect = new Rectangle(x * w, y * h, w, h);
+                let tex = new PIXI.Texture(base, rect);
+                this.sequence.push(tex);
+            }
         }
     }
 }

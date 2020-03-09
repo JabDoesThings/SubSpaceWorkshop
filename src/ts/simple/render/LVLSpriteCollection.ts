@@ -1,4 +1,5 @@
 import { MapSprite, MapSpriteCollection } from './MapSprite';
+import * as PIXI from "pixi.js";
 
 export class LVLSpriteCollection extends MapSpriteCollection {
 
@@ -13,9 +14,21 @@ export class LVLSpriteCollection extends MapSpriteCollection {
     mapSpriteDoor1: MapSprite;
     mapSpriteDoor2: MapSprite;
 
+    mapSpriteBrickBlue: MapSprite;
+    mapSpriteBrickYellow: MapSprite;
+
     constructor() {
 
         super();
+
+        let loadTexture = (sprite: MapSprite, path: string) => {
+            let source = <HTMLImageElement> document.createElement('img');
+            source.src = path;
+            source.onload = () => {
+                sprite.texture = PIXI.Texture.from(source);
+                sprite.sequenceTexture();
+            };
+        };
 
         this.mapSpriteFlag = new MapSprite(16, 16, 10, 2, 90, 0, 0, 9, 0);
         this.mapSpriteGoal = new MapSprite(16, 16, 9, 2, 90, 0, 1, 8, 1);
@@ -27,6 +40,17 @@ export class LVLSpriteCollection extends MapSpriteCollection {
         this.mapSpritePrize = new MapSprite(16, 16, 10, 1, 80);
         this.mapSpriteDoor1 = new MapSprite(16, 16, 19, 10, 80, 9, 8, 12, 8);
         this.mapSpriteDoor2 = new MapSprite(16, 16, 19, 10, 80, 13, 8, 16, 8);
+        this.mapSpriteBrickBlue = new MapSprite(16, 16, 10, 2, 100, 0, 0, 9, 0);
+        this.mapSpriteBrickYellow = new MapSprite(16, 16, 10, 2, 100, 0, 1, 9, 1);
+
+        loadTexture(this.mapSpriteBrickBlue, 'assets/media/wall.png');
+        loadTexture(this.mapSpriteBrickYellow, 'assets/media/wall.png');
+        loadTexture(this.mapSpritePrize, 'assets/media/prizes.png');
+        loadTexture(this.mapSpriteOver1, 'assets/media/over1.png');
+        loadTexture(this.mapSpriteOver2, 'assets/media/over2.png');
+        loadTexture(this.mapSpriteOver3, 'assets/media/over3.png');
+        loadTexture(this.mapSpriteOver4, 'assets/media/over4.png');
+        loadTexture(this.mapSpriteOver5, 'assets/media/over5.png');
 
         this.addSprite(this.mapSpriteFlag);
         this.addSprite(this.mapSpriteGoal);
@@ -38,6 +62,8 @@ export class LVLSpriteCollection extends MapSpriteCollection {
         this.addSprite(this.mapSpritePrize);
         this.addSprite(this.mapSpriteDoor1);
         this.addSprite(this.mapSpriteDoor2);
+        this.addSprite(this.mapSpriteBrickBlue);
+        this.addSprite(this.mapSpriteBrickYellow);
     }
 
     reset() {

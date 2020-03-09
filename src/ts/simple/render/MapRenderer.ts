@@ -1,6 +1,6 @@
 import { MapGrid } from './MapGrid';
 import { MapRadar } from './MapRadar';
-import { TilesetWindow } from './TilesetWindow';
+import { TilesetPanel } from './TilesetPanel';
 import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Renderer';
 import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
@@ -16,7 +16,7 @@ export class MapRenderer extends Renderer {
     grid: MapGrid;
     session: Session;
     radar: Radar;
-    tilesetWindow: TilesetWindow;
+    tilesetWindow: TilesetPanel;
     tab: HTMLDivElement;
 
     public constructor() {
@@ -32,7 +32,7 @@ export class MapRenderer extends Renderer {
         this.grid.filterArea = this.app.renderer.screen;
         // this.grid.visible = false;
 
-        this.tilesetWindow = new TilesetWindow(this);
+        this.tilesetWindow = new TilesetPanel(this);
 
         let drawn = false;
         let downPrimary = false;
@@ -218,6 +218,8 @@ export class MapRenderer extends Renderer {
         if (lvz != null) {
             lvz.setDirty(false);
         }
+
+        this.tilesetWindow.update();
 
         return true;
     }

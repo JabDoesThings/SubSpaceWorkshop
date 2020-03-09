@@ -1,0 +1,27 @@
+@import 'palette';
+
+$panelTime: 200ms;
+
+.side-panel {
+
+  z-index: 2;
+  display: inline-block;
+  position: relative;
+  left: 0;
+  top: 1px;
+  width: 0;
+  height: 100%;
+
+  margin-top: -1px;
+  background-color: $color4;
+  transition: all $panelTime;
+
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.side-panel.left {
+}
+
+.side-panel.right {
+}

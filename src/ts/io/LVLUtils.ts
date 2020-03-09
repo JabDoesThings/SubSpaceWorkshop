@@ -5,6 +5,7 @@ import { Bitmap } from './Bitmap';
 import * as PIXI from "pixi.js";
 import { ELVLCollection } from './ELVL';
 import { ELVL } from './ELVLUtils';
+import SCALE_MODES = PIXI.SCALE_MODES;
 
 export class LVL {
 
@@ -12,15 +13,15 @@ export class LVL {
     static readonly MAP_LENGTH = 1024;
 
     static DEFAULT_TILESET = LVL.readTilesetImage("assets/media/tiles.bmp");
-    static FLAG_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/flag.png");
-    static GOAL_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/goal.png");
-    static PRIZES_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/prizes.png");
-    static OVER1_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over1.png");
-    static OVER2_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over2.png");
-    static OVER3_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over3.png");
-    static OVER4_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over4.png");
-    static OVER5_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over5.png");
-    static EXTRAS_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/extras.bmp");
+    static FLAG_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/flag.png", {scaleMode: SCALE_MODES.NEAREST});
+    static GOAL_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/goal.png", {scaleMode: SCALE_MODES.NEAREST});
+    static PRIZES_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/prizes.png", {scaleMode: SCALE_MODES.NEAREST});
+    static OVER1_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over1.png", {scaleMode: SCALE_MODES.NEAREST});
+    static OVER2_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over2.png", {scaleMode: SCALE_MODES.NEAREST});
+    static OVER3_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over3.png", {scaleMode: SCALE_MODES.NEAREST});
+    static OVER4_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over4.png", {scaleMode: SCALE_MODES.NEAREST});
+    static OVER5_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over5.png", {scaleMode: SCALE_MODES.NEAREST});
+    static EXTRAS_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/extras.bmp", {scaleMode: SCALE_MODES.NEAREST});
 
     static read(path: string): LVLMap {
 

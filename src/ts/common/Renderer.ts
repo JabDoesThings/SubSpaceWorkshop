@@ -57,11 +57,36 @@ export abstract class Renderer extends UpdatedObject {
         this.app.stage.alpha = 0;
         this.camera.pathTo({x: 512, y: 512, scale: 1}, enableTicks, PathMode.EASE_OUT);
 
+        let resize = () => {
+
+            // Resize the renderer
+            let width = container.clientWidth;
+            let height = container.clientHeight;
+            this.app.renderer.resize(width, height);
+            this.setDirty(true);
+
+            let $leftTabMenu = $('#editor-left-tab-menu');
+            $leftTabMenu.css({top: (window.innerHeight - 49) + 'px'});
+        };
+
+        let lastWidth = -1;
+        let lastHeight = -1;
+
         this.app.ticker.add((delta) => {
 
             if (this.stats != null) {
                 this.stats.begin();
             }
+
+            let width = container.clientWidth;
+            let height = container.clientHeight;
+
+            if(lastWidth != width || lastHeight != height) {
+                resize();
+                lastWidth = width;
+                lastHeight = height;
+            }
+
 
             if (enableLerp < enableTicks) {
                 enableLerp++;
@@ -81,7 +106,7 @@ export abstract class Renderer extends UpdatedObject {
         this.app.stage.interactive = true;
 
         if (stats) {
-            this.initStats();
+            this.initStats(container);
         }
 
         this.events = new RenderEvents(this);
@@ -103,33 +128,24 @@ export abstract class Renderer extends UpdatedObject {
 
         container.appendChild(this.app.view);
 
-        let resize = () => {
-
-            // Resize the renderer
-            let width = container.clientWidth;
-            let height = container.clientHeight;
-            this.app.renderer.resize(width - 2, height - 2);
-            this.setDirty(true);
-
-            let $leftTabMenu = $('#editor-left-tab-menu');
-            $leftTabMenu.css({top: (window.innerHeight - 49) + 'px'});
-        };
-
         resize();
 
         // Listen for window resize events
-        window.addEventListener('resize', resize);
+        // window.addEventListener('resize', resize);
+        // container.addEventListener('resize', resize);
+        // container.parentElement.addEventListener('resize', resize);
 
         this.setDirty(true);
     }
 
-    private initStats(): void {
+    private initStats(container: HTMLElement): void {
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-        this.stats.dom.style.top = "26px";
+        this.stats.dom.style.position = 'absolute';
+        this.stats.dom.style.top = "1px";
         this.stats.dom.style.left = "unset";
-        this.stats.dom.style.right = "26px";
-        document.body.appendChild(this.stats.dom);
+        this.stats.dom.style.right = "1px";
+        container.appendChild(this.stats.dom);
     }
 
     private updateCamera(delta: number): void {
@@ -167,7 +183,7 @@ export class RenderEvents {
 
         let down = false;
 
-        this.renderer.app.view.addEventListener('pointerupoutside', (e) => {
+        this.renderer.app.view.addEventListener('pointerleave', (e) => {
             down = false;
 
             let sw = this.renderer.app.screen.width;

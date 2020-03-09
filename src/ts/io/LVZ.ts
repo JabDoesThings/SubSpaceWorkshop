@@ -1407,25 +1407,27 @@ export class LVZImage extends Printable implements Validatable, Dirtable {
             this.resource.createTexture((img: HTMLImageElement) => {
 
                 let tex = PIXI.Texture.from(img);
-                let sequence: PIXI.Texture[] = [];
 
-                let width = img.width;
-                let height = img.height;
-                let fw = Math.floor(width / xFrames);
-                let fh = Math.floor(height / yFrames);
+                // let sequence: PIXI.Texture[] = [];
+                //
+                // let width = img.width;
+                // let height = img.height;
+                // let fw = Math.floor(width / xFrames);
+                // let fh = Math.floor(height / yFrames);
+                //
+                // for (let y = 0; y < this.yFrames; y++) {
+                //     for (let x = 0; x < this.xFrames; x++) {
+                //         let frame = new PIXI.Texture(tex.baseTexture, new PIXI.Rectangle(x * fw, y * fh, fw, fh));
+                //         sequence.push(frame);
+                //     }
+                // }
+                // this.sprite.sequence = sequence;
 
-                for (let y = 0; y < this.yFrames; y++) {
-                    for (let x = 0; x < this.xFrames; x++) {
-                        let frame = new PIXI.Texture(tex.baseTexture, new PIXI.Rectangle(x * fw, y * fh, fw, fh));
-                        sequence.push(frame);
-                    }
-                }
-
-                this.sprite.sequence = sequence;
                 this.sprite.frameWidth = img.width / this.xFrames;
                 this.sprite.frameHeight = img.height / this.yFrames;
-
                 this.sprite.reset();
+                this.sprite.texture = tex;
+                this.sprite.sequenceTexture();
             });
         }
 
@@ -1438,7 +1440,7 @@ export class LVZImage extends Printable implements Validatable, Dirtable {
 
     destroy(): void {
         this.resource.destroy();
-        if(this.sprite != null) {
+        if (this.sprite != null) {
             this.sprite.destroy();
             this.sprite = null;
         }

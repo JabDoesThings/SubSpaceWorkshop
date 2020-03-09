@@ -5,6 +5,11 @@
 @import 'viewport';
 @import 'workspace';
 @import 'layer';
+@import 'panel';
+@import 'section';
+@import "impl/tileset";
+
+$panelWidth: 320px;
 
 .map-viewport-container {
   position: relative;
@@ -13,18 +18,34 @@
   margin: 0;
   padding: 0;
 
+  #editor-tab-menu, .side-panel, .viewport, .map-viewport-canvas-boxshadow {
+    transition: translate $panelTime, left $panelTime, right $panelTime, width $panelTime;
+  }
+
   .map-viewport-canvas-container {
     position: absolute;
     top: 0;
     left: 24px;
     width: calc(100% - 48px);
     height: calc(100% - 48px);
+
+    .viewport {
+      display: inline-block;
+      position: relative;
+      //top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+
+      margin-left: -4px;
+      margin-right: -5px;
+    }
   }
 
   .map-viewport-canvas-boxshadow {
     z-index: 3;
     position: absolute;
-    top: 0;
+    //top: 0;
     left: 0;
     width: 100%;
     height: 100%;
@@ -34,14 +55,66 @@
     pointer-events: none;
   }
 
-  #viewport {
-    position: absolute;
-    top: 0;
+  .viewport {
+    position: relative;
+    //top: 0;
     left: 0;
-
     margin: 0;
     padding: 0;
 
+    border: 1px solid $color5;
+  }
+}
+
+.viewport-frame.left-panel-open.right-panel-open {
+
+  .side-panel.left {
+    width: $panelWidth;
+    border: 1px solid $color5;
+  }
+
+  .viewport {
+    width: calc(100% - #{$panelWidth * 2} - 6px);
+  }
+
+  .side-panel.right {
+    width: $panelWidth;
+    border: 1px solid $color5;
+  }
+}
+
+.viewport-frame.left-panel-open {
+
+  #editor-tab-menu {
+     left: calc(#{$panelWidth} + 28px);
+  }
+
+  .side-panel.left {
+    width: $panelWidth;
+    border: 1px solid $color5;
+  }
+
+  .viewport {
+    width: calc(100% - #{$panelWidth} - 6px);
+  }
+
+  .side-panel.right {
+    width: 0;
+  }
+}
+
+.viewport-frame.right-panel-open {
+
+  .side-panel.left {
+    width: 0;
+  }
+
+  .viewport {
+    width: calc(100% - #{$panelWidth} - 6px);
+  }
+
+  .side-panel.right {
+    width: $panelWidth;
     border: 1px solid $color5;
   }
 }

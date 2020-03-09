@@ -33,7 +33,7 @@ export class SimpleEditor {
         this.renderer = new MapRenderer();
 
         let container
-            = <HTMLDivElement> document.getElementsByClassName("map-viewport-canvas-container").item(0);
+            = <HTMLDivElement> document.getElementsByClassName("viewport").item(0);
 
         this.renderer.init(container, 'viewport', true);
 
@@ -48,6 +48,22 @@ export class SimpleEditor {
             link.setAttribute("href", b64);
             link.setAttribute("download", "screenshot.png");
             link.click();
+        });
+
+        $(document).on('click', '.section > .header > .arrow', function () {
+            let section = this.parentElement.parentElement;
+            let classList = section.classList;
+            if (classList.contains('open')) {
+                classList.remove('open');
+            } else {
+                classList.add('open');
+            }
+            let contentFrame = $(section).find('.content-frame').get(0);
+            if (contentFrame.style.maxHeight) {
+                contentFrame.style.maxHeight = null;
+            } else {
+                contentFrame.style.maxHeight = contentFrame.scrollHeight + "px";
+            }
         });
 
         this.setActiveSession(this.sessions.length - 1);
