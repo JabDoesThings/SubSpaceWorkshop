@@ -203,6 +203,7 @@ export class MapSprite implements Validatable {
 
     sequence: PIXI.Texture[];
     source: HTMLImageElement;
+    private dirty: boolean;
 
     /**
      * Main constructor.
@@ -280,6 +281,7 @@ export class MapSprite implements Validatable {
         this.validate();
 
         this.reset();
+        this.dirty = true;
     }
 
     // @Override
@@ -417,5 +419,15 @@ export class MapSprite implements Validatable {
                 this.sequence.push(tex);
             }
         }
+    }
+
+    // @Override
+    isDirty(): boolean {
+        return this.dirty;
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+        this.dirty = flag;
     }
 }

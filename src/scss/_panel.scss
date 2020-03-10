@@ -1,6 +1,7 @@
 @import 'palette';
 
 $panelTime: 200ms;
+$panelWidth: 320px;
 
 .side-panel {
 
@@ -18,10 +19,34 @@ $panelTime: 200ms;
 
   overflow-x: hidden;
   overflow-y: hidden;
+
+  .side-panel-contents {
+
+    position: relative;
+    height: 100%;
+
+    overflow-x: hidden;
+    transition: left 200ms;
+
+  }
 }
 
 .side-panel.left {
 }
 
 .side-panel.right {
+}
+
+.panel-tab {
+  position: relative;
+  display: inline-block;
+  top: 0;
+  left: 0;
+  width: $panelWidth;
+  height: 100%;
+  z-index: 1;
+}
+
+.panel-tab.open {
+  z-index: 2;
 }

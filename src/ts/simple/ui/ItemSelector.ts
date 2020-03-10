@@ -21,8 +21,11 @@ export class ItemSelector implements Dirtable {
 
     maxWidthTiles: number;
     maxHeightTiles: number;
+    minYSlots: number;
+    maxYSlots: number;
     tileSize: number;
     listener: ItemSelectorListener;
+
     panel: AssetPanel;
 
     constructor(panel: AssetPanel, container: HTMLElement) {
@@ -34,13 +37,15 @@ export class ItemSelector implements Dirtable {
         this.tileSize = 16;
         this.maxHeightTiles = 8;
         this.maxHeightTiles = 8;
+        this.minYSlots = 6;
+        this.maxYSlots = 32;
         this.dirty = true;
     }
 
-    init(): void {
+    init(width: number): void {
 
         this.app = new PIXI.Application({
-            width: this.container.clientWidth,
+            width: width,
             height: this.tileSize,
             backgroundColor: 0x0,
             resolution: window.devicePixelRatio || 1,
@@ -53,12 +58,6 @@ export class ItemSelector implements Dirtable {
         this.container.appendChild(this.canvas);
 
         this.app.ticker.add(() => {
-
-            // let width = this.canvas.clientWidth;
-            // if (lastWidth != width) {
-            //     lastWidth = width;
-            //     this.setDirty(true);
-            // }
 
             if (this.isDirty()) {
                 this.draw();
@@ -79,71 +78,60 @@ export class ItemSelector implements Dirtable {
 
         this.app.stage.removeChildren();
 
-        let width = Math.floor(this.canvas.width);
-        let widthSlots = Math.floor(width / 16);
+        let xSlots = Math.floor(Math.floor(this.canvas.width) / 16);
+        let ySlots = this.minYSlots;
 
-        let minYSlots = 6;
-        let maxYSlots = 32;
-        let slots: boolean[][] = new Array(widthSlots);
-        for (let x = 0; x < widthSlots; x++) {
-            slots[x] = new Array(minYSlots);
+        let slots: boolean[][] = [];
+        for (let x = 0; x < xSlots; x++) {
+            slots[x] = [];
+            for (let y = 0; y < ySlots; y++) {
+                slots[x][y] = false;
+            }
         }
-
-        let ySlots = minYSlots;
 
         let addRow = (): boolean => {
 
-            if (ySlots + 1 > maxYSlots) {
+            if (ySlots + 1 > this.maxYSlots) {
                 return false;
             }
 
-            for (let x = 0; x < slots.length; x++) {
-                slots[x].push(false);
+            for (let x = 0; x < xSlots; x++) {
+                slots[x][ySlots] = false;
             }
 
             ySlots++;
             return true;
         };
 
-        let hasRoom = (width: number, height: number): { x: number, y: number } => {
+        let attempt = (width: number, height: number): { x: number, y: number } => {
 
-            let foundRoom = false;
-            let x = 0;
-            let y = 0;
+            for (let y = 0; y < ySlots; y++) {
 
-            for (; y < ySlots; y++) {
-                for (; x < slots.length; x++) {
+                for (let x = 0; x < slots.length; x++) {
 
-                    let room: boolean = true;
+                    let room = true;
 
                     for (let j = 0; j < height; j++) {
+
                         for (let i = 0; i < width; i++) {
+
                             if (slots[x][y]) {
                                 room = false;
                                 break;
                             }
                         }
+
                         if (!room) {
                             break;
                         }
                     }
 
                     if (room) {
-                        foundRoom = true;
-                        break;
+                        return {x: x, y: y};
                     }
                 }
-
-                if (foundRoom) {
-                    break;
-                }
             }
-
-            if (foundRoom) {
-                return {x: x, y: y};
-            } else {
-                return null;
-            }
+            return null;
         };
 
         let getSpot = (item: Item): { x: number, y: number } => {
@@ -164,8 +152,8 @@ export class ItemSelector implements Dirtable {
             } else {
                 item.w = item.getSourceWidth();
             }
-            if (heightTiles > this.maxHeightTiles) {
 
+            if (heightTiles > this.maxHeightTiles) {
                 heightTiles = this.maxHeightTiles;
                 item.h = heightTiles * this.tileSize;
             } else {
@@ -175,10 +163,16 @@ export class ItemSelector implements Dirtable {
             item.wt = widthTiles;
             item.ht = heightTiles;
 
-            let coords = null;
+            // Make sure the slots can fit the image first before finding a spot.
+            while (ySlots < item.ht) {
+                if (!addRow()) {
+                    return null;
+                }
+            }
 
+            let coords = null;
             while (coords == null) {
-                coords = hasRoom(widthTiles, heightTiles);
+                coords = attempt(widthTiles, heightTiles);
                 if (coords == null && !addRow()) {
                     break;
                 }
@@ -206,11 +200,11 @@ export class ItemSelector implements Dirtable {
 
             let spot = getSpot(next);
             if (spot == null) {
-                next.visible = false;
+                next.getContainer().visible = false;
                 continue;
             }
 
-            next.visible = true;
+            next.getContainer().visible = true;
             next.x = spot.x * this.tileSize;
             next.y = spot.y * this.tileSize;
             next.setDirty(true);
@@ -218,15 +212,21 @@ export class ItemSelector implements Dirtable {
             this.app.stage.addChild(next.getContainer());
             this.app.stage.addChild(next.outline);
 
-            for (let y = spot.y; y < spot.y + next.ht; y++) {
-                for (let x = spot.x; x < spot.x + next.wt; x++) {
+            let x1 = spot.x;
+            let y1 = spot.y;
+            let x2 = x1 + next.wt;
+            let y2 = y1 + next.ht;
+
+            for (let y = y1; y < y2; y++) {
+                for (let x = x1; x < x2; x++) {
                     slots[x][y] = true;
                 }
             }
         }
 
-        this.canvas.height = ySlots * this.tileSize;
-        this.app.screen.width = this.app.view.width;
+        console.log('slots: {x: ' + xSlots + ", y: " + ySlots + "}");
+
+        this.app.view.height = ySlots * this.tileSize;
         this.app.screen.height = this.app.view.height;
     }
 
@@ -338,13 +338,15 @@ export class ItemSelectorListener {
                 }
             }
 
+            if (item == null) {
+                return;
+            }
+
             if (button == 0) {
                 this.selector.selectPrimary(item);
             } else if (button == 2) {
                 this.selector.selectSecondary(item);
             }
-
-            console.log('select(x: ' + x + ", y: " + y + ", button: " + button + ") = " + item);
         };
 
         let down = false;
@@ -394,9 +396,10 @@ export abstract class Item implements Dirtable {
     h: number;
     wt: number;
     ht: number;
-    visible: boolean;
-    private dirty: boolean;
+    protected dirty: boolean;
     selector: ItemSelector;
+
+    protected container: PIXI.Container;
 
     protected constructor(selector: ItemSelector, type: string, id: string) {
 
@@ -410,9 +413,11 @@ export abstract class Item implements Dirtable {
         this.h = 0;
         this.wt = 0;
         this.ht = 0;
-        this.visible = false;
+        this.container = new PIXI.Container();
+        this.container.visible = false;
 
         this.outline = new PIXI.Graphics();
+        this.container.addChild(this.outline);
     }
 
     drawOutline(): void {
@@ -466,6 +471,8 @@ export abstract class Item implements Dirtable {
         this.onUpdate();
     }
 
+    abstract draw(): void;
+
     abstract onUpdate(): void;
 
     abstract getSourceWidth(): number;
@@ -497,7 +504,7 @@ export class SpriteItem extends Item {
         this._sprite.width = 0;
         this._sprite.height = 0;
 
-        this._sprite.filterArea = this.selector.app.screen;
+        this.container.addChild(this._sprite);
     }
 
     // @Override
@@ -510,7 +517,6 @@ export class SpriteItem extends Item {
             this._sprite.y = this.y;
             this._sprite.width = this.w;
             this._sprite.height = this.h;
-            this._sprite.visible = this.visible;
 
             // Update the texture.
             this.draw();
@@ -521,6 +527,7 @@ export class SpriteItem extends Item {
         }
     }
 
+    // @Override
     draw(): void {
 
         let sequence = this.sprite.sequence;
@@ -530,13 +537,12 @@ export class SpriteItem extends Item {
 
         this.drawOutline();
 
-        // this._sprite.texture = this.sprite.texture;
         this._sprite.texture = this.sprite.sequence[this.sprite.offset];
     }
 
     // @Override
     getContainer(): PIXI.Container {
-        return this._sprite;
+        return this.container;
     }
 
     // @Override
@@ -547,5 +553,20 @@ export class SpriteItem extends Item {
     // @Override
     getSourceHeight(): number {
         return this.sprite.frameHeight;
+    }
+
+    // @Override
+    isDirty(): boolean {
+        return this.dirty || this.sprite.isDirty();
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+
+        this.dirty = flag;
+
+        if (!flag) {
+            this.sprite.setDirty(false);
+        }
     }
 }

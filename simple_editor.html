@@ -51,16 +51,16 @@
 
 <div class="editor_frame dark">
 
-    <div class="viewport-frame left-panel-open right-panel-open">
+    <div id="viewport-frame" class="viewport-frame right-panel-open">
 
         <div id="editor-tab-menu" class="tab-menu"></div>
 
         <div class="map-viewport-container" style="display: block">
 
             <!-- Options above the viewport. -->
-            <div id="editor-left-tab-menu" class="tab-menu left">
-                <div id="tileset-tab" class="tab selected"><label>Tileset</label></div>
-                <div id="regions-tab" class="tab"><label>Regions</label></div>
+            <div id="editor-right-tab-menu" class="tab-menu right">
+                <div id="assets-tab" class="tab selected"><label>Assets</label></div>
+                <div id="objects-tab" class="tab"><label>Objects</label></div>
             </div>
 
             <!-- The PixiJS canvas goes in here. -->
@@ -68,47 +68,6 @@
 
                 <!-- ### Left Panel ### -->
                 <div class="side-panel left">
-
-                    <!-- Standard Tiles -->
-                    <div class="section">
-                        <div class="header">
-                            <div class="arrow"><label></label></div>
-                            <div class="title"><label>Standard Tiles</label></div>
-                        </div>
-                        <div class="content-frame">
-                            <div class="contents">
-                                <div id="standard-tileset" class="standard-tileset"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Special Tiles -->
-                    <div class="section">
-                        <div class="header">
-                            <div class="arrow"><label></label></div>
-                            <div class="title"><label>Special Tiles</label></div>
-                        </div>
-                        <div class="content-frame">
-                            <div id="special-tiles-section" class="contents">
-
-<!--                                <div id="over1" class="tile-sprite">-->
-<!--                                    <canvas width="16" height="16"></canvas>-->
-<!--                                </div>-->
-<!--                                <div id="over2" class="tile-sprite">-->
-<!--                                    <canvas width="32" height="32"></canvas>-->
-<!--                                </div>-->
-<!--                                <div id="over3" class="tile-sprite">-->
-<!--                                    <canvas width="16" height="16"></canvas>-->
-<!--                                </div>-->
-<!--                                <div id="over4" class="tile-sprite">-->
-<!--                                    <canvas width="96" height="96"></canvas>-->
-<!--                                </div>-->
-<!--                                <div id="over5" class="tile-sprite">-->
-<!--                                    <canvas width="80" height="80"></canvas>-->
-<!--                                </div>-->
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="viewport">
@@ -120,12 +79,72 @@
                     </div>
 
                 </div>
-                <div class="side-panel right">
+                <div id="right-panel" class="side-panel right">
 
+                    <div class="side-panel-contents">
+
+                        <div id="assets-panel-tab" class="panel-tab open">
+
+                            <!-- Standard Tiles -->
+                            <div class="section open">
+                                <div class="header">
+                                    <div class="arrow"><label></label></div>
+                                    <div class="title"><label>Standard Tiles</label></div>
+                                </div>
+                                <div class="content-frame">
+                                    <div class="contents">
+                                        <div id="standard-tileset" class="standard-tileset"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Special Tiles -->
+                            <div class="section open">
+                                <div class="header">
+                                    <div class="arrow"><label></label></div>
+                                    <div class="title"><label>Special Tiles</label></div>
+                                </div>
+                                <div class="content-frame">
+                                    <div id="special-tiles-section" class="contents"></div>
+                                </div>
+                            </div>
+
+                            <!-- Map Images -->
+                            <div class="section open">
+                                <div class="header">
+                                    <div class="arrow"><label></label></div>
+                                    <div class="title"><label>Map Images</label></div>
+                                </div>
+                                <div class="content-frame">
+                                    <div id="map-image-section" class="contents"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="objects-panel-tab" class="panel-tab">
+                            <!-- Map Objects -->
+                            <div class="section">
+                                <div class="header">
+                                    <div class="arrow"><label></label></div>
+                                    <div class="title"><label>Map Objects</label></div>
+                                </div>
+                                <div class="content-frame">
+                                    <div id="map-objects-section" class="contents"></div>
+                                </div>
+                            </div>
+
+                            <!-- Regions -->
+                            <div class="section">
+                                <div class="header">
+                                    <div class="arrow"><label></label></div>
+                                    <div class="title"><label>Regions</label></div>
+                                </div>
+                                <div class="content-frame"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-
         </div>
     </div>
 </div>

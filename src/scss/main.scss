@@ -119,8 +119,9 @@ $panelWidth: 320px;
   }
 }
 
-#editor-left-tab-menu {
-  top: 100%;
-  transform: rotate(-90deg);
+#editor-right-tab-menu {
+  top: 0;
+  left: calc(100% - 2px);
+  transform: rotate(90deg);
   transform-origin: left top 0;
 }

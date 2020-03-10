@@ -67,6 +67,10 @@
 
     .contents {
       padding: 7px;
+
+      canvas {
+        margin-bottom: -3px;
+      }
     }
   }
 }

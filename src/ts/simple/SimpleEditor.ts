@@ -62,7 +62,123 @@ export class SimpleEditor {
             if (contentFrame.style.maxHeight) {
                 contentFrame.style.maxHeight = null;
             } else {
-                contentFrame.style.maxHeight = contentFrame.scrollHeight + "px";
+                contentFrame.style.maxHeight = (contentFrame.scrollHeight) + "px";
+            }
+        });
+
+        let rightPanelOpen = true;
+        let assetsTabOpen = true;
+        let objectsTabOpen = false;
+
+        let assetsPanelTab = document.getElementById('assets-panel-tab');
+        let objectsPanelTab = document.getElementById('objects-panel-tab');
+
+        let viewportFrame = document.getElementById('viewport-frame');
+        let rightPanel = document.getElementById('right-panel');
+        let assetsTab = document.getElementById('assets-tab');
+        let objectsTab = document.getElementById('objects-tab');
+
+        let sidePanelContents = $(rightPanel).find('.side-panel-contents').get(0);
+
+        let panelWidth = 320;
+
+        let openRightPanel = () => {
+
+            rightPanelOpen = true;
+
+            if (!viewportFrame.classList.contains('right-panel-open')) {
+                viewportFrame.classList.add('right-panel-open');
+            }
+        };
+
+        let closeRightPanel = () => {
+
+            rightPanelOpen = false;
+
+            if (viewportFrame.classList.contains('right-panel-open')) {
+                viewportFrame.classList.remove('right-panel-open');
+            }
+        };
+
+        let openAssetsTab = () => {
+
+            assetsTabOpen = true;
+
+            if (!assetsTab.classList.contains('selected')) {
+                assetsTab.classList.add('selected');
+            }
+
+            sidePanelContents.style.left = '0px';
+
+            if(objectsTabOpen) {
+                closeObjectsTab();
+            }
+
+            if (!rightPanelOpen) {
+                openRightPanel();
+            }
+        };
+
+        let closeAssetsTab = () => {
+
+            assetsTabOpen = false;
+
+            if (assetsTab.classList.contains('selected')) {
+                assetsTab.classList.remove('selected');
+            }
+
+            if (rightPanelOpen && !assetsTabOpen && !objectsTabOpen) {
+                closeRightPanel();
+            }
+        };
+
+        let openObjectsTab = () => {
+
+            objectsTabOpen = true;
+
+            if (!objectsTab.classList.contains('selected')) {
+                objectsTab.classList.add('selected');
+            }
+
+            sidePanelContents.style.left = '-' + panelWidth + 'px';
+
+            if(assetsTabOpen) {
+                closeAssetsTab();
+            }
+
+            if (!rightPanelOpen) {
+                openRightPanel();
+            }
+        };
+
+        let closeObjectsTab = () => {
+
+            objectsTabOpen = false;
+
+            if (objectsTab.classList.contains('selected')) {
+                objectsTab.classList.remove('selected');
+            }
+
+            if (rightPanelOpen && !assetsTabOpen && !objectsTabOpen) {
+                closeRightPanel();
+            }
+        };
+
+        $(assetsTab).on('click', () => {
+
+            if (assetsTabOpen) {
+                closeAssetsTab();
+            } else {
+                openAssetsTab();
+            }
+        });
+
+        $(objectsTab).on('click', () => {
+
+            if (objectsTabOpen) {
+                closeObjectsTab();
+            } else {
+                openObjectsTab();
             }
         });
 

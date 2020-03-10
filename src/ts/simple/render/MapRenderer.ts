@@ -243,8 +243,9 @@ export class MapRenderer extends Renderer {
 
     // @Override
     onPostUpdate(delta: number): void {
-        if(this.session != null) {
-            this.session.selectionGroup.setDirty(false);
+        if (this.session != null) {
+            let selectionGroup = this.session.selectionGroup;
+            selectionGroup.setDirty(false);
         }
     }
 

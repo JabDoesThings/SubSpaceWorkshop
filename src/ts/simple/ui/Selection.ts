@@ -77,6 +77,7 @@ export class Selection {
  */
 export enum SelectionType {
     TILE = 'tile',
+    IMAGE = 'image',
     MAP_OBJECT = 'map_object',
     SCREEN_OBJECT = 'screen_object',
     REGION = 'region'

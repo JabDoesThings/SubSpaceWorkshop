@@ -13,6 +13,8 @@ export class AssetPanel {
     specialTileSection: ItemSelector;
 
     private lastSession: Session;
+    private mapImageSection: ItemSelector;
+    private contentFrameResize: boolean = false;
 
     constructor(view: MapRenderer) {
 
@@ -21,48 +23,95 @@ export class AssetPanel {
         this.tileSection = new TileSection(this);
 
         let specialTilesSection = document.getElementById('special-tiles-section');
-
         this.specialTileSection = new ItemSelector(this, specialTilesSection);
-        this.specialTileSection.init();
-        this.specialTileSection.app.view.width = specialTilesSection.clientWidth;
+        this.specialTileSection.init(specialTilesSection.clientWidth - 14);
+
+        let mapImageSection = document.getElementById('map-image-section');
+        this.mapImageSection = new ItemSelector(this, mapImageSection);
+        this.mapImageSection.init(mapImageSection.clientWidth - 14);
     }
 
     update(): void {
 
         let session = this.view.session;
 
-        if (session !== this.lastSession) {
+        let spriteDirty = session !== this.lastSession;
+        if (!spriteDirty) {
+            for (let key in this.mapImageSection.items) {
+                if (this.mapImageSection.items[key].isDirty()) {
+                    spriteDirty = true;
+                    break;
+                }
+            }
+        }
+
+        if (spriteDirty) {
+
+            this.tileSection.draw();
+
             this.createTileSprites(session);
             this.tileSection.draw();
-            this.lastSession = session;
+            this.createLVZAssets(session);
+            this.mapImageSection.draw();
+
+            for (let key in this.mapImageSection.items) {
+                this.mapImageSection.items[key].setDirty(false);
+            }
+
+            if(!this.contentFrameResize) {
+                this.contentFrameResize = true;
+                setTimeout(() => {
+                    $(document.body).find('.side-panel.right .content-frame').each(function () {
+                        if (this.parentElement != null && this.parentElement.classList.contains('open')) {
+                            this.style.maxHeight = (this.scrollHeight) + "px";
+                        } else {
+                            this.style.maxHeight = null;
+                        }
+                    });
+                    this.contentFrameResize = false;
+                }, 20);
+            }
         }
 
         this.tileSection.update();
+
+        this.lastSession = session;
     }
 
     createTileSprites(session: Session): void {
-
         this.specialTileSection.clear();
-
-        let add = (id: string, sprite: MapSprite): void => {
-            let item = new SpriteItem(this.specialTileSection, SelectionType.TILE, id, sprite);
-            this.specialTileSection.add(item);
+        let add = (id: string, sprite: MapSprite, selector: ItemSelector): void => {
+            let item = new SpriteItem(selector, SelectionType.TILE, id, sprite);
+            selector.add(item);
         };
-
         let lvlSprites = session.cache.lvlSprites;
-        add('216', lvlSprites.mapSpriteOver1);
-        add('217', lvlSprites.mapSpriteOver2);
-        add('218', lvlSprites.mapSpriteOver3);
-        add('219', lvlSprites.mapSpriteOver4);
-        add('220', lvlSprites.mapSpriteOver5);
-        add('252', lvlSprites.mapSpriteBrickBlue);
-        add('253', lvlSprites.mapSpriteBrickYellow);
-        add('255', lvlSprites.mapSpritePrize);
+        add('216', lvlSprites.mapSpriteOver1, this.specialTileSection);
+        add('217', lvlSprites.mapSpriteOver2, this.specialTileSection);
+        add('218', lvlSprites.mapSpriteOver3, this.specialTileSection);
+        add('219', lvlSprites.mapSpriteOver4, this.specialTileSection);
+        add('220', lvlSprites.mapSpriteOver5, this.specialTileSection);
+        add('252', lvlSprites.mapSpriteBrickBlue, this.specialTileSection);
+        add('253', lvlSprites.mapSpriteBrickYellow, this.specialTileSection);
+        add('255', lvlSprites.mapSpritePrize, this.specialTileSection);
+    }
+
+    createLVZAssets(session: Session): void {
+        this.mapImageSection.clear();
+        let add = (id: string, sprite: MapSprite, selector: ItemSelector): void => {
+            let item = new SpriteItem(selector, SelectionType.IMAGE, id, sprite);
+            selector.add(item);
+        };
+        let lvzSprites = session.cache.lvzSprites;
+        for (let index = 0; index < lvzSprites.size(); index++) {
+            let next = lvzSprites.getSprite(index);
+            add('' + index, next, this.mapImageSection);
+        }
     }
 
     draw() {
         this.tileSection.draw();
         this.specialTileSection.draw();
+        this.mapImageSection.draw();
     }
 }
 
@@ -109,7 +158,6 @@ export class TileSection {
             let tx = (mx - (mx % 16)) / 16;
             let ty = (my - (my % 16)) / 16;
 
-            console.log('mx=' + mx + ', my=' + my + ', tx=' + tx + ', ty=' + ty);
             if (tx >= 0 && tx < 19 && ty >= 0 && ty < 10) {
                 let selection = new Selection(SelectionType.TILE, this.atlas[ty][tx]);
                 let slot: SelectionSlot;

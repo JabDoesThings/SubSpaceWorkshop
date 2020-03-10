@@ -1408,26 +1408,12 @@ export class LVZImage extends Printable implements Validatable, Dirtable {
 
                 let tex = PIXI.Texture.from(img);
 
-                // let sequence: PIXI.Texture[] = [];
-                //
-                // let width = img.width;
-                // let height = img.height;
-                // let fw = Math.floor(width / xFrames);
-                // let fh = Math.floor(height / yFrames);
-                //
-                // for (let y = 0; y < this.yFrames; y++) {
-                //     for (let x = 0; x < this.xFrames; x++) {
-                //         let frame = new PIXI.Texture(tex.baseTexture, new PIXI.Rectangle(x * fw, y * fh, fw, fh));
-                //         sequence.push(frame);
-                //     }
-                // }
-                // this.sprite.sequence = sequence;
-
                 this.sprite.frameWidth = img.width / this.xFrames;
                 this.sprite.frameHeight = img.height / this.yFrames;
                 this.sprite.reset();
                 this.sprite.texture = tex;
                 this.sprite.sequenceTexture();
+                this.sprite.setDirty(true);
             });
         }
 
@@ -1444,6 +1430,7 @@ export class LVZImage extends Printable implements Validatable, Dirtable {
             this.sprite.destroy();
             this.sprite = null;
         }
+        this.setDirty(true);
     }
 }
 
@@ -1642,18 +1629,12 @@ export class LVZMapObject extends Printable implements Validatable, Dirtable {
 
     // @Override
     isDirty(): boolean {
-        if (this.dirty) {
-            return true;
-        }
-
-        if (this.image != null && this.image.isDirty()) {
-            return true;
-        }
+        return this.dirty;
     }
 
     // @Override
     setDirty(flag: boolean): void {
-        this.dirty = false;
+        this.dirty = flag;
     }
 
     /**

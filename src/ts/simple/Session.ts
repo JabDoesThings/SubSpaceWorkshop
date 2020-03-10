@@ -69,6 +69,10 @@ export class Session {
             this.loaded = true;
         }
     }
+
+    isLVZDirty() {
+        return this.cache.lvz.isDirty();
+    }
 }
 
 /**
