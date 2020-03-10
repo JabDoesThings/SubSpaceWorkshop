@@ -37,8 +37,8 @@ export class ItemSelector implements Dirtable {
         this.tileSize = 16;
         this.maxHeightTiles = 8;
         this.maxHeightTiles = 8;
-        this.minYSlots = 6;
-        this.maxYSlots = 32;
+        this.minYSlots = 1;
+        this.maxYSlots = 256;
         this.dirty = true;
     }
 
@@ -88,7 +88,7 @@ export class ItemSelector implements Dirtable {
         this.app.stage.removeChildren();
 
         let xSlots = Math.floor(Math.floor(this.canvas.width) / 16);
-        let ySlots = this.minYSlots;
+        let ySlots = this.maxYSlots;
 
         let slots: boolean[][] = [];
         for (let x = 0; x < xSlots; x++) {
@@ -113,28 +113,24 @@ export class ItemSelector implements Dirtable {
         };
 
         let attempt = (width: number, height: number): { x: number, y: number } => {
-
             for (let y = 0; y < ySlots; y++) {
-
                 for (let x = 0; x < slots.length; x++) {
-
                     let room = true;
-
-                    for (let j = 0; j < height; j++) {
-
-                        for (let i = 0; i < width; i++) {
-
-                            if (slots[x][y]) {
-                                room = false;
+                    try {
+                        for (let j = 0; j < height; j++) {
+                            for (let i = 0; i < width; i++) {
+                                if (slots[x + i][y + j]) {
+                                    room = false;
+                                    break;
+                                }
+                            }
+                            if (!room) {
                                 break;
                             }
                         }
-
-                        if (!room) {
-                            break;
-                        }
+                    } catch (e) {
+                        room = false;
                     }
-
                     if (room) {
                         return {x: x, y: y};
                     }
@@ -203,6 +199,8 @@ export class ItemSelector implements Dirtable {
             return (b.getSourceWidth() * b.getSourceHeight()) - (a.getSourceWidth() * a.getSourceHeight());
         }));
 
+        let largestTileY = 1;
+
         for (let index = 0; index < sorted.length; index++) {
 
             let next = sorted[index];
@@ -226,14 +224,20 @@ export class ItemSelector implements Dirtable {
             let x2 = x1 + next.wt;
             let y2 = y1 + next.ht;
 
+            console.log({x: spot.x, y: spot.y, w: next.wt, h: next.ht});
+
             for (let y = y1; y < y2; y++) {
                 for (let x = x1; x < x2; x++) {
                     slots[x][y] = true;
                 }
             }
+
+            if(y2 > largestTileY) {
+                largestTileY = y2;
+            }
         }
 
-        this.app.view.height = ySlots * this.tileSize;
+        this.app.view.height = largestTileY * this.tileSize;
         this.app.screen.height = this.app.view.height;
     }
 

@@ -1172,6 +1172,13 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
         this.image.src = 'data:' + mimeType + ';base64,' + base64Image;
         this.image.decode().finally(() => {
 
+            if (this.image.width === 0 || this.image.height === 0) {
+                this.image = null;
+                this.callbacks = [];
+                this.calling = false;
+                return;
+            }
+
             let cv = document.createElement("canvas");
             cv.width = this.image.width;
             cv.height = this.image.height;
@@ -1181,12 +1188,12 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
             let imgData = ct.getImageData(0, 0, cv.width, cv.height);
             let data = imgData.data;
 
-            for(let offset = 0; offset < data.length; offset+=4) {
+            for (let offset = 0; offset < data.length; offset += 4) {
                 let r = data[offset];
                 let g = data[offset + 1];
                 let b = data[offset + 2];
 
-                if(r === 0 && b === 0 && g === 0) {
+                if (r === 0 && b === 0 && g === 0) {
                     data[offset + 3] = 0;
                 }
             }
@@ -1203,9 +1210,13 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
         });
     }
 
-    destroy() {
+    destroy(): void {
         this.texture.destroy();
         this.image = null;
+    }
+
+    isEmpty(): boolean {
+        return this.data == null || this.data.length === 0;
     }
 }
 

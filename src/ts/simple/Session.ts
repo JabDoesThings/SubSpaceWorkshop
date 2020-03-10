@@ -169,6 +169,8 @@ export class SessionCache {
     readonly lvlSprites: LVLSpriteCollection;
     readonly lvzSprites: MapSpriteCollection;
 
+    lvzTextures: { [id: string]: PIXI.Texture };
+
     chunks: LVLChunk[][];
     lvzChunks: LVZChunk[][];
     regions: ELVLRegionRender[];
@@ -179,12 +181,15 @@ export class SessionCache {
     _background: Background;
     initialized: boolean;
 
+    callbacks: { [name: string]: ((texture: PIXI.Texture) => void)[] };
+
     constructor(session: Session) {
         this.session = session;
         this.lvlSprites = new LVLSpriteCollection();
         this.lvzSprites = new MapSpriteCollection();
         this.initialized = false;
         this.regions = [];
+        this.callbacks = {};
     }
 
     init(): void {
@@ -278,16 +283,35 @@ export class SessionCache {
     }
 
     buildLVZ(): void {
-        let getResource = (name: string): LVZResource => {
-            for (let key in this.session.lvzPackages) {
-                let nextPkg = this.session.lvzPackages[key];
-                let resource = nextPkg.getResource(name);
-                if (resource != null) {
-                    return resource;
+
+        if (this.lvzTextures != null) {
+            for (let key in this.lvzTextures) {
+                let value = this.lvzTextures[key];
+                value.destroy(true);
+            }
+        }
+
+        this.lvzTextures = {};
+
+        for (let key in this.session.lvzPackages) {
+
+            let nextPkg = this.session.lvzPackages[key];
+
+            if (nextPkg.resources == null || nextPkg.resources.length === 0) {
+                continue;
+            }
+
+            for (let key in nextPkg.resources) {
+                let nextResource = nextPkg.resources[key];
+                if (nextResource.isImage() && !nextResource.isEmpty()) {
+                    nextResource.createTexture((texture: PIXI.Texture) => {
+                        let fileId = nextResource.getName().toLowerCase();
+                        this.lvzTextures[fileId] = texture;
+                        this.onCallBack(fileId, texture);
+                    });
                 }
             }
-            return null;
-        };
+        }
 
         for (let key in this.session.lvzPackages) {
 
@@ -298,19 +322,29 @@ export class SessionCache {
             }
 
             for (let index = 0; index < nextPkg.images.length; index++) {
+
                 let image = nextPkg.images[index];
-                let resource = getResource(image.fileName);
-                if (resource == null) {
-                    continue;
-                }
-
+                let fileId = image.fileName.toLowerCase();
                 let id = nextPkg.name + '>>>' + index;
-
                 let time = image.animationTime / 10;
                 let sprite = new MapSprite(0, 0, image.xFrames, image.yFrames, time);
                 sprite.id = id;
+                sprite.texture = this.lvzTextures[fileId];
+                if (sprite.texture != null) {
+                    sprite.frameWidth = sprite.texture.width / image.xFrames;
+                    sprite.frameHeight = sprite.texture.height / image.yFrames;
+                    sprite.reset();
+                    sprite.sequenceTexture();
+                    sprite.setDirty(true);
+                    sprite.id = id;
+                }
 
-                resource.createTexture((texture: PIXI.Texture) => {
+                let callbacks = this.callbacks[fileId];
+                if (callbacks == null) {
+                    callbacks = this.callbacks[fileId] = [];
+                }
+
+                callbacks.push((texture => {
                     sprite.frameWidth = texture.width / image.xFrames;
                     sprite.frameHeight = texture.height / image.yFrames;
                     sprite.reset();
@@ -318,13 +352,26 @@ export class SessionCache {
                     sprite.sequenceTexture();
                     sprite.setDirty(true);
                     sprite.id = id;
-                });
+                }));
 
                 this.lvzSprites.addSprite(sprite);
             }
         }
 
         this.session.lvzDirty = false;
+    }
+
+    private onCallBack(name: string, texture: PIXI.Texture): void {
+        let callbacks = this.callbacks[name];
+        console.log('onCallBack(name: \'' + name + '\', texture: ' + texture + ')', callbacks);
+
+        if (callbacks == null || callbacks.length === 0) {
+            return;
+        }
+
+        for (let index = 0; index < callbacks.length; index++) {
+            callbacks[index](texture);
+        }
     }
 
     set(stage: PIXI.Container) {

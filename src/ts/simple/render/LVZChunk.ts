@@ -136,7 +136,6 @@ export class LVZChunk {
     }
 
     build(session: Session): void {
-        console.log('rendering LVZChunk...');
 
         let lvzPackages = session.lvzPackages;
 

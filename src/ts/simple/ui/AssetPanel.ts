@@ -109,38 +109,13 @@ export class AssetPanel {
         let add = (id: string, sprite: MapSprite, selector: ItemSelector): void => {
             let item = new SpriteItem(selector, SelectionType.IMAGE, id, sprite);
             selector.add(item);
-        };
-
-        let getResource = (fileName: string): LVZResource => {
-            for (let pkgKey in session.lvzPackages) {
-                let pkgNext = session.lvzPackages[pkgKey];
-                for (let key in pkgNext.resources) {
-                    let next = pkgNext.resources[key];
-                    if (next.getName() === fileName) {
-                        return next;
-                    }
-                }
+            let callbacks = session.cache.callbacks[id];
+            if(callbacks == null) {
+                callbacks = session.cache.callbacks[id] = [];
             }
-            return null;
-        };
-
-        let getSprite = (image: CompiledLVZImage, resource: LVZResource): MapSprite => {
-
-            let xFrames = image.xFrames;
-            let yFrames = image.yFrames;
-            let time = image.animationTime / 10;
-            let sprite = new MapSprite(0, 0, xFrames, yFrames, time);
-
-            resource.createTexture((texture: PIXI.Texture) => {
-                sprite.frameWidth = texture.width / xFrames;
-                sprite.frameHeight = texture.height / yFrames;
-                sprite.reset();
-                sprite.texture = texture;
-                sprite.sequenceTexture();
-                sprite.setDirty(true);
+            callbacks.push(()=> {
+                this.mapImageSection.setDirty(true);
             });
-
-            return sprite;
         };
 
         for (let key in lvzPackages) {
@@ -152,26 +127,14 @@ export class AssetPanel {
             }
 
             for (let index = 0; index < pkg.images.length; index++) {
-
-                let image = pkg.images[index];
-                let resource = getResource(image.fileName);
-
-                if (resource == null) {
+                let id = pkg.name + ">>>" + index;
+                let sprite: MapSprite = session.cache.lvzSprites.getSpriteById(id);
+                if(sprite == null) {
                     continue;
                 }
-
-                let sprite: MapSprite = getSprite(image, resource);
-                let id = pkg.name + ">>>" + index;
-
                 add(id, sprite, this.mapImageSection);
             }
         }
-
-        // let lvzSprites = session.cache.lvzSprites;
-        // for (let index = 0; index < lvzSprites.size(); index++) {
-        //     let next = lvzSprites.getSprite(index);
-        //     add('' + index, next, this.mapImageSection);
-        // }
     }
 
     draw() {
