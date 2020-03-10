@@ -1,4 +1,4 @@
-@import '../palette';
+@import '../color';
 @import "../panel";
 
 .standard-tileset {
@@ -15,17 +15,15 @@
 .tile-sprite {
   display: inline-block;
   position: relative;
-  //margin: 0;
-  padding: 0;
 
+  padding: 0;
   margin-bottom: -4px;
   margin-right: -4px;
 
   background-color: black;
-
 }
 
-#assets-panel-tab {
+#palette-panel-tab {
   position: absolute;
   left: 0;
 }

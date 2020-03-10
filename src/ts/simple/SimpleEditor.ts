@@ -83,15 +83,15 @@ export class SimpleEditor {
         });
 
         let rightPanelOpen = true;
-        let assetsTabOpen = true;
+        let paletteTabOpen = true;
         let objectsTabOpen = false;
 
-        let assetsPanelTab = document.getElementById('assets-panel-tab');
+        let palettePanelTab = document.getElementById('palette-panel-tab');
         let objectsPanelTab = document.getElementById('objects-panel-tab');
 
         let viewportFrame = document.getElementById('viewport-frame');
         let rightPanel = document.getElementById('right-panel');
-        let assetsTab = document.getElementById('assets-tab');
+        let paletteTab = document.getElementById('palette-tab');
         let objectsTab = document.getElementById('objects-tab');
 
         let sidePanelContents = $(rightPanel).find('.side-panel-contents').get(0);
@@ -116,12 +116,12 @@ export class SimpleEditor {
             }
         };
 
-        let openAssetsTab = () => {
+        let openPaletteTab = () => {
 
-            assetsTabOpen = true;
+            paletteTabOpen = true;
 
-            if (!assetsTab.classList.contains('selected')) {
-                assetsTab.classList.add('selected');
+            if (!paletteTab.classList.contains('selected')) {
+                paletteTab.classList.add('selected');
             }
 
             sidePanelContents.style.left = '0px';
@@ -135,15 +135,15 @@ export class SimpleEditor {
             }
         };
 
-        let closeAssetsTab = () => {
+        let closePaletteTab = () => {
 
-            assetsTabOpen = false;
+            paletteTabOpen = false;
 
-            if (assetsTab.classList.contains('selected')) {
-                assetsTab.classList.remove('selected');
+            if (paletteTab.classList.contains('selected')) {
+                paletteTab.classList.remove('selected');
             }
 
-            if (rightPanelOpen && !assetsTabOpen && !objectsTabOpen) {
+            if (rightPanelOpen && !paletteTabOpen && !objectsTabOpen) {
                 closeRightPanel();
             }
         };
@@ -158,8 +158,8 @@ export class SimpleEditor {
 
             sidePanelContents.style.left = '-' + panelWidth + 'px';
 
-            if(assetsTabOpen) {
-                closeAssetsTab();
+            if(paletteTabOpen) {
+                closePaletteTab();
             }
 
             if (!rightPanelOpen) {
@@ -175,17 +175,17 @@ export class SimpleEditor {
                 objectsTab.classList.remove('selected');
             }
 
-            if (rightPanelOpen && !assetsTabOpen && !objectsTabOpen) {
+            if (rightPanelOpen && !paletteTabOpen && !objectsTabOpen) {
                 closeRightPanel();
             }
         };
 
-        $(assetsTab).on('click', () => {
+        $(paletteTab).on('click', () => {
 
-            if (assetsTabOpen) {
-                closeAssetsTab();
+            if (paletteTabOpen) {
+                closePaletteTab();
             } else {
-                openAssetsTab();
+                openPaletteTab();
             }
         });
 

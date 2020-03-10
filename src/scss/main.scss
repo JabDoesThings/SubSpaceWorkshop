@@ -1,4 +1,4 @@
-@import 'palette';
+@import 'color';
 @import "default";
 @import 'frame';
 @import 'tab';
@@ -7,7 +7,7 @@
 @import 'layer';
 @import 'panel';
 @import 'section';
-@import "impl/tileset";
+@import "impl/palette";
 
 $panelWidth: 320px;
 
