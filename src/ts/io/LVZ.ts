@@ -606,8 +606,28 @@ export class LVZPackage extends Printable implements Validatable {
         return this.mapObjects;
     }
 
-    public getScreenObjects(): CompiledLVZScreenObject[] {
+    getScreenObjects(): CompiledLVZScreenObject[] {
         return this.screenObjects;
+    }
+
+    createMapObject(image: number, coords: { x: number; y: number }, layer: LVZRenderLayer = LVZRenderLayer.AfterTiles, time: number = 0, mode: LVZDisplayMode = LVZDisplayMode.ShowAlways) {
+        let index = this.mapObjects.length;
+        this.mapObjects.push(new CompiledLVZMapObject(index, coords.x, coords.y, image, layer, time, mode));
+    }
+
+    getResource(name: string) {
+
+        if (this.resources == null || this.resources.length === 0) {
+            return;
+        }
+
+        for (let index = 0; index < this.resources.length; index++) {
+            let next = this.resources[index];
+            if (next.getName() === name) {
+                return next;
+            }
+        }
+        return null;
     }
 }
 
@@ -920,6 +940,7 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
     private time: number;
     private dirty: boolean;
     image: HTMLImageElement;
+    texture: PIXI.Texture;
 
     /**
      * Main constructor.
@@ -1111,11 +1132,27 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
         return null;
     }
 
-    createTexture(callback: (img: HTMLImageElement) => void): PIXI.Texture {
+    private calling: boolean = false;
+    private callbacks: ((texture: PIXI.Texture) => void)[] = [];
+
+    createTexture(callback: (texture: PIXI.Texture) => void): void {
 
         if (!this.isImage()) {
             throw new Error("The LVZResource is not an image file. (" + this.name + ")");
         }
+
+        if (this.texture != null) {
+            callback(this.texture);
+            return;
+        }
+
+        this.callbacks.push(callback);
+
+        if (this.calling) {
+            return;
+        }
+
+        this.calling = true;
 
         let mimeType = this.getMimeType();
 
@@ -1131,19 +1168,43 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
         //convert image file to base64-encoded string
         let base64Image = this.data.toString('base64');
 
-        let cv = document.createElement("canvas");
-        let texture = PIXI.Texture.from(cv);
-
         this.image = document.createElement("img");
         this.image.src = 'data:' + mimeType + ';base64,' + base64Image;
         this.image.decode().finally(() => {
-            callback(this.image);
-        });
 
-        return texture;
+            let cv = document.createElement("canvas");
+            cv.width = this.image.width;
+            cv.height = this.image.height;
+            let ct = cv.getContext('2d');
+            ct.drawImage(this.image, 0, 0);
+
+            let imgData = ct.getImageData(0, 0, cv.width, cv.height);
+            let data = imgData.data;
+
+            for(let offset = 0; offset < data.length; offset+=4) {
+                let r = data[offset];
+                let g = data[offset + 1];
+                let b = data[offset + 2];
+
+                if(r === 0 && b === 0 && g === 0) {
+                    data[offset + 3] = 0;
+                }
+            }
+
+            ct.putImageData(imgData, 0, 0);
+
+            this.texture = PIXI.Texture.from(cv);
+
+            for (let index = 0; index < this.callbacks.length; index++) {
+                this.callbacks[index](this.texture);
+            }
+            this.callbacks = [];
+            this.calling = false;
+        });
     }
 
     destroy() {
+        this.texture.destroy();
         this.image = null;
     }
 }
@@ -1404,14 +1465,11 @@ export class LVZImage extends Printable implements Validatable, Dirtable {
 
             this.sprite = new MapSprite(0, 0, xFrames, yFrames, time);
 
-            this.resource.createTexture((img: HTMLImageElement) => {
-
-                let tex = PIXI.Texture.from(img);
-
-                this.sprite.frameWidth = img.width / this.xFrames;
-                this.sprite.frameHeight = img.height / this.yFrames;
+            this.resource.createTexture((texture: PIXI.Texture) => {
+                this.sprite.frameWidth = texture.width / this.xFrames;
+                this.sprite.frameHeight = texture.height / this.yFrames;
                 this.sprite.reset();
-                this.sprite.texture = tex;
+                this.sprite.texture = texture;
                 this.sprite.sequenceTexture();
                 this.sprite.setDirty(true);
             });

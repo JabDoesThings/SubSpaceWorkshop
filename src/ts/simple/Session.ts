@@ -1,9 +1,9 @@
 import { LVLArea, LVLMap } from '../io/LVL';
 import { LVL } from '../io/LVLUtils';
-import { LVZCollection, LVZMapObject, LVZPackage } from '../io/LVZ';
+import { LVZPackage, LVZResource } from '../io/LVZ';
 import { LVZ } from '../io/LVZUtils';
 import { LVLSpriteCollection } from './render/LVLSpriteCollection';
-import { MapSpriteCollection } from './render/MapSprite';
+import { MapSprite, MapSpriteCollection } from './render/MapSprite';
 import { LVLBorder, LVLChunk } from './render/LVLRender';
 import { LVZChunk } from './render/LVZChunk';
 import { ELVLRegionRender } from './render/ELVLRegionRender';
@@ -11,7 +11,7 @@ import { Background } from '../common/Background';
 import { SimpleEditor } from './SimpleEditor';
 import * as PIXI from "pixi.js";
 import { Renderer } from '../common/Renderer';
-import { SelectionGroup, SelectionSlot, SelectionType, Selection} from './ui/Selection';
+import { SelectionGroup, SelectionSlot, SelectionType, Selection } from './ui/Selection';
 
 /**
  * The <i>Session</i> class. TODO: Document.
@@ -28,6 +28,9 @@ export class Session {
     map: LVLMap;
     _name: string;
     loaded: boolean;
+    lvzResourceDirty: boolean;
+    lvzDirty: boolean;
+    lvzDirtyRange: { x1: number, y1: number, x2: number, y2: number };
 
     private lvzPaths: string[];
     private lvlPath: string;
@@ -50,6 +53,10 @@ export class Session {
         this.tab = document.createElement('div');
         this.tab.classList.add('tab');
         this.tab.innerHTML = '<label>' + this._name + '</label>';
+
+        this.lvzDirty = true;
+        this.lvzDirtyRange = {x1: 0, x2: 0, y1: 16384, y2: 16384};
+        this.lvzResourceDirty = false;
     }
 
     load(override: boolean = false): void {
@@ -62,16 +69,92 @@ export class Session {
             for (let index = 0; index < this.lvzPaths.length; index++) {
                 let next = LVZ.read(this.lvzPaths[index]).inflate();
                 this.lvzPackages.push(next);
-
-                this.cache.lvz.addAll(next.collect());
             }
 
+            this.lvzDirty = true;
             this.loaded = true;
         }
     }
 
-    isLVZDirty() {
-        return this.cache.lvz.isDirty();
+    onPreUpdate(): void {
+
+        if (this.lvzResourceDirty) {
+            this.cache.buildLVZ();
+        }
+
+        if (this.lvzDirty) {
+
+            let contains2 = (cx1: number, cy1: number, cx2: number, cy2: number): boolean => {
+
+                let bx1 = this.lvzDirtyRange.x1;
+                let by1 = this.lvzDirtyRange.y1;
+                let bx2 = this.lvzDirtyRange.x2;
+                let by2 = this.lvzDirtyRange.y2;
+
+                if (bx2 < cx1 || bx1 > cx2) {
+                    return false;
+                }
+
+                return !(by2 < cy1 || by1 > cy2);
+            };
+
+            for (let y = 0; y < 16; y++) {
+                for (let x = 0; x < 16; x++) {
+                    let chunk = this.cache.lvzChunks[x][y];
+                    if (contains2(x * 1024, y * 1024, (x + 1) * 1024, (y + 1) * 1024)) {
+                        chunk.build(this);
+                    }
+                }
+            }
+        }
+
+        this.cache.lvlSprites.update();
+        this.cache.lvzSprites.update();
+    }
+
+    onUpdate(): void {
+
+    }
+
+    onPostUpdate(): void {
+
+        this.selectionGroup.setDirty(false);
+
+        if (this.lvzDirty) {
+            this.lvzDirty = false;
+            this.lvzDirtyRange.x1 = 999999;
+            this.lvzDirtyRange.y1 = 999999;
+            this.lvzDirtyRange.x2 = -999999;
+            this.lvzDirtyRange.y2 = -999999;
+        }
+
+        if (this.lvzResourceDirty) {
+            this.lvzResourceDirty = false;
+        }
+    }
+
+    setLVZPointDirty(x: number, y: number): void {
+        this.lvzDirty = true;
+        if (this.lvzDirtyRange.x1 > x) {
+            this.lvzDirtyRange.x1 = x;
+        }
+        if (this.lvzDirtyRange.y1 > y) {
+            this.lvzDirtyRange.y1 = y;
+        }
+        if (this.lvzDirtyRange.x2 < x) {
+            this.lvzDirtyRange.x2 = x;
+        }
+        if (this.lvzDirtyRange.y2 < y) {
+            this.lvzDirtyRange.y2 = y;
+        }
+    }
+
+    setLVZDirty(x1: number = 0, y1: number = 0, x2: number = 16384, y2: number = 16384): void {
+        this.lvzDirty = true;
+        this.lvzDirtyRange.x1 = x1;
+        this.lvzDirtyRange.y1 = y1;
+        this.lvzDirtyRange.x2 = x2;
+        this.lvzDirtyRange.y2 = y2;
     }
 }
 
@@ -89,16 +172,12 @@ export class SessionCache {
     chunks: LVLChunk[][];
     lvzChunks: LVZChunk[][];
     regions: ELVLRegionRender[];
-
     _regions: PIXI.Container;
     _map: PIXI.Container;
     _lvz: PIXI.Container;
     _border: LVLBorder;
     _background: Background;
-
     initialized: boolean;
-
-    lvz: LVZCollection;
 
     constructor(session: Session) {
         this.session = session;
@@ -106,7 +185,6 @@ export class SessionCache {
         this.lvzSprites = new MapSpriteCollection();
         this.initialized = false;
         this.regions = [];
-        this.lvz = new LVZCollection();
     }
 
     init(): void {
@@ -188,18 +266,7 @@ export class SessionCache {
             tileset.setDirty(true);
         }
 
-        this.lvz.setDirty(true);
-
-        let mapObjects: LVZMapObject[] = this.lvz.getMapObjects();
-        for (let index = 0; index < mapObjects.length; index++) {
-
-            let next = mapObjects[index];
-            let sprite = next.image.getSprite();
-
-            if (this.lvzSprites.getIndex(sprite) == -1) {
-                this.lvzSprites.addSprite(sprite);
-            }
-        }
+        this.buildLVZ();
 
         for (let x = 0; x < 16; x++) {
             for (let y = 0; y < 16; y++) {
@@ -208,6 +275,56 @@ export class SessionCache {
         }
 
         this.initialized = true;
+    }
+
+    buildLVZ(): void {
+        let getResource = (name: string): LVZResource => {
+            for (let key in this.session.lvzPackages) {
+                let nextPkg = this.session.lvzPackages[key];
+                let resource = nextPkg.getResource(name);
+                if (resource != null) {
+                    return resource;
+                }
+            }
+            return null;
+        };
+
+        for (let key in this.session.lvzPackages) {
+
+            let nextPkg = this.session.lvzPackages[key];
+
+            if (nextPkg.images == null || nextPkg.images.length === 0) {
+                continue;
+            }
+
+            for (let index = 0; index < nextPkg.images.length; index++) {
+                let image = nextPkg.images[index];
+                let resource = getResource(image.fileName);
+                if (resource == null) {
+                    continue;
+                }
+
+                let id = nextPkg.name + '>>>' + index;
+
+                let time = image.animationTime / 10;
+                let sprite = new MapSprite(0, 0, image.xFrames, image.yFrames, time);
+                sprite.id = id;
+
+                resource.createTexture((texture: PIXI.Texture) => {
+                    sprite.frameWidth = texture.width / image.xFrames;
+                    sprite.frameHeight = texture.height / image.yFrames;
+                    sprite.reset();
+                    sprite.texture = texture;
+                    sprite.sequenceTexture();
+                    sprite.setDirty(true);
+                    sprite.id = id;
+                });
+
+                this.lvzSprites.addSprite(sprite);
+            }
+        }
+
+        this.session.lvzDirty = false;
     }
 
     set(stage: PIXI.Container) {
@@ -232,21 +349,6 @@ export class SessionCache {
     }
 
     destroy(): void {
-
-        if (this.lvz != null) {
-
-            let mapObjects = this.lvz.getMapObjects();
-            for (let index = 0; index < mapObjects.length; index++) {
-                mapObjects[index].getImage().destroy();
-            }
-
-            let screenObject = this.lvz.getScreenObjects();
-            for (let index = 0; index < screenObject.length; index++) {
-                screenObject[index].getImage().destroy();
-            }
-
-            this.lvz = null;
-        }
 
         if (this._lvz != null) {
             this._lvz.removeChildren();

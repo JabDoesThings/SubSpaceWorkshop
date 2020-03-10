@@ -1,13 +1,15 @@
 import * as PIXI from "pixi.js";
 import { MapRenderer } from './MapRenderer';
-import { LVZMapObject } from '../../io/LVZ';
+import { CompiledLVZImage, CompiledLVZMapObject, LVZResource } from '../../io/LVZ';
 import { MapSprite } from './MapSprite';
+import { Session } from '../Session';
+import { Renderer } from '../../common/Renderer';
 
 /**
  * The <i>LVZChunkEntry</i> interface. TODO: Document.
  */
 interface LVZChunkEntry {
-    object: LVZMapObject,
+    object: CompiledLVZMapObject,
     sprite: MapSprite,
     texture: number,
     _sprite: PIXI.Sprite
@@ -25,8 +27,8 @@ export class LVZChunk {
     container: PIXI.Container;
 
     private view: MapRenderer;
-    private readonly x: number;
-    private readonly y: number;
+    readonly x: number;
+    readonly y: number;
 
     bounds: PIXI.Rectangle;
 
@@ -44,14 +46,15 @@ export class LVZChunk {
         this.bounds = new PIXI.Rectangle(0, 0, 0, 0);
     }
 
-    public onUpdate(): void {
+    onUpdate(): void {
 
         let session = this.view.session;
         if (session == null) {
             return;
         }
-        let lvz = session.cache.lvz;
-        if (lvz == null) {
+
+        let lvzPackages = session.lvzPackages;
+        if (lvzPackages == null || lvzPackages.length === 0) {
             return;
         }
 
@@ -60,6 +63,9 @@ export class LVZChunk {
             for (let index = 0; index < objects.length; index++) {
 
                 let next = objects[index];
+                if (next.sprite == null) {
+                    continue;
+                }
 
                 if (next.sprite.sequence != null) {
                     let offset = next.sprite.offset;
@@ -124,68 +130,102 @@ export class LVZChunk {
             this.container.scale.y = scale;
         }
 
-        if (lvz.isDirty()) {
-
-            let minX = 999999;
-            let minY = 999999;
-            let maxX = -999999;
-            let maxY = -999999;
-
-            let x1 = this.x * 64;
-            let y1 = this.y * 64;
-            let x2 = (this.x + 1) * 64;
-            let y2 = (this.y + 1) * 64;
-
-            let staticObjects = [];
-            this.animatedObjects = [];
-
-            this.container.removeChildren();
-
-            let objects = lvz.getNearbyTiles(x1, y1, x2, y2);
-
-            for (let index = 0; index < objects.length; index++) {
-
-                let next = objects[index];
-                let x = next.x;
-                let y = next.y;
-
-                let _sprite = new PIXI.Sprite();
-                _sprite.x = x;
-                _sprite.y = y;
-
-                let profile = {
-                    object: next, sprite: next.image.getSprite(), texture: -1,
-                    _sprite: _sprite
-                };
-
-                if (next.image.isAnimated()) {
-                    this.animatedObjects.push(profile);
-                } else {
-                    staticObjects.push(profile);
-                }
-
-                if (minX > x) {
-                    minX = x;
-                }
-                if (maxX < x) {
-                    maxX = x;
-                }
-                if (minY > y) {
-                    minY = y;
-                }
-                if (maxY < y) {
-                    maxY = y;
-                }
-            }
-
-            this.bounds.x = minX;
-            this.bounds.y = minY;
-            this.bounds.width = maxX - minX;
-            this.bounds.height = maxY - minY;
-        }
-
         if (contains()) {
             draw(this.animatedObjects);
         }
+    }
+
+    build(session: Session): void {
+        console.log('rendering LVZChunk...');
+
+        let lvzPackages = session.lvzPackages;
+
+        let getNearbyPixels = (x1: number, y1: number, x2: number, y2: number): { packageName: string, image: CompiledLVZImage, object: CompiledLVZMapObject }[] => {
+            let objects: { packageName: string, image: CompiledLVZImage, object: CompiledLVZMapObject }[] = [];
+            for (let index = 0; index < lvzPackages.length; index++) {
+                let next = lvzPackages[index];
+
+                for (let index2 = 0; index2 < next.mapObjects.length; index2++) {
+                    let nextObject = next.mapObjects[index2];
+                    let x = nextObject.x;
+                    let y = nextObject.y;
+
+                    let image = next.images[nextObject.image];
+
+                    if (x1 <= x && x <= x2 && y1 <= y && y <= y2) {
+                        objects.push({packageName: next.name, image: image, object: nextObject});
+                    }
+                }
+            }
+
+            return objects;
+        };
+
+        let getNearbyTiles = (x1: number, y1: number, x2: number, y2: number): { packageName: string, image: CompiledLVZImage, object: CompiledLVZMapObject }[] => {
+            return getNearbyPixels(x1 * 16, y1 * 16, x2 * 16, y2 * 16);
+        };
+
+        let minX = 999999;
+        let minY = 999999;
+        let maxX = -999999;
+        let maxY = -999999;
+
+        let x1 = this.x * 64;
+        let y1 = this.y * 64;
+        let x2 = (this.x + 1) * 64;
+        let y2 = (this.y + 1) * 64;
+
+        let staticObjects = [];
+        this.animatedObjects = [];
+
+        this.container.removeChildren();
+
+        let objects = getNearbyTiles(x1, y1, x2, y2);
+
+        for (let index = 0; index < objects.length; index++) {
+
+            let packageName = objects[index].packageName;
+            let object = objects[index].object;
+            let image = objects[index].image;
+            let x = object.x;
+            let y = object.y;
+
+            let _sprite = new PIXI.Sprite();
+            _sprite.x = x;
+            _sprite.y = y;
+
+            let mapSprite = session.cache.lvzSprites.getSpriteById(packageName + '>>>' + object.image);
+
+            let profile = {
+                object: object,
+                sprite: mapSprite,
+                texture: -1,
+                _sprite: _sprite
+            };
+
+            if ((image.xFrames > 1 || image.yFrames > 1) && image.animationTime !== 0) {
+                this.animatedObjects.push(profile);
+            } else {
+                staticObjects.push(profile);
+            }
+
+            if (minX > x) {
+                minX = x;
+            }
+            if (maxX < x) {
+                maxX = x;
+            }
+            if (minY > y) {
+                minY = y;
+            }
+            if (maxY < y) {
+                maxY = y;
+            }
+        }
+
+        this.bounds.x = minX;
+        this.bounds.y = minY;
+        this.bounds.width = maxX - minX;
+        this.bounds.height = maxY - minY;
     }
 }

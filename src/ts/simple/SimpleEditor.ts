@@ -66,6 +66,22 @@ export class SimpleEditor {
             }
         });
 
+        $(document).on('click', '.section > .header > .title', function () {
+            let section = this.parentElement.parentElement;
+            let classList = section.classList;
+            if (classList.contains('open')) {
+                classList.remove('open');
+            } else {
+                classList.add('open');
+            }
+            let contentFrame = $(section).find('.content-frame').get(0);
+            if (contentFrame.style.maxHeight) {
+                contentFrame.style.maxHeight = null;
+            } else {
+                contentFrame.style.maxHeight = (contentFrame.scrollHeight) + "px";
+            }
+        });
+
         let rightPanelOpen = true;
         let assetsTabOpen = true;
         let objectsTabOpen = false;

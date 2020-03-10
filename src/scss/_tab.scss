@@ -30,6 +30,8 @@
 
     cursor: pointer;
     -webkit-user-drag: none;
+    font-weight: normal;
+    font-stretch: expanded;
 
     &:hover {
       border-bottom-color: $color7;

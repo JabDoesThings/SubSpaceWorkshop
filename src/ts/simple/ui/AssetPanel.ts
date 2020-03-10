@@ -5,6 +5,7 @@ import { ItemSelector, SpriteItem } from './ItemSelector';
 import { SelectionSlot, SelectionType, Selection } from './Selection';
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
+import { CompiledLVZImage, LVZImage, LVZResource } from '../../io/LVZ';
 
 export class AssetPanel {
 
@@ -58,7 +59,7 @@ export class AssetPanel {
                 this.mapImageSection.items[key].setDirty(false);
             }
 
-            if(!this.contentFrameResize) {
+            if (!this.contentFrameResize) {
                 this.contentFrameResize = true;
                 setTimeout(() => {
                     $(document.body).find('.side-panel.right .content-frame').each(function () {
@@ -96,16 +97,81 @@ export class AssetPanel {
     }
 
     createLVZAssets(session: Session): void {
+
         this.mapImageSection.clear();
+
+        let lvzPackages = session.lvzPackages;
+
+        if (lvzPackages == null || lvzPackages.length == 0) {
+            return;
+        }
+
         let add = (id: string, sprite: MapSprite, selector: ItemSelector): void => {
             let item = new SpriteItem(selector, SelectionType.IMAGE, id, sprite);
             selector.add(item);
         };
-        let lvzSprites = session.cache.lvzSprites;
-        for (let index = 0; index < lvzSprites.size(); index++) {
-            let next = lvzSprites.getSprite(index);
-            add('' + index, next, this.mapImageSection);
+
+        let getResource = (fileName: string): LVZResource => {
+            for (let pkgKey in session.lvzPackages) {
+                let pkgNext = session.lvzPackages[pkgKey];
+                for (let key in pkgNext.resources) {
+                    let next = pkgNext.resources[key];
+                    if (next.getName() === fileName) {
+                        return next;
+                    }
+                }
+            }
+            return null;
+        };
+
+        let getSprite = (image: CompiledLVZImage, resource: LVZResource): MapSprite => {
+
+            let xFrames = image.xFrames;
+            let yFrames = image.yFrames;
+            let time = image.animationTime / 10;
+            let sprite = new MapSprite(0, 0, xFrames, yFrames, time);
+
+            resource.createTexture((texture: PIXI.Texture) => {
+                sprite.frameWidth = texture.width / xFrames;
+                sprite.frameHeight = texture.height / yFrames;
+                sprite.reset();
+                sprite.texture = texture;
+                sprite.sequenceTexture();
+                sprite.setDirty(true);
+            });
+
+            return sprite;
+        };
+
+        for (let key in lvzPackages) {
+
+            let pkg = lvzPackages[key];
+
+            if (pkg.images.length === 0) {
+                continue;
+            }
+
+            for (let index = 0; index < pkg.images.length; index++) {
+
+                let image = pkg.images[index];
+                let resource = getResource(image.fileName);
+
+                if (resource == null) {
+                    continue;
+                }
+
+                let sprite: MapSprite = getSprite(image, resource);
+                let id = pkg.name + ">>>" + index;
+
+                add(id, sprite, this.mapImageSection);
+            }
         }
+
+        // let lvzSprites = session.cache.lvzSprites;
+        // for (let index = 0; index < lvzSprites.size(); index++) {
+        //     let next = lvzSprites.getSprite(index);
+        //     add('' + index, next, this.mapImageSection);
+        // }
     }
 
     draw() {

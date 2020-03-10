@@ -59,14 +59,23 @@ export class ItemSelector implements Dirtable {
 
         this.app.ticker.add(() => {
 
-            if (this.isDirty()) {
+            let dirty = this.dirty;
+            if (!dirty) {
+                for (let id in this.items) {
+                    let next = this.items[id];
+                    if (next.isDirty()) {
+                        dirty = true;
+                    }
+                }
+            }
+
+            if (dirty) {
                 this.draw();
                 this.setDirty(false);
             }
 
             for (let id in this.items) {
-                let next = this.items[id];
-                next.update();
+                this.items[id].update();
             }
         });
 
@@ -223,8 +232,6 @@ export class ItemSelector implements Dirtable {
                 }
             }
         }
-
-        console.log('slots: {x: ' + xSlots + ", y: " + ySlots + "}");
 
         this.app.view.height = ySlots * this.tileSize;
         this.app.screen.height = this.app.view.height;
@@ -509,6 +516,8 @@ export class SpriteItem extends Item {
 
     // @Override
     onUpdate(): void {
+
+        this.sprite.update();
 
         if (this.isDirty() || this.lastOffset !== this.sprite.offset) {
 

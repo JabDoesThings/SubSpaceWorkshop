@@ -6,6 +6,7 @@
 import { Validatable } from '../../util/Validatable';
 import hex2rgb = PIXI.utils.hex2rgb;
 import Rectangle = PIXI.Rectangle;
+import uuid = require('uuid');
 
 export class MapSpriteCollection {
 
@@ -133,6 +134,22 @@ export class MapSpriteCollection {
         return this.sprites[index];
     }
 
+    getSpriteById(id: string): MapSprite {
+
+        if (this.sprites.length === 0) {
+            return null;
+        }
+
+        for (let index = 0; index < this.sprites.length; index++) {
+            let next = this.sprites[index];
+            if (next.id === id) {
+                return next;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Tests whether or not the MapSprite is registered in the collection.
      *
@@ -204,6 +221,7 @@ export class MapSprite implements Validatable {
     sequence: PIXI.Texture[];
     source: HTMLImageElement;
     private dirty: boolean;
+    id: string;
 
     /**
      * Main constructor.
@@ -219,6 +237,8 @@ export class MapSprite implements Validatable {
      * @param endY
      */
     constructor(frameWidth: number, frameHeight: number, framesX: number = 1, framesY: number = 1, frameTime: number = 1, startX: number = null, startY: number = null, endX: number = null, endY: number = null) {
+
+        this.id = uuid.v4();
 
         if (frameWidth == null) {
             throw new Error("The value of 'frameWidth' cannot be undefined.");

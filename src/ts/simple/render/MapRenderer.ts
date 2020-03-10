@@ -6,6 +6,14 @@ import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
 import { Session } from '../Session';
 import { Selection, SelectionSlot, SelectionType } from '../ui/Selection';
+import {
+    CompiledLVZImage,
+    CompiledLVZMapObject,
+    LVZCollection,
+    LVZMapObject,
+    LVZPackage,
+    LVZRenderLayer
+} from '../../io/LVZ';
 
 /**
  * The <i>SimpleRenderer</i> class. TODO: Document.
@@ -32,6 +40,10 @@ export class MapRenderer extends Renderer {
         this.grid.filters = [];
         this.grid.filterArea = this.app.renderer.screen;
         // this.grid.visible = false;
+
+        this.grid.renderChunkGrid = false;
+        this.grid.renderAxisLines = false;
+        this.grid.renderBaseGrid = false;
 
         this.tilesetWindow = new AssetPanel(this);
 
@@ -105,6 +117,52 @@ export class MapRenderer extends Renderer {
                 return;
             }
 
+            if (event.type !== MapMouseEventType.DOWN) {
+                return;
+            }
+
+            let selectionGroup = this.session.selectionGroup;
+
+            let selection: Selection = null;
+            if (event.button == 0) {
+                selection = selectionGroup.getSelection(SelectionSlot.PRIMARY);
+            } else if (event.button == 2) {
+                selection = selectionGroup.getSelection(SelectionSlot.SECONDARY);
+            }
+
+            if (selection == null || selection.type !== SelectionType.IMAGE) {
+                return;
+            }
+
+            let split = (<string> selection.id).split('>>>');
+            let lvzPackageName = split[0];
+            let imageIndex = parseInt(split[1]);
+
+            let lvzPackage: LVZPackage;
+
+            for (let index = 0; index < this.session.lvzPackages.length; index++) {
+                let next = this.session.lvzPackages[index];
+                if (next.name === lvzPackageName) {
+                    lvzPackage = next;
+                    break;
+                }
+            }
+
+            if (lvzPackage == null) {
+                return;
+            }
+
+            let coords = {x: event.data.tileX * 16, y: event.data.tileY * 16};
+            lvzPackage.createMapObject(imageIndex, coords);
+            this.session.setLVZPointDirty(coords.x, coords.y);
+        });
+
+        this.events.addMouseListener((event: MapMouseEvent): void => {
+
+            if (this.session == null) {
+                return;
+            }
+
             let button = event.button;
 
             if (event.type === MapMouseEventType.DRAG) {
@@ -155,7 +213,7 @@ export class MapRenderer extends Renderer {
                 }
 
                 if (selection != null && selection.type == SelectionType.TILE) {
-                    let tileId: number = 0;
+                    let tileId: number;
                     if (typeof selection.id == 'string') {
                         tileId = parseInt(selection.id);
                     } else {
@@ -172,8 +230,7 @@ export class MapRenderer extends Renderer {
     // @Override
     protected onPreUpdate(delta: number): void {
         if (this.session != null) {
-            this.session.cache.lvlSprites.update();
-            this.session.cache.lvzSprites.update();
+            this.session.onPreUpdate();
         }
     }
 
@@ -184,6 +241,8 @@ export class MapRenderer extends Renderer {
             return;
         }
 
+        this.session.onUpdate();
+
         let map = this.session.map;
         let cache = this.session.cache;
         let background = cache._background;
@@ -192,8 +251,6 @@ export class MapRenderer extends Renderer {
         let chunks = cache.chunks;
         let lvzChunks = cache.lvzChunks;
         let regions = cache.regions;
-
-        let lvz = cache.lvz;
 
         if (this.camera.isDirty()) {
 
@@ -232,10 +289,6 @@ export class MapRenderer extends Renderer {
             }
         }
 
-        if (lvz != null) {
-            lvz.setDirty(false);
-        }
-
         this.tilesetWindow.update();
 
         return true;
@@ -244,8 +297,7 @@ export class MapRenderer extends Renderer {
     // @Override
     onPostUpdate(delta: number): void {
         if (this.session != null) {
-            let selectionGroup = this.session.selectionGroup;
-            selectionGroup.setDirty(false);
+            this.session.onPostUpdate();
         }
     }
 
@@ -265,7 +317,9 @@ export class MapRenderer extends Renderer {
             console.log("Active session: none.");
         } else {
             session.cache.set(this.app.stage);
-            console.log("Active session: " + this.session._name);
+            console.log("Active session: " +  this.session._name);
+            console.log(session);
+            session.setLVZDirty();
         }
 
         this.tilesetWindow.draw();
