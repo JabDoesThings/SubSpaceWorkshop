@@ -367,11 +367,14 @@ export class MapSprite implements Validatable {
     update(): void {
 
         let now = Date.now();
-        if (now - this.last > this.frameTime) {
+
+        let delta = now - this.last;
+        while (delta > this.frameTime) {
+            delta -= this.frameTime;
             this.next();
-            // Set the time for the last update.
-            this.last = now;
         }
+
+        this.last = now - delta;
     }
 
     next(): void {

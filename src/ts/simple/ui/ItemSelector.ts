@@ -232,13 +232,12 @@ export class ItemSelector implements Dirtable {
                 }
             }
 
-            if(y2 > largestTileY) {
+            if (y2 > largestTileY) {
                 largestTileY = y2;
             }
         }
 
-        this.app.view.height = largestTileY * this.tileSize;
-        this.app.screen.height = this.app.view.height;
+        this.app.renderer.resize(this.app.renderer.width, largestTileY * this.tileSize);
     }
 
     add(entry: Item): void {

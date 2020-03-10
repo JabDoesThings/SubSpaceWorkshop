@@ -41,9 +41,9 @@ export class MapRenderer extends Renderer {
         this.grid.filterArea = this.app.renderer.screen;
         // this.grid.visible = false;
 
-        this.grid.renderChunkGrid = false;
-        this.grid.renderAxisLines = false;
-        this.grid.renderBaseGrid = false;
+        // this.grid.renderChunkGrid = false;
+        // this.grid.renderAxisLines = false;
+        // this.grid.renderBaseGrid = false;
 
         this.tilesetWindow = new AssetPanel(this);
 
@@ -137,7 +137,6 @@ export class MapRenderer extends Renderer {
             let split = (<string> selection.id).split('>>>');
             let lvzPackageName = split[0];
             let imageIndex = parseInt(split[1]);
-
             let lvzPackage: LVZPackage;
 
             for (let index = 0; index < this.session.lvzPackages.length; index++) {
