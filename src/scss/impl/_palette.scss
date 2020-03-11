@@ -1,5 +1,5 @@
 @import '../color';
-@import "../panel";
+@import "../ui";
 
 .standard-tileset {
   position: relative;
@@ -10,15 +10,4 @@
   background-color: $color1;
   box-shadow: rgb(0, 0, 0) 0 0 5px 1px;
   cursor: pointer;
-}
-
-.tile-sprite {
-  display: inline-block;
-  position: relative;
-
-  padding: 0;
-  margin-bottom: -4px;
-  margin-right: -4px;
-
-  background-color: black;
 }

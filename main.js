@@ -9,7 +9,7 @@ console.log(remote.nativeTheme.themeSource);
 remote.nativeTheme.themeSource = 'dark';
 remote.nativeTheme.shouldUseDarkColors = true;
 
-// app.commandLine.appendArgument('--enable-experimental-web-platform-features');
+app.commandLine.appendArgument('--enable-experimental-web-platform-features');
 
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
 

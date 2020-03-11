@@ -1,6 +1,7 @@
 import { MapRenderer } from './render/MapRenderer';
 import { KeyListener } from '../util/KeyListener';
 import { Session } from './Session';
+import { TabAction, UITabEvent, UITabMenu } from './ui/UI';
 
 /**
  * The <i>SimpleEditor</i> class. TODO: Document.
@@ -9,12 +10,11 @@ import { Session } from './Session';
  */
 export class SimpleEditor {
 
-    activeSession: number;
-    renderer: MapRenderer;
-
-    private tabGroup: HTMLDivElement;
-
     sessions: Session[];
+    renderer: MapRenderer;
+    activeSession: number;
+
+    private tabMenu: UITabMenu;
 
     constructor(sessions: Session[]) {
 
@@ -23,32 +23,46 @@ export class SimpleEditor {
 
         this.sessions = sessions;
 
-        this.tabGroup = <HTMLDivElement> document.getElementById('editor-tab-menu');
-
+        this.tabMenu = new UITabMenu();
         for (let index = 0; index < sessions.length; index++) {
+
             let next = sessions[index];
             next.editor = this;
-            this.tabGroup.appendChild(next.tab);
+            next.tab = this.tabMenu.createTab(next._name, next._name);
+
             const _i = index;
-            next.tab.addEventListener('click', () => {
-                this.setActiveSession(_i);
+            next.tab.addEventListener((event: UITabEvent) => {
+                if (event.action == TabAction.SELECT) {
+                    this.setActiveSession(_i);
+                }
             });
         }
 
         this.renderer = new MapRenderer();
 
-        let container
-            = <HTMLDivElement> document.getElementsByClassName("viewport").item(0);
+        let vc = <HTMLDivElement> document.getElementById("viewport-container");
+        vc.appendChild(this.tabMenu.element);
 
+        let container = <HTMLDivElement> document.getElementsByClassName("viewport").item(0);
         this.renderer.init(container, 'viewport', true);
 
         // Screenshot button.
         new KeyListener("F12", () => {
             let renderer = this.renderer.app.renderer;
-            let renderTexture = PIXI.RenderTexture.create({width: renderer.width, height: renderer.height});
+            let width = renderer.width;
+            let height = renderer.height;
+            let renderTexture = PIXI.RenderTexture.create({width: width, height: height});
             renderer.render(this.renderer.app.stage, renderTexture);
             let canvas = renderer.extract.canvas(renderTexture);
-            let b64 = canvas.toDataURL('image/png');
+            let outCanvas = <HTMLCanvasElement> document.createElement('canvas');
+            outCanvas.width = width;
+            outCanvas.height = height;
+            let ctx = outCanvas.getContext('2d');
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, width, height);
+            ctx.globalCompositeOperation = 'source-atop';
+            ctx.drawImage(canvas, 0, 0);
+            let b64 = outCanvas.toDataURL('image/png');
             let link = document.createElement("a");
             link.setAttribute("href", b64);
             link.setAttribute("download", "screenshot.png");
@@ -62,21 +76,14 @@ export class SimpleEditor {
 
         this.activeSession = index;
 
-        for (let _index = 0; _index < this.tabGroup.children.length; _index++) {
-            let next = this.tabGroup.children.item(_index);
-            next.classList.remove('selected');
-        }
-
-        if (index > -1) {
-            this.sessions[index].tab.classList.add('selected');
-        }
-
         if (index == -1) {
+            this.tabMenu.deselect();
             this.renderer.setSession(null);
         } else {
 
             let session = this.sessions[this.activeSession];
             if (!session.loaded) {
+                session.tab.select();
                 session.load();
             }
 

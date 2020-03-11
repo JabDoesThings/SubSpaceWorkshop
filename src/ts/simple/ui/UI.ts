@@ -16,11 +16,73 @@ let removeAllChildren = (element: HTMLElement) => {
 };
 
 /**
+ * The <i>UIEventListener</i> abstract class. TODO: Document.
+ *
+ * @author Jab
+ */
+export abstract class UIEventListener<E extends UIEvent> {
+
+    private listeners: ((event: E) => void | boolean)[];
+    private dispatching: boolean;
+
+    /**
+     * Main constructor.
+     */
+    protected constructor() {
+        this.listeners = [];
+        this.dispatching = false;
+    }
+
+    /**
+     * Dispatches a event.
+     *
+     * @param event The event to pass.
+     * @param ignoreCancelled If true, the event will not check for cancellation.
+     *
+     * @return Returns true if the event is cancelled.
+     */
+    protected dispatch(event: E, ignoreCancelled: boolean = false): boolean {
+
+        if (this.dispatching) {
+            return false;
+        }
+
+        this.dispatching = true;
+
+        for (let index = 0; index < this.listeners.length; index++) {
+            if (ignoreCancelled) {
+                this.listeners[index](event);
+            } else if (this.listeners[index](event)) {
+                this.dispatching = false;
+                return true;
+            }
+        }
+
+        this.dispatching = false;
+
+        return false;
+    }
+
+    /**
+     * Adds a callback to be invoked when an event is dispatched.
+     *
+     * @param callback
+     */
+    addEventListener(callback: (event: E) => void | boolean): void {
+        this.listeners.push(callback);
+    }
+
+    clearEventListeners(): void {
+        this.listeners = [];
+    }
+}
+
+/**
  * The <i>UIPanel</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class UIPanel {
+export class UIPanel extends UIEventListener<UIPanelEvent> {
 
     readonly element: HTMLDivElement;
     readonly overflowContainer: HTMLDivElement;
@@ -28,11 +90,9 @@ export class UIPanel {
 
     orientation: PanelOrientation;
     panels: UIPanelTab[];
-    callbacks: ((event: UIPanelEvent) => void | boolean)[];
     selectedTab: number;
-    dispatching: boolean;
-
     width: number;
+
     private tabMenu: UITabMenu;
 
     /**
@@ -46,26 +106,21 @@ export class UIPanel {
      */
     constructor(id: string, tabMenuId: string, orientation: PanelOrientation = PanelOrientation.LEFT, tabOrientation: TabOrientation = TabOrientation.LEFT, width: number = 320) {
 
+        super();
+
         this.orientation = orientation;
         this.width = width;
 
         this.panels = [];
-        this.callbacks = [];
         this.selectedTab = -1;
 
         this.tabMenu = new UITabMenu(tabMenuId, tabOrientation);
 
         this.slidePane = document.createElement('div');
-        this.slidePane.classList.add('side-panel-contents');
+        this.slidePane.classList.add('ui-panel-contents');
 
         this.overflowContainer = document.createElement('div');
-        this.overflowContainer.classList.add('overflow-container');
-        this.overflowContainer.style.position = 'relative';
-        this.overflowContainer.style.top = '0';
-        this.overflowContainer.style.left = '0';
-        this.overflowContainer.style.width = '100%';
-        this.overflowContainer.style.height = '100%';
-        this.overflowContainer.style.overflow = 'hidden';
+        this.overflowContainer.classList.add('ui-panel-overflow-container');
         this.overflowContainer.appendChild(this.slidePane);
 
         this.element = document.createElement('div');
@@ -73,50 +128,10 @@ export class UIPanel {
             this.element.id = id;
         }
 
-        this.element.classList.add('side-panel', orientation);
+        this.element.classList.add('ui-panel', orientation);
         this.element.appendChild(this.overflowContainer);
         this.element.appendChild(this.tabMenu.element);
         this.element.style.width = '0';
-
-        this.dispatching = false;
-    }
-
-    /**
-     * Dispatches a event.
-     *
-     * @param event The event to pass.
-     * @param ignoreCancelled If true, the event will not check for cancellation.
-     *
-     * @return Returns true if the event is cancelled.
-     */
-    private dispatch(event: UIPanelEvent, ignoreCancelled: boolean = false): boolean {
-
-        if (this.dispatching) {
-            return false;
-        }
-
-        this.dispatching = true;
-
-        for (let index = 0; index < this.callbacks.length; index++) {
-            if (ignoreCancelled) {
-                this.callbacks[index](event);
-            } else if (this.callbacks[index](event)) {
-                this.dispatching = false;
-                return true;
-            }
-        }
-
-        this.dispatching = false;
-
-        return false;
-    }
-
-    addCallback(callback: (event: UIPanelEvent) => void | boolean): void {
-        this.callbacks.push(callback);
-    }
-
-    clearCallbacks(): void {
-        this.callbacks = [];
     }
 
     /**
@@ -165,6 +180,8 @@ export class UIPanel {
             if (!this.element.classList.contains('open')) {
                 this.element.classList.add('open');
             }
+
+            this.tabMenu.select(tabPanel.tab);
         }
 
         this.element.style.width = this.width + 'px';
@@ -191,6 +208,8 @@ export class UIPanel {
             tabPanel.element.classList.remove('open');
         }
 
+        this.tabMenu.deselect();
+
         this.selectedTab = -1;
 
         if (this.element.classList.contains('open')) {
@@ -202,19 +221,17 @@ export class UIPanel {
         return false;
     }
 
-    createTab(id: string, title: string, open: boolean = false): UIPanelTab {
+    createPanel(id: string, title: string, open: boolean = false): UIPanelTab {
 
         let tab = new UITab(id, title);
-        let tabPanel = new UIPanelTab();
+        let tabPanel = new UIPanelTab(id);
         tabPanel.tab = tab;
         tabPanel.panel = this;
 
-        tab.addCallback((action) => {
-            console.log(tab);
-            console.log(action);
-            if (action == TabAction.SELECT) {
+        tab.addEventListener((event: UITabEvent) => {
+            if (event.action == TabAction.SELECT) {
                 this.select(tabPanel);
-            } else if (action == TabAction.DESELECT) {
+            } else if (event.action == TabAction.DESELECT) {
                 this.deselect();
             }
         });
@@ -367,6 +384,18 @@ export class UIPanel {
 
         return null;
     }
+
+    getPanel(id: string): UIPanelTab {
+
+        for (let index = 0; index < this.panels.length; index++) {
+            let next = this.panels[index];
+            if (next.id === id) {
+                return next;
+            }
+        }
+
+        return null;
+    }
 }
 
 /**
@@ -378,31 +407,32 @@ export class UIPanelTab {
 
     readonly element: HTMLDivElement;
 
+    sections: UIPanelSection[];
     panel: UIPanel;
     tab: UITab;
+    id: string;
 
-    sections: UIPanelSection[];
-
-    constructor() {
-
+    /**
+     * Main constructor.
+     *
+     * @param id The ID of the panel-tab.
+     */
+    constructor(id: string) {
+        this.id = id;
         this.sections = [];
-
         this.element = document.createElement('div');
-        this.element.classList.add('panel-tab');
+        this.element.classList.add('ui-panel-tab');
     }
 
     getIndex(): number {
         return this.panel == null ? -1 : this.panel.getIndex(this);
     }
 
-    createSection(title: string): UIPanelSection {
-
-        let section = new UIPanelSection(title);
+    createSection(id: string, title: string): UIPanelSection {
+        let section = new UIPanelSection(id, title);
         section.panelTab = this;
         this.sections.push(section);
-
         this.sort(null);
-
         return section;
     }
 
@@ -425,6 +455,64 @@ export class UIPanelTab {
 
         return false;
     }
+
+    openAllSections(delay: number = 0): void {
+
+        if (this.isEmpty()) {
+            return;
+        }
+
+        if (delay < 0) {
+            throw new Error("Closing delay values cannot be negative. (" + delay + " given)");
+        }
+
+        for (let index = 0; index < this.sections.length; index++) {
+            if (!this.sections[index].isOpen()) {
+                this.sections[index].open(delay);
+            }
+        }
+    }
+
+    closeAllSections(delay: number = 0): void {
+
+        if (this.isEmpty()) {
+            return;
+        }
+
+        if (delay < 0) {
+            throw new Error("Closing delay values cannot be negative. (" + delay + " given)");
+        }
+
+        for (let index = 0; index < this.sections.length; index++) {
+            if (this.sections[index].isOpen()) {
+                this.sections[index].close(delay);
+            }
+        }
+    }
+
+    getSection(id: string): UIPanelSection {
+
+        if (this.isEmpty()) {
+            return null;
+        }
+
+        for (let index = 0; index < this.sections.length; index++) {
+            let next = this.sections[index];
+            if (next.id === id) {
+                return next;
+            }
+        }
+
+        return null;
+    }
+
+    isEmpty(): boolean {
+        return this.size() === 0;
+    }
+
+    size(): number {
+        return this.sections.length;
+    }
 }
 
 /**
@@ -437,48 +525,99 @@ export class UIPanelSection {
     readonly header: UIPanelSectionHeader;
     readonly content: UIPanelSectionContent;
     readonly element: HTMLDivElement;
+    readonly id: string;
 
     panelTab: UIPanelTab;
 
-    constructor(title: string) {
+    private opening: NodeJS.Timeout;
+    private closing: NodeJS.Timeout;
+
+    constructor(id: string, title: string) {
+
+        this.id = id;
 
         this.header = new UIPanelSectionHeader(this, title);
         this.content = new UIPanelSectionContent();
 
         this.element = document.createElement('div');
-        this.element.classList.add('section');
+        this.element.classList.add('ui-panel-section');
         this.element.appendChild(this.header.element);
         this.element.appendChild(this.content.element);
+
+        this.opening = null;
+        this.closing = null;
     }
 
-    open(): void {
+    open(delay: number = 0): void {
 
-        if (!this.element.classList.contains('open')) {
-            this.element.classList.add('open');
-        }
+        let css = () => {
+            if (!this.element.classList.contains('open')) {
+                this.element.classList.add('open');
+            }
+            this.header.arrowLabel.innerHTML = '▼';
 
-        if (!this.content.element.style.maxHeight) {
+            // if (!this.content.element.style.maxHeight) {
             this.content.element.style.maxHeight = (this.content.element.scrollHeight) + "px";
-        }
+            // }
+            this.opening = null;
+        };
 
-        this.header.arrowLabel.innerHTML = '▼';
+        if (delay !== 0) {
+
+            if (delay < 0) {
+                throw new Error("Opening delay values cannot be negative. (" + delay + " given)");
+            }
+
+            if (this.opening != null) {
+                clearTimeout(this.opening);
+            }
+
+            this.opening = setTimeout(css, delay);
+        } else {
+            css();
+        }
     }
 
-    close(): void {
+    close(delay: number = 0): void {
 
-        if (this.element.classList.contains('open')) {
-            this.element.classList.remove('open');
+        let css = () => {
+            if (this.element.classList.contains('open')) {
+                this.element.classList.remove('open');
+            }
+
+            if (this.content.element.style.maxHeight) {
+                this.content.element.style.maxHeight = null;
+            }
+
+            this.header.arrowLabel.innerHTML = '►';
+            this.closing = null;
+        };
+
+        if (delay !== 0) {
+
+            if (delay < 0) {
+                throw new Error("Closing delay values cannot be negative. (" + delay + " given)");
+            }
+
+            if (this.closing != null) {
+                clearTimeout(this.closing);
+            }
+
+            this.closing = setTimeout(css, delay);
+        } else {
+            css();
         }
-
-        if (this.content.element.style.maxHeight) {
-            this.content.element.style.maxHeight = null;
-        }
-
-        this.header.arrowLabel.innerHTML = '►';
     }
 
     setTitle(title: string): void {
         this.header.setTitle(title);
+    }
+
+    setContents(contents: HTMLElement[], open: boolean = false, openDelay: number = 0): void {
+        this.content.setContents(contents);
+        if (open) {
+            this.open(openDelay);
+        }
     }
 
     isOpen(): boolean {
@@ -564,20 +703,17 @@ export class UIPanelSectionContent {
         this.element.appendChild(this.contents);
     }
 
-    setContents(content: HTMLElement): void {
-
-        let removeAllChildren = (element: HTMLElement): void => {
-            let children = [];
-            for (let index = 0; index < element.childElementCount; index++) {
-                children.push(element.children.item(index));
-            }
-            for (let index = 0; index < children.length; index++) {
-                this.contents.removeChild(children[index]);
-            }
-        };
+    setContents(contents: HTMLElement[]): void {
 
         removeAllChildren(this.contents);
-        this.contents.appendChild(content);
+
+        if (contents.length === 0) {
+            return;
+        }
+
+        for (let index = 0; index < contents.length; index++) {
+            this.contents.appendChild(contents[index]);
+        }
     }
 }
 
@@ -594,7 +730,7 @@ export class UITabMenu {
     element: HTMLDivElement;
     selectedTab: number;
 
-    constructor(id: string, orientation: TabOrientation = TabOrientation.TOP) {
+    constructor(id: string = null, orientation: TabOrientation = TabOrientation.TOP) {
 
         this.orientation = orientation;
         this.tabs = [];
@@ -602,7 +738,7 @@ export class UITabMenu {
         this.callbacks = [];
 
         this.element = document.createElement('div');
-        this.element.classList.add('tab-menu', this.orientation);
+        this.element.classList.add('ui-tab-menu', this.orientation);
 
         if (id != null) {
             this.element.id = id;
@@ -908,6 +1044,12 @@ export class UITabMenu {
 
         return -1;
     }
+
+    createTab(id: string, title: string, select: boolean = true): UITab {
+        let tab = new UITab(id, title);
+        this.addTab(tab, select);
+        return tab;
+    }
 }
 
 /**
@@ -915,14 +1057,16 @@ export class UITabMenu {
  *
  * @author Jab
  */
-export class UITab {
+export class UITab extends UIEventListener<UITabEvent> {
 
     element: HTMLDivElement;
     label: HTMLLabelElement;
     menu: UITabMenu;
-    callbacks: ((action: TabAction) => void)[];
 
     constructor(id: string = null, title: string) {
+
+        super();
+
         this.menu = null;
 
         // Create the label element for the title.
@@ -936,37 +1080,18 @@ export class UITab {
             this.element.id = id;
         }
 
-        this.element.classList.add('tab');
+        this.element.classList.add('ui-tab');
         this.element.appendChild(this.label);
 
         this.element.addEventListener('click', () => {
             if (this.isSelected()) {
                 if (!this.menu.deselect()) {
-                    this.dispatch(TabAction.DESELECT);
+                    this.dispatch({tab: this, action: TabAction.DESELECT, forced: false});
                 }
             } else if (!this.menu.select(this)) {
-                this.dispatch(TabAction.SELECT);
+                this.dispatch({tab: this, action: TabAction.SELECT, forced: false});
             }
         });
-
-        this.callbacks = [];
-    }
-
-    /**
-     * Dispatches a event.
-     */
-    private dispatch(action: TabAction): void {
-        for (let index = 0; index < this.callbacks.length; index++) {
-            this.callbacks[index](action);
-        }
-    }
-
-    addCallback(callback: ((action: TabAction) => void)): void {
-        this.callbacks.push(callback);
-    }
-
-    clearCallbacks(): void {
-        this.callbacks = [];
     }
 
     getTitle(): string {
@@ -992,6 +1117,12 @@ export class UITab {
 
     getIndex(): number {
         return this.menu != null && !this.menu.isEmpty() ? this.menu.getIndex(this) : -1;
+    }
+
+    select(): void {
+        if (this.menu != null) {
+            this.menu.select(this);
+        }
     }
 }
 
@@ -1047,12 +1178,15 @@ export enum PanelOrientation {
     RIGHT = 'right'
 }
 
+export interface UIEvent {
+}
+
 /**
  * The <i>UITabEvent</i> interface. TODO: Document.
  *
  * @author Jab
  */
-export interface UITabEvent {
+export interface UITabEvent extends UIEvent {
     tab: UITab,
     action: TabAction,
     forced: boolean
@@ -1063,7 +1197,7 @@ export interface UITabEvent {
  *
  * @author Jab
  */
-export interface UIPanelEvent {
+export interface UIPanelEvent extends UIEvent {
     tabPanel: UIPanelTab,
     action: TabPanelAction,
     forced: boolean

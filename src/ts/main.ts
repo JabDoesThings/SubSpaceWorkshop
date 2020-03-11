@@ -13,6 +13,7 @@ function debugLVL() {
     );
 }
 
+// Entry Point from HTML.
 export let start = function () {
     setTimeout(() => {
         console.log("### START ###");

@@ -7,7 +7,7 @@ import { PathMode } from '../../util/Path';
 import { Session } from '../Session';
 import { Selection, SelectionSlot, SelectionType } from '../ui/Selection';
 import { LVZPackage } from '../../io/LVZ';
-import { PanelOrientation, TabOrientation, TabPanelAction, UIPanel } from '../ui/UIPanel';
+import { PanelOrientation, TabOrientation, TabPanelAction, UIPanel } from '../ui/UI';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -21,7 +21,6 @@ export class MapRenderer extends Renderer {
     radar: Radar;
     tilesetWindow: AssetPanel;
     tab: HTMLDivElement;
-
     leftPanel: UIPanel;
     rightPanel: UIPanel;
 
@@ -59,8 +58,8 @@ export class MapRenderer extends Renderer {
             TabOrientation.LEFT, width
         );
 
-        this.leftPanel.createTab('tab-1-panel-tab', 'Tab 1');
-        this.leftPanel.createTab('tab-2-panel-tab', 'Tab 2');
+        this.leftPanel.createPanel('tab-1-panel-tab', 'Tab 1');
+        this.leftPanel.createPanel('tab-2-panel-tab', 'Tab 2');
 
         this.rightPanel = new UIPanel(
             'right-panel',
@@ -71,29 +70,25 @@ export class MapRenderer extends Renderer {
 
         let viewportFrame = document.getElementById('viewport-frame');
 
-        let paletteTab = this.rightPanel.createTab('palette-panel-tab', 'Palette');
+        let paletteTab = this.rightPanel.createPanel('palette', 'Palette');
 
         let standardTileDiv = document.createElement('div');
         standardTileDiv.id = 'standard-tileset';
         standardTileDiv.classList.add('standard-tileset');
 
-        let standardTileSection = paletteTab.createSection('Standard Tiles');
-        standardTileSection.content.setContents(standardTileDiv);
+        let standardTileSection = paletteTab.createSection('standard-tiles', 'Standard Tiles');
+        standardTileSection.setContents([standardTileDiv]);
 
-        let specialTileSection = paletteTab.createSection('Special Tiles');
-        specialTileSection.content.contents.id = 'special-tiles-section';
-
-        let mapImageSection = paletteTab.createSection('Map Images');
-        mapImageSection.content.contents.id = 'map-image-section';
-
-        let objectsTab = this.rightPanel.createTab('objects-panel-tab', 'Objects');
+        let specialTileSection = paletteTab.createSection('special-tiles', 'Special Tiles');
+        let mapImageSection = paletteTab.createSection('map-images', 'Map Images');
+        let objectsTab = this.rightPanel.createPanel('objects', 'Objects');
 
         let container = <HTMLDivElement> document.getElementById('viewport-container');
         container.appendChild(this.leftPanel.element);
         container.appendChild(this.rightPanel.element);
         console.log(this.rightPanel);
 
-        this.leftPanel.addCallback((event) => {
+        this.leftPanel.addEventListener((event) => {
             if (event.action == TabPanelAction.DESELECT) {
                 leftOpen = false;
             } else if (event.action == TabPanelAction.SELECT) {
@@ -102,7 +97,7 @@ export class MapRenderer extends Renderer {
             updateViewport();
         });
 
-        this.rightPanel.addCallback((event) => {
+        this.rightPanel.addEventListener((event) => {
             if (event.action == TabPanelAction.DESELECT) {
                 rightOpen = false;
             } else if (event.action == TabPanelAction.SELECT) {
@@ -110,6 +105,11 @@ export class MapRenderer extends Renderer {
             }
             updateViewport();
         });
+
+        paletteTab.openAllSections();
+        this.rightPanel.select(paletteTab);
+
+        updateViewport();
     }
 
     // @Override

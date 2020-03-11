@@ -5,6 +5,7 @@ import { ItemSelector, SpriteItem } from './ItemSelector';
 import { SelectionSlot, SelectionType, Selection } from './Selection';
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
+import { UIPanelSection } from './UI';
 
 /**
  * The <i>AssetPanel</i> class. TODO: Document.
@@ -14,26 +15,42 @@ import MouseDownEvent = JQuery.MouseDownEvent;
 export class AssetPanel {
 
     view: MapRenderer;
-    tileSection: TileSection;
-    specialTileSection: ItemSelector;
+
+    tileSelector: TileSection;
+    specialTileSelector: ItemSelector;
+    mapImageSelector: ItemSelector;
 
     private lastSession: Session;
-    private mapImageSection: ItemSelector;
     private contentFrameResize: boolean = false;
+    private specialTilesSection: UIPanelSection;
+    private mapImagesSection: UIPanelSection;
 
     constructor(view: MapRenderer) {
 
         this.view = view;
 
-        this.tileSection = new TileSection(this);
+        let palettePanel = view.rightPanel.getPanel('palette');
+        this.specialTilesSection = palettePanel.getSection('special-tiles');
+        this.mapImagesSection = palettePanel.getSection('map-images');
+        let width = palettePanel.panel.width - 14;
 
-        let specialTilesSection = document.getElementById('special-tiles-section');
-        this.specialTileSection = new ItemSelector(this, specialTilesSection);
-        this.specialTileSection.init(specialTilesSection.clientWidth - 14);
+        this.tileSelector = new TileSection(this);
 
-        let mapImageSection = document.getElementById('map-image-section');
-        this.mapImageSection = new ItemSelector(this, mapImageSection);
-        this.mapImageSection.init(mapImageSection.clientWidth - 14);
+        this.specialTileSelector = new ItemSelector(this, this.specialTilesSection.content.contents);
+        this.specialTileSelector.init(width);
+        this.specialTileSelector.addCallback((event: string) => {
+            if (event === 'draw' && this.specialTilesSection.isOpen()) {
+                this.specialTilesSection.open();
+            }
+        });
+
+        this.mapImageSelector = new ItemSelector(this, this.mapImagesSection.content.contents);
+        this.mapImageSelector.init(width);
+        this.mapImageSelector.addCallback((event: string) => {
+            if (event === 'draw' && this.mapImagesSection.isOpen()) {
+                this.mapImagesSection.open();
+            }
+        });
     }
 
     update(): void {
@@ -42,8 +59,8 @@ export class AssetPanel {
 
         let spriteDirty = session !== this.lastSession;
         if (!spriteDirty) {
-            for (let key in this.mapImageSection.items) {
-                if (this.mapImageSection.items[key].isDirty()) {
+            for (let key in this.mapImageSelector.items) {
+                if (this.mapImageSelector.items[key].isDirty()) {
                     spriteDirty = true;
                     break;
                 }
@@ -52,15 +69,16 @@ export class AssetPanel {
 
         if (spriteDirty) {
 
-            this.tileSection.draw();
-
             this.createTileSprites(session);
-            this.tileSection.draw();
-            this.createLVZAssets(session);
-            this.mapImageSection.draw();
+            this.tileSelector.draw();
+            this.specialTileSelector.draw();
 
-            for (let key in this.mapImageSection.items) {
-                this.mapImageSection.items[key].setDirty(false);
+            this.createLVZAssets(session);
+            this.mapImageSelector.draw();
+            this.mapImagesSection.open();
+
+            for (let key in this.mapImageSelector.items) {
+                this.mapImageSelector.items[key].setDirty(false);
             }
 
             if (!this.contentFrameResize) {
@@ -78,31 +96,31 @@ export class AssetPanel {
             }
         }
 
-        this.tileSection.update();
+        this.tileSelector.update();
 
         this.lastSession = session;
     }
 
     createTileSprites(session: Session): void {
-        this.specialTileSection.clear();
+        this.specialTileSelector.clear();
         let add = (id: string, sprite: MapSprite, selector: ItemSelector): void => {
             let item = new SpriteItem(selector, SelectionType.TILE, id, sprite);
             selector.add(item);
         };
         let lvlSprites = session.cache.lvlSprites;
-        add('216', lvlSprites.mapSpriteOver1, this.specialTileSection);
-        add('217', lvlSprites.mapSpriteOver2, this.specialTileSection);
-        add('218', lvlSprites.mapSpriteOver3, this.specialTileSection);
-        add('219', lvlSprites.mapSpriteOver4, this.specialTileSection);
-        add('220', lvlSprites.mapSpriteOver5, this.specialTileSection);
-        add('252', lvlSprites.mapSpriteBrickBlue, this.specialTileSection);
-        add('253', lvlSprites.mapSpriteBrickYellow, this.specialTileSection);
-        add('255', lvlSprites.mapSpritePrize, this.specialTileSection);
+        add('216', lvlSprites.mapSpriteOver1, this.specialTileSelector);
+        add('217', lvlSprites.mapSpriteOver2, this.specialTileSelector);
+        add('218', lvlSprites.mapSpriteOver3, this.specialTileSelector);
+        add('219', lvlSprites.mapSpriteOver4, this.specialTileSelector);
+        add('220', lvlSprites.mapSpriteOver5, this.specialTileSelector);
+        add('252', lvlSprites.mapSpriteBrickBlue, this.specialTileSelector);
+        add('253', lvlSprites.mapSpriteBrickYellow, this.specialTileSelector);
+        add('255', lvlSprites.mapSpritePrize, this.specialTileSelector);
     }
 
     createLVZAssets(session: Session): void {
 
-        this.mapImageSection.clear();
+        this.mapImageSelector.clear();
 
         let lvzPackages = session.lvzPackages;
 
@@ -114,11 +132,11 @@ export class AssetPanel {
             let item = new SpriteItem(selector, SelectionType.IMAGE, id, sprite);
             selector.add(item);
             let callbacks = session.cache.callbacks[id];
-            if(callbacks == null) {
+            if (callbacks == null) {
                 callbacks = session.cache.callbacks[id] = [];
             }
-            callbacks.push(()=> {
-                this.mapImageSection.setDirty(true);
+            callbacks.push(() => {
+                this.mapImageSelector.setDirty(true);
             });
         };
 
@@ -133,18 +151,18 @@ export class AssetPanel {
             for (let index = 0; index < pkg.images.length; index++) {
                 let id = pkg.name + ">>>" + index;
                 let sprite: MapSprite = session.cache.lvzSprites.getSpriteById(id);
-                if(sprite == null) {
+                if (sprite == null) {
                     continue;
                 }
-                add(id, sprite, this.mapImageSection);
+                add(id, sprite, this.mapImageSelector);
             }
         }
     }
 
     draw() {
-        this.tileSection.draw();
-        this.specialTileSection.draw();
-        this.mapImageSection.draw();
+        this.tileSelector.draw();
+        this.specialTileSelector.draw();
+        this.mapImageSelector.draw();
     }
 }
 
@@ -155,10 +173,10 @@ export class AssetPanel {
  */
 export class TileSection {
 
-    private canvas: HTMLCanvasElement;
+    private readonly canvas: HTMLCanvasElement;
+    private readonly atlas: number[][];
+    private readonly coordinates: number[][];
     private panel: AssetPanel;
-    private atlas: number[][];
-    private coordinates: number[][];
 
     constructor(panel: AssetPanel) {
 

@@ -12,6 +12,7 @@ import { SimpleEditor } from './SimpleEditor';
 import * as PIXI from "pixi.js";
 import { Renderer } from '../common/Renderer';
 import { SelectionGroup, SelectionSlot, SelectionType, Selection } from './ui/Selection';
+import { UITab } from './ui/UI';
 
 /**
  * The <i>Session</i> class. TODO: Document.
@@ -24,7 +25,7 @@ export class Session {
     selectionGroup: SelectionGroup;
     editor: SimpleEditor;
     cache: SessionCache;
-    tab: HTMLDivElement;
+    tab: UITab;
     map: LVLMap;
     _name: string;
     loaded: boolean;
@@ -50,9 +51,9 @@ export class Session {
         this._name = split[split.length - 1].split('.')[0];
 
         // Create the tab to add to the map list.
-        this.tab = document.createElement('div');
-        this.tab.classList.add('tab');
-        this.tab.innerHTML = '<label>' + this._name + '</label>';
+        // this.tab = document.createElement('div');
+        // this.tab.classList.add('ui-tab');
+        // this.tab.innerHTML = '<label>' + this._name + '</label>';
 
         this.lvzDirty = true;
         this.lvzDirtyRange = {x1: 0, x2: 0, y1: 16384, y2: 16384};

@@ -28,10 +28,19 @@ export class ItemSelector implements Dirtable {
 
     panel: AssetPanel;
 
-    constructor(panel: AssetPanel, container: HTMLElement) {
+    callbacks: ((event: string) => void)[];
+
+    constructor(panel: AssetPanel, container: HTMLElement = null) {
 
         this.panel = panel;
+
+        if (container == null) {
+            container = document.createElement('div');
+        }
+
         this.container = container;
+
+        this.callbacks = [];
 
         this.items = {};
         this.tileSize = 16;
@@ -40,6 +49,20 @@ export class ItemSelector implements Dirtable {
         this.minYSlots = 1;
         this.maxYSlots = 256;
         this.dirty = true;
+    }
+
+    dispatch(event: string) {
+        for(let index = 0; index < this.callbacks.length; index++) {
+            this.callbacks[index](event);
+        }
+    }
+
+    addCallback(callback: (event: string) => void): void {
+        this.callbacks.push(callback);
+    }
+
+    clearCallbacks(): void {
+        this.callbacks = [];
     }
 
     init(width: number): void {
@@ -238,6 +261,8 @@ export class ItemSelector implements Dirtable {
         }
 
         this.app.renderer.resize(this.app.renderer.width, largestTileY * this.tileSize);
+
+        this.dispatch('draw');
     }
 
     add(entry: Item): void {
