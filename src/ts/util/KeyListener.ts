@@ -70,5 +70,4 @@ export class KeyListener {
             window.removeEventListener("keyup", upListener);
         };
     }
-
 }

@@ -1,6 +1,11 @@
 import * as PIXI from "pixi.js";
 import { MapRenderer } from './MapRenderer';
 
+/**
+ * The <i>MapGrid</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class MapGrid extends PIXI.Container {
 
     private view: MapRenderer;

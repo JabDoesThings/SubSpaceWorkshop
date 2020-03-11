@@ -1,6 +1,11 @@
 import { MapRenderer } from './MapRenderer';
 import { Radar } from '../../common/Radar';
 
+/**
+ * The <i>MapRadar</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class MapRadar extends Radar {
 
     constructor(view: MapRenderer) {

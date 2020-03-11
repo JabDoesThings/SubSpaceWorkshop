@@ -15,6 +15,11 @@ import {
 import * as zlib from 'zlib';
 import { BufferUtils } from '../util/BufferUtils';
 
+/**
+ * The <i>LVZ</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class LVZ {
 
     public static IMAGE_ANIMATION_TIME_MIN = 0;
@@ -680,6 +685,11 @@ export class LVZ {
     }
 }
 
+/**
+ * The <i>LVLErrorStatus</i> enum. TODO: Document.
+ *
+ * @author Jab
+ */
 export enum LVZErrorStatus {
 
     // GENERAL

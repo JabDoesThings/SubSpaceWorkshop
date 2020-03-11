@@ -181,5 +181,4 @@ export abstract class InheritedObject extends UpdatedObject implements Inheritab
     public getChildren(): Inheritable[] {
         return this.children;
     }
-
 }

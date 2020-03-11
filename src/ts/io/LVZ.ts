@@ -5,8 +5,6 @@ import { Validatable } from '../util/Validatable';
 import * as fs from 'fs';
 import { Dirtable } from '../util/Dirtable';
 import { MapSprite } from '../simple/render/MapSprite';
-import { LVL } from './LVLUtils';
-import ImageResource = PIXI.resources.ImageResource;
 
 /**
  * The <i>LVZCollection</i> class. TODO: Document.

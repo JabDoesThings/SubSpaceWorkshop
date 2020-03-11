@@ -6,17 +6,11 @@ import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
 import { Session } from '../Session';
 import { Selection, SelectionSlot, SelectionType } from '../ui/Selection';
-import {
-    CompiledLVZImage,
-    CompiledLVZMapObject,
-    LVZCollection,
-    LVZMapObject,
-    LVZPackage,
-    LVZRenderLayer
-} from '../../io/LVZ';
+import { LVZPackage } from '../../io/LVZ';
+import { PanelOrientation, TabOrientation, TabPanelAction, UIPanel } from '../ui/UIPanel';
 
 /**
- * The <i>SimpleRenderer</i> class. TODO: Document.
+ * The <i>MapRenderer</i> class. TODO: Document.
  *
  * @author Jab
  */
@@ -28,9 +22,94 @@ export class MapRenderer extends Renderer {
     tilesetWindow: AssetPanel;
     tab: HTMLDivElement;
 
+    leftPanel: UIPanel;
+    rightPanel: UIPanel;
+
     public constructor() {
         super();
         this.radar = new MapRadar(this);
+
+        let leftOpen = false;
+        let rightOpen = false;
+
+        let width = 320;
+
+        let viewport = <HTMLDivElement> document.getElementsByClassName('viewport').item(0);
+
+        let updateViewport = (): void => {
+            if (leftOpen && rightOpen) {
+                viewport.style.left = (4 + width) + 'px';
+                viewport.style.width = 'calc(100% - ' + (width * 2) + 'px)';
+            } else if (leftOpen) {
+                viewport.style.left = (4 + width) + 'px';
+                viewport.style.width = 'calc(100% - ' + width + 'px)';
+            } else if (rightOpen) {
+                viewport.style.left = '4px';
+                viewport.style.width = 'calc(100% - ' + width + 'px)';
+            } else {
+                viewport.style.left = '4px';
+                viewport.style.width = '100%';
+            }
+        };
+
+        this.leftPanel = new UIPanel(
+            'left-panel',
+            'editor-left-tab-menu',
+            PanelOrientation.LEFT,
+            TabOrientation.LEFT, width
+        );
+
+        this.leftPanel.createTab('tab-1-panel-tab', 'Tab 1');
+        this.leftPanel.createTab('tab-2-panel-tab', 'Tab 2');
+
+        this.rightPanel = new UIPanel(
+            'right-panel',
+            'editor-right-tab-menu',
+            PanelOrientation.RIGHT,
+            TabOrientation.RIGHT, width
+        );
+
+        let viewportFrame = document.getElementById('viewport-frame');
+
+        let paletteTab = this.rightPanel.createTab('palette-panel-tab', 'Palette');
+
+        let standardTileDiv = document.createElement('div');
+        standardTileDiv.id = 'standard-tileset';
+        standardTileDiv.classList.add('standard-tileset');
+
+        let standardTileSection = paletteTab.createSection('Standard Tiles');
+        standardTileSection.content.setContents(standardTileDiv);
+
+        let specialTileSection = paletteTab.createSection('Special Tiles');
+        specialTileSection.content.contents.id = 'special-tiles-section';
+
+        let mapImageSection = paletteTab.createSection('Map Images');
+        mapImageSection.content.contents.id = 'map-image-section';
+
+        let objectsTab = this.rightPanel.createTab('objects-panel-tab', 'Objects');
+
+        let container = <HTMLDivElement> document.getElementById('viewport-container');
+        container.appendChild(this.leftPanel.element);
+        container.appendChild(this.rightPanel.element);
+        console.log(this.rightPanel);
+
+        this.leftPanel.addCallback((event) => {
+            if (event.action == TabPanelAction.DESELECT) {
+                leftOpen = false;
+            } else if (event.action == TabPanelAction.SELECT) {
+                leftOpen = true;
+            }
+            updateViewport();
+        });
+
+        this.rightPanel.addCallback((event) => {
+            if (event.action == TabPanelAction.DESELECT) {
+                rightOpen = false;
+            } else if (event.action == TabPanelAction.SELECT) {
+                rightOpen = true;
+            }
+            updateViewport();
+        });
     }
 
     // @Override
@@ -316,7 +395,7 @@ export class MapRenderer extends Renderer {
             console.log("Active session: none.");
         } else {
             session.cache.set(this.app.stage);
-            console.log("Active session: " +  this.session._name);
+            console.log("Active session: " + this.session._name);
             console.log(session);
             session.setLVZDirty();
         }

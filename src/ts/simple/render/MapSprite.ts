@@ -1,13 +1,12 @@
+import { Validatable } from '../../util/Validatable';
+import Rectangle = PIXI.Rectangle;
+import uuid = require('uuid');
+
 /**
  * The <i>MapSpriteCollection</i> class. TODO: Document.
  *
  * @author Jab
  */
-import { Validatable } from '../../util/Validatable';
-import hex2rgb = PIXI.utils.hex2rgb;
-import Rectangle = PIXI.Rectangle;
-import uuid = require('uuid');
-
 export class MapSpriteCollection {
 
     private sprites: MapSprite[];

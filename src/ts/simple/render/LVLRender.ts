@@ -295,6 +295,11 @@ export class LVLChunk extends UpdatedObject {
     }
 }
 
+/**
+ * The <i>LVLBorder</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class LVLBorder extends PIXI.Container {
 
     private view: MapRenderer;

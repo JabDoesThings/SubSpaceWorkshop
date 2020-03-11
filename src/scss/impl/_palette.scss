@@ -22,19 +22,3 @@
 
   background-color: black;
 }
-
-#palette-panel-tab {
-  position: absolute;
-  left: 0;
-}
-
-#objects-panel-tab {
-  position: absolute;
-  left: $panelWidth;
-}
-
-#right-panel {
-  .side-panel-contents {
-    width: calc(#{$panelWidth} * 2);
-  }
-}

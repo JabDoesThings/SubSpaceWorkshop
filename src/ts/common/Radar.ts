@@ -4,6 +4,11 @@ import { Vector2 } from 'three';
 import { Renderer } from './Renderer';
 import { PathMode } from '../util/Path';
 
+/**
+ * The <i>Radar</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class Radar {
 
     protected readonly view: Renderer;

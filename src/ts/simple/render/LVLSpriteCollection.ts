@@ -1,6 +1,11 @@
 import { MapSprite, MapSpriteCollection } from './MapSprite';
 import * as PIXI from "pixi.js";
 
+/**
+ * The <i>LVLSpriteCollection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class LVLSpriteCollection extends MapSpriteCollection {
 
     mapSpriteFlag: MapSprite;

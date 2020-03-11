@@ -3,6 +3,11 @@ import { MapRenderer } from '../simple/render/MapRenderer';
 import { Renderer } from './Renderer';
 import { SeededRandom } from '../util/SeededRandom';
 
+/**
+ * The <i>Background</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class Background extends PIXI.Container {
 
     view: Renderer;
@@ -109,6 +114,11 @@ export class Background extends PIXI.Container {
     }
 }
 
+/**
+ * The <i>BackgroundObjectLayer</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class BackgroundObjectLayer extends PIXI.Container {
 
     static backgroundTextures: PIXI.Texture[];
@@ -221,6 +231,11 @@ export class BackgroundObjectLayer extends PIXI.Container {
     }
 }
 
+/**
+ * The <i>StarFieldLayer</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class StarFieldLayer extends PIXI.Container {
 
     _color: number;

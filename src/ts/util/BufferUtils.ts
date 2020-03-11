@@ -1,3 +1,8 @@
+/**
+ * The <i>BufferUtils</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class BufferUtils {
 
     static readFixedString(buffer: Buffer, offset: number, length: number): string {

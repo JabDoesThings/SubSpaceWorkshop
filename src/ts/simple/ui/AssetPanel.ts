@@ -5,8 +5,12 @@ import { ItemSelector, SpriteItem } from './ItemSelector';
 import { SelectionSlot, SelectionType, Selection } from './Selection';
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
-import { CompiledLVZImage, LVZImage, LVZResource } from '../../io/LVZ';
 
+/**
+ * The <i>AssetPanel</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class AssetPanel {
 
     view: MapRenderer;
@@ -144,6 +148,11 @@ export class AssetPanel {
     }
 }
 
+/**
+ * The <i>TileSection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class TileSection {
 
     private canvas: HTMLCanvasElement;

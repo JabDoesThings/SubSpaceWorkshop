@@ -1,16 +1,8 @@
-export enum PathMode {
-    LINEAR = 'linear',
-    EASE_OUT = 'ease_out',
-    EASE_IN = 'ease_in',
-    EASE_IN_OUT = 'ease_in_out'
-}
-
-export interface PathCoordinates {
-    x: number,
-    y: number,
-    scale: number
-}
-
+/**
+ * The <i>Path</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class Path {
 
     private _from: PathCoordinates;
@@ -223,4 +215,27 @@ export class Path {
     isActive(): boolean {
         return this._to != null;
     }
+}
+
+/**
+ * The <i>PathMode</i> enum. TODO: Document.
+ *
+ * @author Jab
+ */
+export enum PathMode {
+    LINEAR = 'linear',
+    EASE_OUT = 'ease_out',
+    EASE_IN = 'ease_in',
+    EASE_IN_OUT = 'ease_in_out'
+}
+
+/**
+ * The <i>PathCoordinates</i> interface. TODO: Document.
+ *
+ * @author Jab
+ */
+export interface PathCoordinates {
+    x: number,
+    y: number,
+    scale: number
 }

@@ -1,9 +1,8 @@
 import * as PIXI from "pixi.js";
 import { MapRenderer } from './MapRenderer';
-import { CompiledLVZImage, CompiledLVZMapObject, LVZResource } from '../../io/LVZ';
+import { CompiledLVZImage, CompiledLVZMapObject } from '../../io/LVZ';
 import { MapSprite } from './MapSprite';
 import { Session } from '../Session';
-import { Renderer } from '../../common/Renderer';
 
 /**
  * The <i>LVZChunkEntry</i> interface. TODO: Document.
@@ -106,11 +105,7 @@ export class LVZChunk {
                 return false;
             }
 
-            if (by2 < cy1 || by1 > cy2) {
-                return false;
-            }
-
-            return true;
+            return !(by2 < cy1 || by1 > cy2);
         };
 
         let cpos = camera.position;

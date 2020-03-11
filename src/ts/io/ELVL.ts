@@ -1,5 +1,42 @@
 import { ELVL } from './ELVLUtils';
 
+/**
+ * The <i>ELVLChunk</i> abstract class. TODO: Document.
+ *
+ * @author Jab
+ */
+export abstract class ELVLChunk {
+
+    readonly id: string;
+
+    protected constructor(id: string) {
+        this.id = id;
+    }
+
+    abstract equals(next: any): boolean;
+
+    abstract validate(): void;
+}
+
+/**
+ * The <i>ELVLRegionChunk</i> abstract class. TODO: Document.
+ *
+ * @author Jab
+ */
+export abstract class ELVLRegionChunk {
+
+    readonly id: string;
+
+    protected constructor(id: string) {
+        this.id = id;
+    }
+}
+
+/**
+ * The <i>ELVLCollection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class ELVLCollection {
 
     readonly chunks: ELVLChunk[];
@@ -106,19 +143,6 @@ export class ELVLCollection {
     }
 }
 
-export abstract class ELVLChunk {
-
-    readonly id: string;
-
-    protected constructor(id: string) {
-        this.id = id;
-    }
-
-    abstract equals(next: any): boolean;
-
-    abstract validate(): void;
-}
-
 /**
  * The <i>ELVLRawChunk</i> class. TODO: Document.
  *
@@ -151,6 +175,11 @@ export class ELVLRawChunk extends ELVLChunk {
     }
 }
 
+/**
+ * The <i>ELVLAttribute</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class ELVLAttribute extends ELVLChunk {
 
     name: string;
@@ -271,22 +300,11 @@ export class ELVLRegion extends ELVLChunk {
     }
 }
 
-export interface ELVLRegionOptions {
-    isFlagBase: boolean;
-    noAntiWarp: boolean;
-    noWeapons: boolean;
-    noFlagDrops: boolean;
-}
-
-export abstract class ELVLRegionChunk {
-
-    readonly id: string;
-
-    protected constructor(id: string) {
-        this.id = id;
-    }
-}
-
+/**
+ * The <i>ELVLRegionRawChunk</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class ELVLRegionRawChunk extends ELVLRegionChunk {
 
     type: number;
@@ -671,3 +689,16 @@ export class ELVLLVZPath extends ELVLRawChunk {
         super('DCLV', data);
     }
 }
+
+/**
+ * The <i>ELVLRegionOptions</i> interface. TODO: Document.
+ *
+ * @author Jab
+ */
+export interface ELVLRegionOptions {
+    isFlagBase: boolean;
+    noAntiWarp: boolean;
+    noWeapons: boolean;
+    noFlagDrops: boolean;
+}
+

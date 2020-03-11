@@ -170,6 +170,11 @@ export abstract class Renderer extends UpdatedObject {
     protected abstract onPostUpdate(delta: number): void;
 }
 
+/**
+ * The <i>RenderEvents</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class RenderEvents {
 
     readonly mouseListeners: ((event: MapMouseEvent) => void)[];
@@ -524,20 +529,11 @@ export class Camera extends UpdatedObject {
     }
 }
 
-export interface MapMouseEvent {
-    type: MapMouseEventType,
-    data: MapSpace,
-    button: number,
-    e: MouseEvent
-}
-
-export interface MapSpace {
-    tileX: number,
-    tileY: number,
-    x: number,
-    y: number
-}
-
+/**
+ * The <i>MapMouseEventType</i> enum. TODO: Document.
+ *
+ * @author Jab
+ */
 export enum MapMouseEventType {
     DOWN = 'down',
     UP = 'up',
@@ -547,4 +543,28 @@ export enum MapMouseEventType {
     EXIT = 'exit',
     WHEEL_UP = 'wheel_up',
     WHEEL_DOWN = 'wheel_down'
+}
+
+/**
+ * The <i>MapMouseEvent</i> interface. TODO: Document.
+ *
+ * @author Jab
+ */
+export interface MapMouseEvent {
+    type: MapMouseEventType,
+    data: MapSpace,
+    button: number,
+    e: MouseEvent
+}
+
+/**
+ * The <i>MapSpace</i> interface. TODO: Document.
+ *
+ * @author Jab
+ */
+export interface MapSpace {
+    tileX: number,
+    tileY: number,
+    x: number,
+    y: number
 }

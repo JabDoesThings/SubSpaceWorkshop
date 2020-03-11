@@ -1,3 +1,5 @@
+@import 'color';
+
 @font-face {
   font-family: 'icomoon';
   src: url('assets/css/icomoon.ttf') format('truetype');
@@ -19,4 +21,28 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 7px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.5);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: $color5;
+  transition: background-color 200ms, border 200ms;
+
+  border-radius: 0;
+
+  &:hover {
+    background: $color6;
+    transition: background-color 0ms, border 0ms;
+    border-radius: 1px;
+  }
 }

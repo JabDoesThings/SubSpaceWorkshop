@@ -2,6 +2,11 @@ import { MapRenderer } from './render/MapRenderer';
 import { KeyListener } from '../util/KeyListener';
 import { Session } from './Session';
 
+/**
+ * The <i>SimpleEditor</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class SimpleEditor {
 
     activeSession: number;
@@ -48,154 +53,6 @@ export class SimpleEditor {
             link.setAttribute("href", b64);
             link.setAttribute("download", "screenshot.png");
             link.click();
-        });
-
-        $(document).on('click', '.section > .header > .arrow', function () {
-            let section = this.parentElement.parentElement;
-            let classList = section.classList;
-            if (classList.contains('open')) {
-                classList.remove('open');
-            } else {
-                classList.add('open');
-            }
-            let contentFrame = $(section).find('.content-frame').get(0);
-            if (contentFrame.style.maxHeight) {
-                contentFrame.style.maxHeight = null;
-            } else {
-                contentFrame.style.maxHeight = (contentFrame.scrollHeight) + "px";
-            }
-        });
-
-        $(document).on('click', '.section > .header > .title', function () {
-            let section = this.parentElement.parentElement;
-            let classList = section.classList;
-            if (classList.contains('open')) {
-                classList.remove('open');
-            } else {
-                classList.add('open');
-            }
-            let contentFrame = $(section).find('.content-frame').get(0);
-            if (contentFrame.style.maxHeight) {
-                contentFrame.style.maxHeight = null;
-            } else {
-                contentFrame.style.maxHeight = (contentFrame.scrollHeight) + "px";
-            }
-        });
-
-        let rightPanelOpen = true;
-        let paletteTabOpen = true;
-        let objectsTabOpen = false;
-
-        let palettePanelTab = document.getElementById('palette-panel-tab');
-        let objectsPanelTab = document.getElementById('objects-panel-tab');
-
-        let viewportFrame = document.getElementById('viewport-frame');
-        let rightPanel = document.getElementById('right-panel');
-        let paletteTab = document.getElementById('palette-tab');
-        let objectsTab = document.getElementById('objects-tab');
-
-        let sidePanelContents = $(rightPanel).find('.side-panel-contents').get(0);
-
-        let panelWidth = 320;
-
-        let openRightPanel = () => {
-
-            rightPanelOpen = true;
-
-            if (!viewportFrame.classList.contains('right-panel-open')) {
-                viewportFrame.classList.add('right-panel-open');
-            }
-        };
-
-        let closeRightPanel = () => {
-
-            rightPanelOpen = false;
-
-            if (viewportFrame.classList.contains('right-panel-open')) {
-                viewportFrame.classList.remove('right-panel-open');
-            }
-        };
-
-        let openPaletteTab = () => {
-
-            paletteTabOpen = true;
-
-            if (!paletteTab.classList.contains('selected')) {
-                paletteTab.classList.add('selected');
-            }
-
-            sidePanelContents.style.left = '0px';
-
-            if(objectsTabOpen) {
-                closeObjectsTab();
-            }
-
-            if (!rightPanelOpen) {
-                openRightPanel();
-            }
-        };
-
-        let closePaletteTab = () => {
-
-            paletteTabOpen = false;
-
-            if (paletteTab.classList.contains('selected')) {
-                paletteTab.classList.remove('selected');
-            }
-
-            if (rightPanelOpen && !paletteTabOpen && !objectsTabOpen) {
-                closeRightPanel();
-            }
-        };
-
-        let openObjectsTab = () => {
-
-            objectsTabOpen = true;
-
-            if (!objectsTab.classList.contains('selected')) {
-                objectsTab.classList.add('selected');
-            }
-
-            sidePanelContents.style.left = '-' + panelWidth + 'px';
-
-            if(paletteTabOpen) {
-                closePaletteTab();
-            }
-
-            if (!rightPanelOpen) {
-                openRightPanel();
-            }
-        };
-
-        let closeObjectsTab = () => {
-
-            objectsTabOpen = false;
-
-            if (objectsTab.classList.contains('selected')) {
-                objectsTab.classList.remove('selected');
-            }
-
-            if (rightPanelOpen && !paletteTabOpen && !objectsTabOpen) {
-                closeRightPanel();
-            }
-        };
-
-        $(paletteTab).on('click', () => {
-
-            if (paletteTabOpen) {
-                closePaletteTab();
-            } else {
-                openPaletteTab();
-            }
-        });
-
-        $(objectsTab).on('click', () => {
-
-            if (objectsTabOpen) {
-                closeObjectsTab();
-            } else {
-                openObjectsTab();
-            }
         });
 
         this.setActiveSession(this.sessions.length - 1);

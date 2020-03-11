@@ -75,23 +75,3 @@
     }
   }
 }
-
-.section {
-  .header {
-    .arrow label {
-      &:after {
-        content: '►';
-      }
-    }
-  }
-}
-
-.section.open {
-  .header {
-    .arrow label {
-      &:after {
-        content: '▼';
-      }
-    }
-  }
-}

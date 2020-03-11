@@ -1,6 +1,6 @@
 import { LVLArea, LVLMap } from '../io/LVL';
 import { LVL } from '../io/LVLUtils';
-import { LVZPackage, LVZResource } from '../io/LVZ';
+import { LVZPackage } from '../io/LVZ';
 import { LVZ } from '../io/LVZUtils';
 import { LVLSpriteCollection } from './render/LVLSpriteCollection';
 import { MapSprite, MapSpriteCollection } from './render/MapSprite';

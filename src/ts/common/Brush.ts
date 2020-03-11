@@ -1,3 +1,9 @@
+
+/**
+ * The <i>Brush</i> abstract class. TODO: Document.
+ *
+ * @author Jab
+ */
 export abstract class Brush {
 
     private canvas: HTMLCanvasElement;
@@ -15,6 +21,11 @@ export abstract class Brush {
     abstract onStop(mouse: { x: number, y: number }): void;
 }
 
+/**
+ * The <i>PencilBrush</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class PencilBrush extends Brush {
 
     onStart(mouse: { x: number; y: number }): void {
@@ -25,5 +36,4 @@ export class PencilBrush extends Brush {
 
     onStop(mouse: { x: number; y: number }): void {
     }
-
 }

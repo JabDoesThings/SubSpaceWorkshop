@@ -1,3 +1,8 @@
+/**
+ * The <i>SeededRandom</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class SeededRandom {
 
     private seed: number;
@@ -16,7 +21,6 @@ export class SeededRandom {
         return min + rnd * (max - min);
     }
 
-    // http://indiegamr.com/generate-repeatable-random-numbers-in-js/
     public nextInt(min: number, max: number): number {
         return Math.round(this.next(min, max));
     }

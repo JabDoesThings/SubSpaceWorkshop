@@ -7,6 +7,11 @@ import { ELVLCollection } from './ELVL';
 import { ELVL } from './ELVLUtils';
 import SCALE_MODES = PIXI.SCALE_MODES;
 
+/**
+ * The <i>LVL</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class LVL {
 
     static readonly TILESET_DIMENSIONS: number[] = [304, 160];
