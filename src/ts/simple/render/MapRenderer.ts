@@ -6,8 +6,9 @@ import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
 import { Session } from '../Session';
 import { Selection, SelectionSlot, SelectionType } from '../ui/Selection';
-import { LVZPackage } from '../../io/LVZ';
-import { PanelOrientation, TabOrientation, TabPanelAction, UIPanel } from '../ui/UI';
+import { CompiledLVZMapObject, LVZPackage } from '../../io/LVZ';
+import { PanelOrientation, TabOrientation, TabPanelAction, UIPanel, UIPanelSection } from '../ui/UI';
+import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -23,6 +24,7 @@ export class MapRenderer extends Renderer {
     tab: HTMLDivElement;
     leftPanel: UIPanel;
     rightPanel: UIPanel;
+    mapObjectSection: UIMapObjectSection;
 
     public constructor() {
         super();
@@ -82,6 +84,10 @@ export class MapRenderer extends Renderer {
         let specialTileSection = paletteTab.createSection('special-tiles', 'Special Tiles');
         let mapImageSection = paletteTab.createSection('map-images', 'Map Images');
         let objectsTab = this.rightPanel.createPanel('objects', 'Objects');
+
+        this.mapObjectSection = new UIMapObjectSection('map-objects', 'Map Objects');
+
+        objectsTab.add(this.mapObjectSection);
 
         let container = <HTMLDivElement> document.getElementById('viewport-container');
         container.appendChild(this.leftPanel.element);
@@ -405,4 +411,134 @@ export class MapRenderer extends Renderer {
             this.radar.apply();
         });
     }
+}
+
+/**
+ * The <i>MapObjectEntryAction</i> enum. TODO: Document.
+ *
+ * @author Jab
+ */
+export enum MapObjectEntryAction {
+
+}
+
+/**
+ * The <i>UIMapObjectEvent</i> interface. TODO: Document.
+ *
+ * @author Jab
+ */
+export interface UIMapObjectEvent extends CustomEvent {
+    mapObjectEntry: UIMapObjectEntry,
+    action: MapObjectEntryAction
+}
+
+/**
+ * The <i>UIMapObjectSection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class UIMapObjectSection extends UIPanelSection {
+
+    readonly pkgs: LVZPackage[];
+    entries: UIMapObjectEntry[];
+
+    constructor(id: string, title: string) {
+
+        super(id, title);
+
+        this.pkgs = [];
+        this.entries = [];
+    }
+
+    update(): void {
+
+        if (!this.isEmpty()) {
+            for (let index = 0; index < this.entries.length; index++) {
+                let next = this.entries[index];
+                this.element.removeChild(next.element);
+            }
+        }
+
+        this.entries = [];
+
+        if(this.pkgs.length === 0) {
+            return;
+        }
+
+        for(let pkgIndex = 0; pkgIndex < this.pkgs.length; pkgIndex++) {
+
+            let nextPkg = this.pkgs[pkgIndex];
+            let mapObjects = nextPkg.mapObjects;
+
+            for (let index = 0; index < mapObjects.length; index++) {
+                let next = mapObjects[index];
+                let entry = new UIMapObjectEntry(next);
+                this.entries.push(entry);
+            }
+        }
+    }
+
+    isEmpty(): boolean {
+        return this.size() !== 0;
+    }
+
+    size(): number {
+        return this.entries.length;
+    }
+
+}
+
+/**
+ * The <i>UIMapObjectEntry</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class UIMapObjectEntry extends CustomEventListener<UIMapObjectEvent> {
+
+    readonly object: CompiledLVZMapObject;
+    readonly element: HTMLDivElement;
+    private readonly nameElement: HTMLDivElement;
+    private readonly nameLabelElement: HTMLLabelElement;
+    private readonly imageElement: HTMLDivElement;
+    private readonly coordinatesElement: HTMLDivElement;
+    private readonly optionsElement: HTMLDivElement;
+
+    /**
+     * Main constructor.
+     *
+     * @param object
+     */
+    constructor(object: CompiledLVZMapObject) {
+
+        super();
+
+        this.object = object;
+
+        this.nameLabelElement = document.createElement('label');
+
+        this.nameElement = document.createElement('div');
+        this.nameElement.classList.add('name');
+        this.nameElement.appendChild(this.nameLabelElement);
+
+        this.imageElement = document.createElement('div');
+        this.imageElement.classList.add('image');
+
+        this.coordinatesElement = document.createElement('div');
+        this.coordinatesElement.classList.add('coordinates');
+
+        this.optionsElement = document.createElement('div');
+        this.optionsElement.classList.add('options');
+
+        this.element = document.createElement('div');
+        this.element.classList.add('map-object-entry');
+        this.element.appendChild(this.nameElement);
+        this.element.appendChild(this.imageElement);
+        this.element.appendChild(this.coordinatesElement);
+        this.element.appendChild(this.optionsElement);
+    }
+
+    update(): void {
+        this.nameLabelElement.innerText = this.object.id + ' (' + this.object.pkg.name + ")";
+    }
+
 }

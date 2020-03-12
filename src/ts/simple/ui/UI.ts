@@ -370,10 +370,14 @@ export class UIPanelTab {
 
     createSection(id: string, title: string): UIPanelSection {
         let section = new UIPanelSection(id, title);
+        this.add(section);
+        return section;
+    }
+
+    add(section: UIPanelSection): void {
         section.panelTab = this;
         this.sections.push(section);
         this.sort(null);
-        return section;
     }
 
     sort(comparator: (a: UIPanelSection, b: UIPanelSection) => number): boolean {

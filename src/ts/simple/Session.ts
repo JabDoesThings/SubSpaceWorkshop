@@ -13,13 +13,14 @@ import * as PIXI from "pixi.js";
 import { Renderer } from '../common/Renderer';
 import { SelectionGroup, SelectionSlot, SelectionType, Selection } from './ui/Selection';
 import { UITab } from './ui/UI';
+import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 
 /**
  * The <i>Session</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Session {
+export class Session extends CustomEventListener<SessionEvent> {
 
     lvzPackages: LVZPackage[];
     selectionGroup: SelectionGroup;
@@ -37,6 +38,8 @@ export class Session {
     private lvlPath: string;
 
     constructor(lvlPath: string, lvzPaths: string[] = []) {
+
+        super();
 
         this.lvlPath = lvlPath;
         this.lvzPaths = lvzPaths;
@@ -60,21 +63,68 @@ export class Session {
         this.lvzResourceDirty = false;
     }
 
-    load(override: boolean = false): void {
+    /**
+     *
+     * @param override
+     *
+     * @return Returns true if the action is cancelled.
+     */
+    load(override: boolean = false): boolean {
 
-        if (override || !this.loaded) {
-
-            this.map = LVL.read(this.lvlPath);
-
-            this.lvzPackages = [];
-            for (let index = 0; index < this.lvzPaths.length; index++) {
-                let next = LVZ.read(this.lvzPaths[index]).inflate();
-                this.lvzPackages.push(next);
-            }
-
-            this.lvzDirty = true;
-            this.loaded = true;
+        // Make sure that the Session is only loading data when it has to.
+        if (!override && this.loaded) {
+            return true;
         }
+
+        if (this.loaded) {
+            this.unload(true);
+        }
+
+        if (this.dispatch({session: this, action: SessionAction.PRE_LOAD, forced: override})) {
+            return true;
+        }
+
+        this.map = LVL.read(this.lvlPath);
+
+        this.lvzPackages = [];
+        for (let index = 0; index < this.lvzPaths.length; index++) {
+            let next = LVZ.read(this.lvzPaths[index]).inflate();
+            this.lvzPackages.push(next);
+        }
+
+        this.lvzDirty = true;
+        this.loaded = true;
+
+        this.dispatch({session: this, action: SessionAction.POST_LOAD, forced: true});
+    }
+
+    unload(override: boolean = false): boolean {
+
+        // Make sure that the Session is only unloading data when it has to.
+        if (!override && !this.loaded) {
+            return true;
+        }
+
+        if (this.dispatch({session: this, action: SessionAction.PRE_UNLOAD, forced: override})) {
+            return true;
+        }
+
+        let tileset = this.map.tileset;
+        if(tileset != null && tileset !== LVL.DEFAULT_TILESET) {
+            tileset.texture.destroy(true);
+            tileset.source = null;
+        }
+
+        if(this.lvzPackages.length !== 0) {
+            for(let index = 0; index < this.lvzPackages.length; index++) {
+                let next = this.lvzPackages[index];
+
+            }
+        }
+        this.loaded = false;
+
+        this.dispatch({session: this, action: SessionAction.POST_UNLOAD, forced: true});
+        return false;
     }
 
     onPreUpdate(): void {
@@ -294,6 +344,8 @@ export class SessionCache {
 
         this.lvzTextures = {};
 
+
+
         for (let key in this.session.lvzPackages) {
 
             let nextPkg = this.session.lvzPackages[key];
@@ -305,7 +357,7 @@ export class SessionCache {
             for (let key in nextPkg.resources) {
                 let nextResource = nextPkg.resources[key];
                 if (nextResource.isImage() && !nextResource.isEmpty()) {
-                    nextResource.createTexture((texture: PIXI.Texture) => {
+                    LVZ.loadTexture(nextResource, (texture: PIXI.Texture) => {
                         let fileId = nextResource.getName().toLowerCase();
                         this.lvzTextures[fileId] = texture;
                         this.onCallBack(fileId, texture);
@@ -413,4 +465,18 @@ export class SessionCache {
         this.initialized = false;
         this._background = null;
     }
+}
+
+export interface SessionEvent extends CustomEvent {
+    session: Session,
+    action: SessionAction
+}
+
+export enum SessionAction {
+    PRE_LOAD = 'pre-load',
+    POST_LOAD = 'post-load',
+    PRE_SAVE = 'pre-save',
+    POST_SAVE = 'post-save',
+    PRE_UNLOAD = 'pre-unload',
+    POST_UNLOAD = 'post-unload'
 }

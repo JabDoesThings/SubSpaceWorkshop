@@ -1,0 +1,35 @@
+@import '../color';
+
+.map-object-entry {
+
+  position: relative;
+  width: 100%;
+  height: 24px;
+  border: 1px solid $color5;
+  color: $color7;
+
+  .a_column {
+    position: relative;
+    border: 1px solid $color5;
+  }
+
+  .name {
+    @extend .a_column;
+    width: 40%;
+  }
+
+  .image {
+    @extend .a_column;
+    width: 20%;
+  }
+
+  .coordinates {
+    @extend .a_column;
+    width: 20%;
+  }
+
+  .options {
+    @extend .a_column;
+    width: 10%;
+  }
+}

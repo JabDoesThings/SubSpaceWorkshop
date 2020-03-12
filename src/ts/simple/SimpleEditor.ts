@@ -2,26 +2,34 @@ import { MapRenderer } from './render/MapRenderer';
 import { KeyListener } from '../util/KeyListener';
 import { Session } from './Session';
 import { TabAction, UITabEvent, UITabMenu } from './ui/UI';
+import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 
 /**
  * The <i>SimpleEditor</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class SimpleEditor {
+export class SimpleEditor extends CustomEventListener<EditorEvent> {
 
     sessions: Session[];
     renderer: MapRenderer;
+    tabMenu: UITabMenu;
     activeSession: number;
 
-    private tabMenu: UITabMenu;
+    /**
+     * Main constructor.
+     *
+     * @param sessions The Sessions to initially load.<br/>
+     *     <b>NOTE</b>: The last Session will be set active.
+     */
+    constructor(...sessions: Session[]) {
 
-    constructor(sessions: Session[]) {
+        super();
 
         // @ts-ignore
         global.editor = this;
 
-        this.sessions = sessions;
+        this.sessions = [];
 
         this.tabMenu = new UITabMenu();
         for (let index = 0; index < sessions.length; index++) {
@@ -33,7 +41,7 @@ export class SimpleEditor {
             const _i = index;
             next.tab.addEventListener((event: UITabEvent) => {
                 if (event.action == TabAction.SELECT) {
-                    this.setActiveSession(_i);
+                    this.setActive(_i);
                 }
             });
         }
@@ -69,10 +77,144 @@ export class SimpleEditor {
             link.click();
         });
 
-        this.setActiveSession(this.sessions.length - 1);
+        this.add(sessions);
+
+        this.setActive(this.sessions.length - 1);
     }
 
-    setActiveSession(index: number) {
+    /**
+     * Adds sessions to the editor.
+     *
+     * @param sessions
+     *
+     * @return Returns true if the action is cancelled.
+     */
+    add(sessions: Session[]): boolean {
+
+        if (this.dispatch(<EditorSessionEvent> {
+            editor: this,
+            action: EditorAction.SESSION_ADD,
+            sessions: sessions,
+            forced: false
+        })) {
+            return true;
+        }
+
+        for (let index = 0; index < sessions.length; index++) {
+            let next = sessions[index];
+            this.sessions.push(next);
+        }
+
+        this.dispatch(<EditorSessionEvent> {
+            editor: this,
+            action: EditorAction.SESSION_ADDED,
+            sessions: sessions,
+            forced: true
+        });
+    }
+
+    /**
+     * Removes sessions from the editor.
+     *
+     * @param sessions
+     * @param unload
+     *
+     * @return Returns true if the action is cancelled.
+     */
+    remove(sessions: Session[], unload: boolean = true): boolean {
+
+        if (this.sessions.length === 0) {
+            return false;
+        }
+
+        if (this.dispatch(<EditorSessionEvent> {
+            editor: this,
+            action: EditorAction.SESSION_REMOVE,
+            sessions: sessions,
+            forced: false
+        })) {
+            return true;
+        }
+
+        let active = this.sessions[this.activeSession];
+
+        let toRemove: Session[] = [];
+
+        for (let index = 0; index < sessions.length; index++) {
+
+            let next = sessions[index];
+
+            if (unload && next.unload()) {
+                continue;
+            }
+
+            toRemove.push(next);
+        }
+
+        if (toRemove.length === 0) {
+            return false;
+        }
+
+        let contains = (session: Session): boolean => {
+            for (let index = 0; index < toRemove.length; index++) {
+                if (toRemove[index] === session) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        let newArray: Session[] = [];
+
+        for (let index = 0; index < this.sessions.length; index++) {
+            let next = this.sessions[index];
+            if (contains(next)) {
+                continue;
+            }
+            newArray.push(next);
+        }
+
+        this.sessions = newArray;
+
+        // Make sure to adjust the active index to the session that was active before the removal.
+        let foundActive = false;
+        for (let index = 0; index < this.sessions.length; index++) {
+            if (this.sessions[index] === active) {
+                this.activeSession = index;
+                foundActive = true;
+                break;
+            }
+        }
+
+        // If the session is removed, set the last session active.
+        if (!foundActive) {
+            this.setActive(this.sessions.length - 1);
+        }
+
+        this.dispatch(<EditorSessionEvent> {
+            editor: this,
+            action: EditorAction.SESSION_REMOVED,
+            sessions: sessions,
+            forced: true
+        });
+    }
+
+    /**
+     *
+     * @param index
+     *
+     * @return Returns true if the action is cancelled.
+     */
+    setActive(index: number): boolean {
+
+        if (this.dispatch(<EditorSessionEvent> {
+            editor: this,
+            action: EditorAction.SESSION_ACTIVATE,
+            forced: false,
+            sessions: [this.sessions[index]]
+        })) {
+            return true;
+        }
 
         this.activeSession = index;
 
@@ -80,14 +222,52 @@ export class SimpleEditor {
             this.tabMenu.deselect();
             this.renderer.setSession(null);
         } else {
-
             let session = this.sessions[this.activeSession];
             if (!session.loaded) {
                 session.tab.select();
                 session.load();
             }
-
             this.renderer.setSession(session);
         }
+
+        this.dispatch(<EditorSessionEvent> {
+            editor: this,
+            action: EditorAction.SESSION_ACTIVATED,
+            forced: true,
+            sessions: [this.sessions[index]]
+        });
     }
+}
+
+/**
+ * The <i>EditorEvent</i> interface. TODO: Document.
+ *
+ * @author Jab
+ */
+export interface EditorEvent extends CustomEvent {
+    editor: SimpleEditor,
+    action: EditorAction
+}
+
+/**
+ * The <i>EditorSessionEvent</i> interface. TODO: Document.
+ *
+ * @author Jab
+ */
+export interface EditorSessionEvent extends EditorEvent {
+    sessions: Session[]
+}
+
+/**
+ * The <i>EditorAction</i> enum. TODO: Document.
+ *
+ * @author Jab
+ */
+export enum EditorAction {
+    SESSION_ACTIVATE = 'session-activate',
+    SESSION_ACTIVATED = 'session-activated',
+    SESSION_ADD = 'session-add',
+    SESSION_ADDED = 'session-added',
+    SESSION_REMOVE = 'session-remove',
+    SESSION_REMOVED = 'session-removed'
 }

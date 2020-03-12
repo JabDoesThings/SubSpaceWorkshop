@@ -517,7 +517,7 @@ export class LVZPackage extends Printable implements Validatable {
 
         let compileImage = (image: LVZImage): CompiledLVZImage => {
             processResource(image.getResource());
-            return new CompiledLVZImage(
+            return new CompiledLVZImage(this,
                 image.getResource().getName(),
                 image.getXFrames(),
                 image.getYFrames(),
@@ -547,7 +547,7 @@ export class LVZPackage extends Printable implements Validatable {
             let next = mapObjects[index];
             let image = getImageIndex(next.image);
 
-            let compiledMapObject = new CompiledLVZMapObject(
+            let compiledMapObject = new CompiledLVZMapObject(this,
                 next.id,
                 next.x,
                 next.y,
@@ -564,7 +564,7 @@ export class LVZPackage extends Printable implements Validatable {
             let next = screenObjects[index];
             let image = getImageIndex(next.getImage());
 
-            let compiledScreenObject = new CompiledLVZScreenObject(
+            let compiledScreenObject = new CompiledLVZScreenObject(this,
                 next.getId(),
                 next.getXType(),
                 next.getX(),
@@ -610,7 +610,7 @@ export class LVZPackage extends Printable implements Validatable {
 
     createMapObject(image: number, coords: { x: number; y: number }, layer: LVZRenderLayer = LVZRenderLayer.AfterTiles, time: number = 0, mode: LVZDisplayMode = LVZDisplayMode.ShowAlways) {
         let index = this.mapObjects.length;
-        this.mapObjects.push(new CompiledLVZMapObject(index, coords.x, coords.y, image, layer, time, mode));
+        this.mapObjects.push(new CompiledLVZMapObject(this, index, coords.x, coords.y, image, layer, time, mode));
     }
 
     getResource(name: string) {
@@ -937,8 +937,6 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
     private name: string;
     private time: number;
     private dirty: boolean;
-    image: HTMLImageElement;
-    texture: PIXI.Texture;
 
     /**
      * Main constructor.
@@ -1110,7 +1108,7 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
         return null;
     }
 
-    private getMimeType() {
+    getMimeType() {
 
         let extension = this.getExtension();
 
@@ -1130,89 +1128,6 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
         return null;
     }
 
-    private calling: boolean = false;
-    private callbacks: ((texture: PIXI.Texture) => void)[] = [];
-
-    createTexture(callback: (texture: PIXI.Texture) => void): void {
-
-        if (!this.isImage()) {
-            throw new Error("The LVZResource is not an image file. (" + this.name + ")");
-        }
-
-        if (this.texture != null) {
-            callback(this.texture);
-            return;
-        }
-
-        this.callbacks.push(callback);
-
-        if (this.calling) {
-            return;
-        }
-
-        this.calling = true;
-
-        let mimeType = this.getMimeType();
-
-        if (mimeType == null) {
-            throw new Error(
-                "The LVZResource identifies as an image type, "
-                + "but has no registered mime-type. ("
-                + this.name
-                + ")"
-            );
-        }
-
-        //convert image file to base64-encoded string
-        let base64Image = this.data.toString('base64');
-
-        this.image = document.createElement("img");
-        this.image.src = 'data:' + mimeType + ';base64,' + base64Image;
-        this.image.decode().finally(() => {
-
-            if (this.image.width === 0 || this.image.height === 0) {
-                this.image = null;
-                this.callbacks = [];
-                this.calling = false;
-                return;
-            }
-
-            let cv = document.createElement("canvas");
-            cv.width = this.image.width;
-            cv.height = this.image.height;
-            let ct = cv.getContext('2d');
-            ct.drawImage(this.image, 0, 0);
-
-            let imgData = ct.getImageData(0, 0, cv.width, cv.height);
-            let data = imgData.data;
-
-            for (let offset = 0; offset < data.length; offset += 4) {
-                let r = data[offset];
-                let g = data[offset + 1];
-                let b = data[offset + 2];
-
-                if (r === 0 && b === 0 && g === 0) {
-                    data[offset + 3] = 0;
-                }
-            }
-
-            ct.putImageData(imgData, 0, 0);
-
-            this.texture = PIXI.Texture.from(cv);
-
-            for (let index = 0; index < this.callbacks.length; index++) {
-                this.callbacks[index](this.texture);
-            }
-            this.callbacks = [];
-            this.calling = false;
-        });
-    }
-
-    destroy(): void {
-        this.texture.destroy();
-        this.image = null;
-    }
-
     isEmpty(): boolean {
         return this.data == null || this.data.length === 0;
     }
@@ -1225,22 +1140,27 @@ export class LVZResource extends Printable implements Validatable, Dirtable {
  */
 export class CompiledLVZImage extends Printable {
 
-    public fileName: string;
-    public animationTime: number;
-    public xFrames: number;
-    public yFrames: number;
+    readonly pkg: LVZPackage;
+
+    fileName: string;
+    animationTime: number;
+    xFrames: number;
+    yFrames: number;
 
     /**
      * Main constructor.
      *
+     * @param pkg
      * @param fileName
      * @param xFrames
      * @param yFrames
      * @param animationTime
      */
-    constructor(fileName: string, xFrames: number = 1, yFrames: number = 1, animationTime: number = 0) {
+    constructor(pkg: LVZPackage, fileName: string, xFrames: number = 1, yFrames: number = 1, animationTime: number = 0) {
 
         super();
+
+        this.pkg = pkg;
 
         this.fileName = fileName;
         this.animationTime = animationTime;
@@ -1465,40 +1385,40 @@ export class LVZImage extends Printable implements Validatable, Dirtable {
         }
     }
 
-    getSprite(): MapSprite {
-
-        if (this.sprite == null && this.resource.isImage()) {
-
-            let xFrames = this.xFrames, yFrames = this.yFrames;
-            let time = this.animationTime / 10;
-
-            this.sprite = new MapSprite(0, 0, xFrames, yFrames, time);
-
-            this.resource.createTexture((texture: PIXI.Texture) => {
-                this.sprite.frameWidth = texture.width / this.xFrames;
-                this.sprite.frameHeight = texture.height / this.yFrames;
-                this.sprite.reset();
-                this.sprite.texture = texture;
-                this.sprite.sequenceTexture();
-                this.sprite.setDirty(true);
-            });
-        }
-
-        return this.sprite;
-    }
+    // getSprite(): MapSprite {
+    //
+    //     if (this.sprite == null && this.resource.isImage()) {
+    //
+    //         let xFrames = this.xFrames, yFrames = this.yFrames;
+    //         let time = this.animationTime / 10;
+    //
+    //         this.sprite = new MapSprite(0, 0, xFrames, yFrames, time);
+    //
+    //         this.resource.createTexture((texture: PIXI.Texture) => {
+    //             this.sprite.frameWidth = texture.width / this.xFrames;
+    //             this.sprite.frameHeight = texture.height / this.yFrames;
+    //             this.sprite.reset();
+    //             this.sprite.texture = texture;
+    //             this.sprite.sequenceTexture();
+    //             this.sprite.setDirty(true);
+    //         });
+    //     }
+    //
+    //     return this.sprite;
+    // }
 
     isAnimated(): boolean {
         return this.xFrames > 1 || this.yFrames > 1;
     }
 
-    destroy(): void {
-        this.resource.destroy();
-        if (this.sprite != null) {
-            this.sprite.destroy();
-            this.sprite = null;
-        }
-        this.setDirty(true);
-    }
+    // destroy(): void {
+    //     this.resource.destroy();
+    //     if (this.sprite != null) {
+    //         this.sprite.destroy();
+    //         this.sprite = null;
+    //     }
+    //     this.setDirty(true);
+    // }
 }
 
 /**
@@ -1508,17 +1428,20 @@ export class LVZImage extends Printable implements Validatable, Dirtable {
  */
 export class CompiledLVZMapObject extends Printable {
 
-    public id: number;
-    public x: number;
-    public y: number;
-    public image: number;
-    public layer: number;
-    public time: number;
-    public mode: number;
+    readonly pkg: LVZPackage;
+
+    id: number;
+    x: number;
+    y: number;
+    image: number;
+    layer: number;
+    time: number;
+    mode: number;
 
     /**
      * Main constructor.
      *
+     * @param pkg
      * @param id
      * @param x
      * @param y
@@ -1527,10 +1450,11 @@ export class CompiledLVZMapObject extends Printable {
      * @param time
      * @param mode
      */
-    constructor(id: number, x: number, y: number, image: number, layer: number, time: number, mode: number) {
+    constructor(pkg: LVZPackage, id: number, x: number, y: number, image: number, layer: number, time: number, mode: number) {
 
         super();
 
+        this.pkg = pkg;
         this.id = id;
         this.x = x;
         this.y = y;
@@ -1849,19 +1773,21 @@ export class LVZMapObject extends Printable implements Validatable, Dirtable {
  */
 export class CompiledLVZScreenObject extends Printable {
 
-    public id: number;
-    public xType: number;
-    public x: number;
-    public yType: number;
-    public y: number;
-    public image: number;
-    public layer: number;
-    public time: number;
-    public mode: number;
+    pkg: LVZPackage;
+    id: number;
+    xType: number;
+    x: number;
+    yType: number;
+    y: number;
+    image: number;
+    layer: number;
+    time: number;
+    mode: number;
 
     /**
      * Main constructor.
      *
+     * @param pkg
      * @param id
      * @param xType
      * @param x
@@ -1873,6 +1799,7 @@ export class CompiledLVZScreenObject extends Printable {
      * @param mode
      */
     constructor(
+        pkg: LVZPackage,
         id: number,
         xType: number,
         x: number,
@@ -1885,6 +1812,7 @@ export class CompiledLVZScreenObject extends Printable {
 
         super();
 
+        this.pkg = pkg;
         this.id = id;
         this.xType = xType;
         this.x = x;

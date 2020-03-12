@@ -14,6 +14,7 @@ import {
 } from './LVZ';
 import * as zlib from 'zlib';
 import { BufferUtils } from '../util/BufferUtils';
+import * as PIXI from "pixi.js";
 
 /**
  * The <i>LVZ</i> class. TODO: Document.
@@ -231,7 +232,7 @@ export class LVZ {
             offset += fileName.length + 1;
             /////////////////////////////////////////////
 
-            return new CompiledLVZImage(fileName, animationTime, xFrames, yFrames);
+            return new CompiledLVZImage(dPkg, fileName, animationTime, xFrames, yFrames);
         };
 
         let clv1 = () => {
@@ -276,12 +277,12 @@ export class LVZ {
 
                 if (type) {
 
-                    let mapObject = new CompiledLVZMapObject(id, x, y, image, layer, time, mode);
+                    let mapObject = new CompiledLVZMapObject(dPkg, id, x, y, image, layer, time, mode);
                     dPkg.addMapObject(mapObject);
 
                 } else {
 
-                    let screenObject = new CompiledLVZScreenObject(id, 0, x, 0, y, image, layer, time, mode);
+                    let screenObject = new CompiledLVZScreenObject(dPkg, id, 0, x, 0, y, image, layer, time, mode);
                     dPkg.addScreenObject(screenObject);
                 }
             }
@@ -333,7 +334,7 @@ export class LVZ {
                     let displayTime = third & 0x0FFF;
                     let mode = (third >> 12) & 0x03FF;
 
-                    let mapObject = new CompiledLVZMapObject(id, xCoord, yCoord, imageNumber, layer, displayTime, mode);
+                    let mapObject = new CompiledLVZMapObject(dPkg, id, xCoord, yCoord, imageNumber, layer, displayTime, mode);
                     dPkg.addMapObject(mapObject);
 
                 } else {
@@ -371,7 +372,7 @@ export class LVZ {
 
                     /////////////////////////////////////////////
 
-                    let screenObject = new CompiledLVZScreenObject(id, xType, x, yType, y, image, layer, time, mode);
+                    let screenObject = new CompiledLVZScreenObject(dPkg, id, xType, x, yType, y, image, layer, time, mode);
                     dPkg.addScreenObject(screenObject);
                 }
             }
@@ -518,6 +519,61 @@ export class LVZ {
         let compressSize = compressBuffer.length;
 
         return new CompressedLVZSection(decompressSize, 0, compressSize, "", compressBuffer);
+    }
+
+    static loadTexture(resource: LVZResource, callback: (texture: PIXI.Texture) => void): void {
+
+        if (!resource.isImage()) {
+            throw new Error("The LVZResource is not an image file. (" + resource.getName() + ")");
+        }
+
+        let mimeType = resource.getMimeType();
+
+        if (mimeType == null) {
+            throw new Error(
+                "The LVZResource identifies as an image type, "
+                + "but has no registered mime-type. ("
+                + resource.getName()
+                + ")"
+            );
+        }
+
+        // Convert image file to base64-encoded string.
+        let base64Image = resource.getData().toString('base64');
+
+        let image = document.createElement("img");
+        image.src = 'data:' + mimeType + ';base64,' + base64Image;
+        image.decode().finally(() => {
+
+            if (image.width === 0 || image.height === 0) {
+                image = null;
+                return;
+            }
+
+            let cv = document.createElement("canvas");
+            cv.width = image.width;
+            cv.height = image.height;
+            let ct = cv.getContext('2d');
+            ct.drawImage(image, 0, 0);
+
+            let imgData = ct.getImageData(0, 0, cv.width, cv.height);
+            let data = imgData.data;
+
+            for (let offset = 0; offset < data.length; offset += 4) {
+                let r = data[offset];
+                let g = data[offset + 1];
+                let b = data[offset + 2];
+
+                if (r === 0 && b === 0 && g === 0) {
+                    data[offset + 3] = 0;
+                }
+            }
+
+            ct.putImageData(imgData, 0, 0);
+
+            let texture = PIXI.Texture.from(cv);
+            callback(texture);
+        });
     }
 
     public static validateDecompressedScreenObject(dpkg: LVZPackage, object: CompiledLVZScreenObject): LVZErrorStatus {
