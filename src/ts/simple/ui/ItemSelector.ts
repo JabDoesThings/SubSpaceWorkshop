@@ -4,13 +4,14 @@ import { Dirtable } from '../../util/Dirtable';
 import Rectangle = PIXI.Rectangle;
 import { AssetPanel } from './AssetPanel';
 import { SelectionSlot, Selection } from './Selection';
+import { CustomEvent, CustomEventListener } from './CustomEventListener';
 
 /**
  * The <i>ItemSelector</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class ItemSelector implements Dirtable {
+export class ItemSelector extends CustomEventListener<ItemSelectorEvent> implements Dirtable {
 
     items: { [id: string]: Item };
 
@@ -25,12 +26,19 @@ export class ItemSelector implements Dirtable {
     maxYSlots: number;
     tileSize: number;
     listener: ItemSelectorListener;
-
+    hoveredItem: Item;
+    hovered: boolean;
     panel: AssetPanel;
 
-    callbacks: ((event: string) => void)[];
-
+    /**
+     * Main constructor.
+     *
+     * @param panel
+     * @param container
+     */
     constructor(panel: AssetPanel, container: HTMLElement = null) {
+
+        super();
 
         this.panel = panel;
 
@@ -40,8 +48,6 @@ export class ItemSelector implements Dirtable {
 
         this.container = container;
 
-        this.callbacks = [];
-
         this.items = {};
         this.tileSize = 16;
         this.maxHeightTiles = 8;
@@ -49,20 +55,7 @@ export class ItemSelector implements Dirtable {
         this.minYSlots = 1;
         this.maxYSlots = 256;
         this.dirty = true;
-    }
-
-    dispatch(event: string) {
-        for(let index = 0; index < this.callbacks.length; index++) {
-            this.callbacks[index](event);
-        }
-    }
-
-    addCallback(callback: (event: string) => void): void {
-        this.callbacks.push(callback);
-    }
-
-    clearCallbacks(): void {
-        this.callbacks = [];
+        this.hovered = false;
     }
 
     init(width: number): void {
@@ -106,7 +99,17 @@ export class ItemSelector implements Dirtable {
         this.listener.init();
     }
 
-    draw() {
+    draw(comparator: (a: Item, b: Item) => number = null): boolean {
+
+        if (comparator == null) {
+            comparator = ((a, b) => {
+                return (b.getSourceWidth() * b.getSourceHeight()) - (a.getSourceWidth() * a.getSourceHeight());
+            });
+        }
+
+        if (this.dispatch({item: null, action: ItemSelectorAction.PRE_DRAW, forced: false})) {
+            return true;
+        }
 
         this.app.stage.removeChildren();
 
@@ -218,9 +221,7 @@ export class ItemSelector implements Dirtable {
             sorted.push(this.items[key]);
         }
 
-        sorted.sort(((a, b) => {
-            return (b.getSourceWidth() * b.getSourceHeight()) - (a.getSourceWidth() * a.getSourceHeight());
-        }));
+        sorted.sort(comparator);
 
         let largestTileY = 1;
 
@@ -247,8 +248,6 @@ export class ItemSelector implements Dirtable {
             let x2 = x1 + next.wt;
             let y2 = y1 + next.ht;
 
-            console.log({x: spot.x, y: spot.y, w: next.wt, h: next.ht});
-
             for (let y = y1; y < y2; y++) {
                 for (let x = x1; x < x2; x++) {
                     slots[x][y] = true;
@@ -262,7 +261,9 @@ export class ItemSelector implements Dirtable {
 
         this.app.renderer.resize(this.app.renderer.width, largestTileY * this.tileSize);
 
-        this.dispatch('draw');
+        this.dispatch({item: null, action: ItemSelectorAction.POST_DRAW, forced: true});
+
+        return false;
     }
 
     add(entry: Item): void {
@@ -340,10 +341,31 @@ export class ItemSelector implements Dirtable {
 export class ItemSelectorListener {
 
     listeners: ((item: Item) => boolean)[];
+
     readonly selector: ItemSelector;
+    private readonly _compare: Rectangle;
 
     constructor(selector: ItemSelector) {
         this.selector = selector;
+        this._compare = new Rectangle(0, 0, 1, 1);
+    }
+
+    getItem(x: number, y: number): Item {
+
+        for (let key in this.selector.items) {
+            let next = this.selector.items[key];
+
+            this._compare.x = next.x;
+            this._compare.y = next.y;
+            this._compare.width = next.w;
+            this._compare.height = next.h;
+
+            if (this._compare.contains(x, y)) {
+                return next;
+            }
+        }
+
+        return null;
     }
 
     init(): void {
@@ -351,30 +373,19 @@ export class ItemSelectorListener {
         this.listeners = [];
         this.selector.app.stage.interactive = true;
 
-        let compare = new Rectangle(0, 0, 1, 1);
-        let select = (x: number, y: number, button: number): void => {
+        let select = (x: number, y: number, button: number): boolean => {
 
             if (button !== 0 && button !== 2) {
                 return;
             }
 
-            let item: Item = null;
-            for (let key in this.selector.items) {
-                let next = this.selector.items[key];
-
-                compare.x = next.x;
-                compare.y = next.y;
-                compare.width = next.w;
-                compare.height = next.h;
-
-                if (compare.contains(x, y)) {
-                    item = next;
-                    break;
-                }
-            }
-
+            let item = this.getItem(x, y);
             if (item == null) {
                 return;
+            }
+
+            if (this.selector.dispatch({item: item, action: ItemSelectorAction.SELECT_ITEM, forced: false})) {
+                return true;
             }
 
             if (button == 0) {
@@ -382,6 +393,8 @@ export class ItemSelectorListener {
             } else if (button == 2) {
                 this.selector.selectSecondary(item);
             }
+
+            return false;
         };
 
         let down = false;
@@ -389,6 +402,14 @@ export class ItemSelectorListener {
 
         this.selector.app.view.addEventListener('pointerleave', () => {
             down = false;
+            this.selector.hoveredItem = null;
+            this.selector.hovered = false;
+            this.selector.dispatch({item: null, action: ItemSelectorAction.HOVER_EXIT, forced: true});
+        });
+
+        this.selector.app.view.addEventListener('pointerenter', () => {
+            this.selector.hovered = true;
+            this.selector.dispatch({item: null, action: ItemSelectorAction.HOVER_ENTER, forced: true});
         });
 
         this.selector.app.view.addEventListener('pointerdown', (e: PointerEvent) => {
@@ -404,14 +425,20 @@ export class ItemSelectorListener {
 
         this.selector.app.view.addEventListener('pointermove', (e) => {
 
-            if (!down) {
-                return;
-            }
+            let mx = e.offsetX;
+            let my = e.offsetY;
 
-            select(e.offsetX, e.offsetY, button);
+            if (!down) {
+                let item = this.getItem(mx, my);
+                if (this.selector.hoveredItem !== item) {
+                    this.selector.dispatch({item: item, action: ItemSelectorAction.HOVER_ITEM, forced: true});
+                    this.selector.hoveredItem = item;
+                }
+            } else {
+                select(mx, my, button);
+            }
         });
     }
-
 }
 
 /**
@@ -455,17 +482,25 @@ export abstract class Item implements Dirtable {
         this.container.addChild(this.outline);
     }
 
+    isPrimary(): boolean {
+        let selectionGroup = this.selector.panel.view.session.selectionGroup;
+        let primary = selectionGroup.getSelection(SelectionSlot.PRIMARY);
+        return primary.id === this.id && primary.type === this.type;
+    }
+
+    isSecondary(): boolean {
+        let selectionGroup = this.selector.panel.view.session.selectionGroup;
+        let secondary = selectionGroup.getSelection(SelectionSlot.SECONDARY);
+        return secondary.id === this.id && secondary.type === this.type;
+    }
+
     drawOutline(): void {
 
         this.outline.clear();
         this.outline.visible = false;
 
-        let selectionGroup = this.selector.panel.view.session.selectionGroup;
-        let primary = selectionGroup.getSelection(SelectionSlot.PRIMARY);
-        let secondary = selectionGroup.getSelection(SelectionSlot.SECONDARY);
-
-        let isPrimary = primary.id === this.id && primary.type === this.type;
-        let isSecondary = secondary.id === this.id && secondary.type === this.type;
+        let isPrimary = this.isPrimary();
+        let isSecondary = this.isSecondary();
 
         if (isPrimary || isSecondary) {
 
@@ -542,10 +577,34 @@ export class SpriteItem extends Item {
         this.container.addChild(this._sprite);
     }
 
+    hoverAlphaMin: number = 0.25;
+    hoverAlphaIncrement: number = 0.1;
+
     // @Override
     onUpdate(): void {
 
         this.sprite.update();
+
+        if (this.selector.hovered && !this.isPrimary() && !this.isSecondary() && this.selector.hoveredItem !== this) {
+
+            if (this._sprite.alpha > this.hoverAlphaMin) {
+                this._sprite.alpha -= this.hoverAlphaIncrement;
+                if (this._sprite.alpha < this.hoverAlphaMin) {
+                    this._sprite.alpha = this.hoverAlphaMin;
+                }
+            }
+        } else {
+            if (this.selector.hovered) {
+                this._sprite.alpha = 1.0;
+            } else {
+                if (this._sprite.alpha < 1) {
+                    this._sprite.alpha += this.hoverAlphaIncrement;
+                    if (this._sprite.alpha < 1) {
+                        this._sprite.alpha = 1;
+                    }
+                }
+            }
+        }
 
         if (this.isDirty() || this.lastOffset !== this.sprite.offset) {
 
@@ -606,4 +665,28 @@ export class SpriteItem extends Item {
             this.sprite.setDirty(false);
         }
     }
+}
+
+/**
+ * The <i>ItemSelectorAction</i> enum. TODO: Document.
+ *
+ * @author Jab
+ */
+export enum ItemSelectorAction {
+    HOVER_ITEM = 'hover-item',
+    HOVER_ENTER = 'hover-enter',
+    HOVER_EXIT = 'hover-exit',
+    SELECT_ITEM = 'select-item',
+    PRE_DRAW = 'pre-draw',
+    POST_DRAW = 'post-draw'
+}
+
+/**
+ * The <i>ItemSelectorEvent</i> interface. TODO: Document.
+ *
+ * @author Jab
+ */
+export interface ItemSelectorEvent extends CustomEvent {
+    item: Item,
+    action: ItemSelectorAction
 }

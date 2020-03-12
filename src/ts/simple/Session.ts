@@ -363,9 +363,8 @@ export class SessionCache {
     }
 
     private onCallBack(name: string, texture: PIXI.Texture): void {
-        let callbacks = this.callbacks[name];
-        console.log('onCallBack(name: \'' + name + '\', texture: ' + texture + ')', callbacks);
 
+        let callbacks = this.callbacks[name];
         if (callbacks == null || callbacks.length === 0) {
             return;
         }

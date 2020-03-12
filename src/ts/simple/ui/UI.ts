@@ -1,3 +1,5 @@
+import { CustomEventListener, CustomEvent } from './CustomEventListener';
+
 let removeAllChildren = (element: HTMLElement) => {
 
     let count = element.childElementCount;
@@ -16,73 +18,11 @@ let removeAllChildren = (element: HTMLElement) => {
 };
 
 /**
- * The <i>UIEventListener</i> abstract class. TODO: Document.
- *
- * @author Jab
- */
-export abstract class UIEventListener<E extends UIEvent> {
-
-    private listeners: ((event: E) => void | boolean)[];
-    private dispatching: boolean;
-
-    /**
-     * Main constructor.
-     */
-    protected constructor() {
-        this.listeners = [];
-        this.dispatching = false;
-    }
-
-    /**
-     * Dispatches a event.
-     *
-     * @param event The event to pass.
-     * @param ignoreCancelled If true, the event will not check for cancellation.
-     *
-     * @return Returns true if the event is cancelled.
-     */
-    protected dispatch(event: E, ignoreCancelled: boolean = false): boolean {
-
-        if (this.dispatching) {
-            return false;
-        }
-
-        this.dispatching = true;
-
-        for (let index = 0; index < this.listeners.length; index++) {
-            if (ignoreCancelled) {
-                this.listeners[index](event);
-            } else if (this.listeners[index](event)) {
-                this.dispatching = false;
-                return true;
-            }
-        }
-
-        this.dispatching = false;
-
-        return false;
-    }
-
-    /**
-     * Adds a callback to be invoked when an event is dispatched.
-     *
-     * @param callback
-     */
-    addEventListener(callback: (event: E) => void | boolean): void {
-        this.listeners.push(callback);
-    }
-
-    clearEventListeners(): void {
-        this.listeners = [];
-    }
-}
-
-/**
  * The <i>UIPanel</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class UIPanel extends UIEventListener<UIPanelEvent> {
+export class UIPanel extends CustomEventListener<UIPanelEvent> {
 
     readonly element: HTMLDivElement;
     readonly overflowContainer: HTMLDivElement;
@@ -304,7 +244,7 @@ export class UIPanel extends UIEventListener<UIPanelEvent> {
     sort(comparator: (a: UIPanelTab, b: UIPanelTab) => number = null, force: boolean = false): boolean {
 
         if (force) {
-            this.dispatch({tabPanel: null, action: TabPanelAction.SORT, forced: true}, true);
+            this.dispatch({tabPanel: null, action: TabPanelAction.SORT, forced: true});
         } else {
             this.dispatch({tabPanel: null, action: TabPanelAction.SORT, forced: false});
         }
@@ -1057,7 +997,7 @@ export class UITabMenu {
  *
  * @author Jab
  */
-export class UITab extends UIEventListener<UITabEvent> {
+export class UITab extends CustomEventListener<UITabEvent> {
 
     element: HTMLDivElement;
     label: HTMLLabelElement;
@@ -1178,18 +1118,14 @@ export enum PanelOrientation {
     RIGHT = 'right'
 }
 
-export interface UIEvent {
-}
-
 /**
  * The <i>UITabEvent</i> interface. TODO: Document.
  *
  * @author Jab
  */
-export interface UITabEvent extends UIEvent {
+export interface UITabEvent extends CustomEvent {
     tab: UITab,
     action: TabAction,
-    forced: boolean
 }
 
 /**
@@ -1197,8 +1133,7 @@ export interface UITabEvent extends UIEvent {
  *
  * @author Jab
  */
-export interface UIPanelEvent extends UIEvent {
+export interface UIPanelEvent extends CustomEvent {
     tabPanel: UIPanelTab,
     action: TabPanelAction,
-    forced: boolean
 }

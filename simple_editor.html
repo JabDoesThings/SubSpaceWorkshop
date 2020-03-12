@@ -4,32 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <title>SubSpace Workshop</title>
-
     <script type="module">
 
         window.$ = window.jQuery = require('jquery');
-
-        let overrideTilemapShader = () => {
-
-            const fs = require('fs');
-            const tilemapChromaFragmentShader = fs.readFileSync("assets/glsl/tilemap_chroma.frag").toString();
-            window.tilemapChromaFragmentShader = tilemapChromaFragmentShader;
-
-            PIXI.tilemap.shaderGenerator.generateFragmentSrc = (maxTextures) => {
-                return tilemapChromaFragmentShader.replace(/%count%/gi, maxTextures + "")
-                    .replace(/%forloop%/gi, PIXI.tilemap.shaderGenerator.generateSampleSrc(maxTextures));
-            };
-        };
-
-        // JS libraries.
-        // const remote = require('electron');
-        // const THREE = window.THREE = require('three');
+        const fs = require('fs');
         const stats = require("stats.js");
         const uuid = require('uuid');
         const PIXI = window.PIXI = require("pixi.js");
         require("pixi-tilemap");
 
-        overrideTilemapShader();
+        const tilemapChromaFragmentShader = fs.readFileSync("assets/glsl/tilemap_chroma.frag").toString();
+        window.tilemapChromaFragmentShader = tilemapChromaFragmentShader;
+        PIXI.tilemap.shaderGenerator.generateFragmentSrc = (maxTextures) => {
+            return tilemapChromaFragmentShader.replace(/%count%/gi, maxTextures + "")
+                .replace(/%forloop%/gi, PIXI.tilemap.shaderGenerator.generateSampleSrc(maxTextures));
+        };
 
         // Project JS files.
         const main = require("./assets/js/main.js");
@@ -39,13 +28,10 @@
             main.start();
         });
     </script>
-
     <link rel="stylesheet" href="assets/css/project.min.css"/>
     <link rel="stylesheet" href="node_modules/highlight.js/styles/dracula.css"/>
-
 </head>
 <body>
-
 <div class="editor_frame dark">
     <div id="viewport-frame" class="viewport-frame right-panel-open">
         <div id="editor-tab-menu" class="ui-tab-menu"></div>
@@ -61,6 +47,5 @@
         </div>
     </div>
 </div>
-
 </body>
 </html>

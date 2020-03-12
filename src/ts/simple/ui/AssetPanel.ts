@@ -1,11 +1,11 @@
 import { MapRenderer } from '../render/MapRenderer';
 import { MapSprite } from '../render/MapSprite';
 import { Session } from '../Session';
-import { ItemSelector, SpriteItem } from './ItemSelector';
-import { SelectionSlot, SelectionType, Selection } from './Selection';
+import { ItemSelector, ItemSelectorAction, ItemSelectorEvent, SpriteItem } from './ItemSelector';
+import { Selection, SelectionSlot, SelectionType } from './Selection';
+import { UIPanelSection } from './UI';
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
-import { UIPanelSection } from './UI';
 
 /**
  * The <i>AssetPanel</i> class. TODO: Document.
@@ -38,18 +38,22 @@ export class AssetPanel {
 
         this.specialTileSelector = new ItemSelector(this, this.specialTilesSection.content.contents);
         this.specialTileSelector.init(width);
-        this.specialTileSelector.addCallback((event: string) => {
-            if (event === 'draw' && this.specialTilesSection.isOpen()) {
+        this.specialTileSelector.addEventListener((event: ItemSelectorEvent) => {
+            if (event.action === ItemSelectorAction.POST_DRAW && this.specialTilesSection.isOpen()) {
                 this.specialTilesSection.open();
             }
         });
 
         this.mapImageSelector = new ItemSelector(this, this.mapImagesSection.content.contents);
         this.mapImageSelector.init(width);
-        this.mapImageSelector.addCallback((event: string) => {
-            if (event === 'draw' && this.mapImagesSection.isOpen()) {
+        this.mapImageSelector.addEventListener((event: ItemSelectorEvent) => {
+            if (event.action === ItemSelectorAction.POST_DRAW && this.mapImagesSection.isOpen()) {
                 this.mapImagesSection.open();
             }
+        });
+
+        this.mapImageSelector.addEventListener((event: ItemSelectorEvent) => {
+            console.log(event);
         });
     }
 

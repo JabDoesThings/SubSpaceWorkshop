@@ -396,7 +396,6 @@ export class MapRenderer extends Renderer {
         } else {
             session.cache.set(this.app.stage);
             console.log("Active session: " + this.session._name);
-            console.log(session);
             session.setLVZDirty();
         }
 

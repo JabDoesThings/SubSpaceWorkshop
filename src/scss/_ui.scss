@@ -22,7 +22,8 @@ $panelWidth: 320px;
 
     padding: 0 8px;
     overflow: hidden;
-    margin-right: -2px;
+
+    margin: 0 2px;
 
     border-bottom: 2px solid transparent;
     box-shadow: 0 0 2px 2px transparent;
@@ -76,7 +77,6 @@ $panelWidth: 320px;
   transition: all $panelTime;
 
   .ui-panel-contents {
-
     display: inline-block;
     position: relative;
     height: 100%;
@@ -84,6 +84,31 @@ $panelWidth: 320px;
     overflow-x: hidden;
     overflow-y: hidden;
     transition: left 200ms;
+  }
+
+  .ui-tab-menu.left {
+    position: absolute;
+    top: 100%;
+    left: -24px;
+    width: 965px;
+    float: right;
+
+    transform: rotate(-90deg);
+    transform-origin: left top 0;
+
+    .ui-tab {
+      float: right;
+    }
+  }
+
+  .ui-tab-menu.right {
+    position: absolute;
+    top: 0;
+    left: calc(100% + 24px);
+    width: 2048px;
+
+    transform: rotate(90deg);
+    transform-origin: left top 0;
   }
 }
 
@@ -113,34 +138,6 @@ $panelWidth: 320px;
   position: absolute;
   left: unset;
   right: 0;
-}
-
-.ui-panel {
-
-  .ui-tab-menu.left {
-    position: absolute;
-    top: 100%;
-    left: -25px;
-    width: 965px;
-    float: right;
-
-    transform: rotate(-90deg);
-    transform-origin: left top 0;
-
-    .ui-tab {
-      float: right;
-    }
-  }
-
-  .ui-tab-menu.right {
-    position: absolute;
-    top: -1px;
-    left: calc(100% + 25px);
-    width: 2048px;
-
-    transform: rotate(90deg);
-    transform-origin: left top 0;
-  }
 }
 
 .ui-panel-overflow-container {
@@ -233,7 +230,6 @@ $panelWidth: 320px;
   }
 
   .content-frame {
-
     display: block;
 
     padding: 0;
