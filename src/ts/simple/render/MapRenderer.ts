@@ -83,7 +83,7 @@ export class MapRenderer extends Renderer {
         );
 
         this.paletteTab = new PalettePanel(this);
-        this.rightPanel.add(this.paletteTab);
+        this.rightPanel.add(this.paletteTab, 'Palette');
 
         let objectsTab = this.rightPanel.createPanel('objects', 'Objects');
 

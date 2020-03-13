@@ -188,15 +188,27 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
         return tabPanel;
     }
 
-    add(panelTab: UIPanelTab, open: boolean = false): boolean {
+    add(panelTab: UIPanelTab, title: string, open: boolean = false): boolean {
 
         // Package the event. If the event is cancelled, cancel the action.
         if (this.dispatch({tabPanel: panelTab, action: TabPanelAction.ADD, forced: false})) {
             return true;
         }
 
+        let tab = new UITab(panelTab.id, title);
+        tab.addEventListener((event: UITabEvent) => {
+            if (event.action == TabAction.SELECT) {
+                this.select(panelTab);
+            } else if (event.action == TabAction.DESELECT) {
+                this.deselect();
+            }
+        });
+
+        panelTab.tab = tab;
         panelTab.panel = this;
+
         this.panels.push(panelTab);
+        this.tabMenu.addTab(tab, open);
 
         this.sort(null, true);
 
