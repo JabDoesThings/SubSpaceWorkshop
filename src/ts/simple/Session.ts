@@ -1,6 +1,6 @@
+import * as PIXI from "pixi.js";
 import { LVLArea, LVLMap } from '../io/LVL';
 import { LVL } from '../io/LVLUtils';
-import { LVZPackage } from '../io/LVZ';
 import { LVZ } from '../io/LVZUtils';
 import { LVLSpriteCollection } from './render/LVLSpriteCollection';
 import { MapSprite, MapSpriteCollection } from './render/MapSprite';
@@ -9,11 +9,11 @@ import { LVZChunk } from './render/LVZChunk';
 import { ELVLRegionRender } from './render/ELVLRegionRender';
 import { Background } from '../common/Background';
 import { SimpleEditor } from './SimpleEditor';
-import * as PIXI from "pixi.js";
 import { Renderer } from '../common/Renderer';
-import { SelectionGroup, SelectionSlot, SelectionType, Selection } from './ui/Selection';
+import { Selection, SelectionGroup, SelectionSlot, SelectionType } from './ui/Selection';
 import { UITab } from './ui/UI';
-import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
+import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
+import { LVZManager } from './LVZManager';
 
 /**
  * The <i>Session</i> class. TODO: Document.
@@ -22,24 +22,28 @@ import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
  */
 export class Session extends CustomEventListener<SessionEvent> {
 
-    lvzPackages: LVZPackage[];
     selectionGroup: SelectionGroup;
+    lvzManager: LVZManager;
     editor: SimpleEditor;
     cache: SessionCache;
     tab: UITab;
     map: LVLMap;
+    lvzPaths: string[];
+    lvlPath: string;
     _name: string;
     loaded: boolean;
-    lvzResourceDirty: boolean;
-    lvzDirty: boolean;
-    lvzDirtyRange: { x1: number, y1: number, x2: number, y2: number };
 
-    private lvzPaths: string[];
-    private lvlPath: string;
-
+    /**
+     * Main constructor.
+     *
+     * @param lvlPath The path of the map to load.
+     * @param lvzPaths The path of the LVZ files to load.
+     */
     constructor(lvlPath: string, lvzPaths: string[] = []) {
 
         super();
+
+        this.lvzManager = new LVZManager();
 
         this.lvlPath = lvlPath;
         this.lvzPaths = lvzPaths;
@@ -52,20 +56,12 @@ export class Session extends CustomEventListener<SessionEvent> {
 
         let split = lvlPath.split("/");
         this._name = split[split.length - 1].split('.')[0];
-
-        // Create the tab to add to the map list.
-        // this.tab = document.createElement('div');
-        // this.tab.classList.add('ui-tab');
-        // this.tab.innerHTML = '<label>' + this._name + '</label>';
-
-        this.lvzDirty = true;
-        this.lvzDirtyRange = {x1: 0, x2: 0, y1: 16384, y2: 16384};
-        this.lvzResourceDirty = false;
     }
 
     /**
+     * Loads map data and LVZ packages in the Session.
      *
-     * @param override
+     * @param override If true, the session will load. (Even if already loaded)
      *
      * @return Returns true if the action is cancelled.
      */
@@ -86,18 +82,19 @@ export class Session extends CustomEventListener<SessionEvent> {
 
         this.map = LVL.read(this.lvlPath);
 
-        this.lvzPackages = [];
-        for (let index = 0; index < this.lvzPaths.length; index++) {
-            let next = LVZ.read(this.lvzPaths[index]).inflate();
-            this.lvzPackages.push(next);
-        }
-
-        this.lvzDirty = true;
+        this.lvzManager.load(this.lvzPaths);
         this.loaded = true;
 
         this.dispatch({session: this, action: SessionAction.POST_LOAD, forced: true});
     }
 
+    /**
+     * Unloads map data and LVZ packages in the Session.
+     *
+     * @param override If true, the session will unload. (Even if already loaded)
+     *
+     * @return Returns true if the action is cancelled.
+     */
     unload(override: boolean = false): boolean {
 
         // Make sure that the Session is only unloading data when it has to.
@@ -110,17 +107,12 @@ export class Session extends CustomEventListener<SessionEvent> {
         }
 
         let tileset = this.map.tileset;
-        if(tileset != null && tileset !== LVL.DEFAULT_TILESET) {
+        if (tileset != null && tileset !== LVL.DEFAULT_TILESET) {
             tileset.texture.destroy(true);
             tileset.source = null;
         }
 
-        if(this.lvzPackages.length !== 0) {
-            for(let index = 0; index < this.lvzPackages.length; index++) {
-                let next = this.lvzPackages[index];
-
-            }
-        }
+        this.lvzManager.unload();
         this.loaded = false;
 
         this.dispatch({session: this, action: SessionAction.POST_UNLOAD, forced: true});
@@ -129,83 +121,35 @@ export class Session extends CustomEventListener<SessionEvent> {
 
     onPreUpdate(): void {
 
-        if (this.lvzResourceDirty) {
+        if (this.lvzManager.resourceDirty) {
             this.cache.buildLVZ();
         }
 
-        if (this.lvzDirty) {
-
-            let contains2 = (cx1: number, cy1: number, cx2: number, cy2: number): boolean => {
-
-                let bx1 = this.lvzDirtyRange.x1;
-                let by1 = this.lvzDirtyRange.y1;
-                let bx2 = this.lvzDirtyRange.x2;
-                let by2 = this.lvzDirtyRange.y2;
-
-                if (bx2 < cx1 || bx1 > cx2) {
-                    return false;
-                }
-
-                return !(by2 < cy1 || by1 > cy2);
-            };
-
+        if (this.lvzManager.dirty) {
             for (let y = 0; y < 16; y++) {
                 for (let x = 0; x < 16; x++) {
                     let chunk = this.cache.lvzChunks[x][y];
-                    if (contains2(x * 1024, y * 1024, (x + 1) * 1024, (y + 1) * 1024)) {
-                        chunk.build(this);
+                    if (this.lvzManager.isDirty(
+                        x * 1024,
+                        y * 1024,
+                        (x + 1) * 1024,
+                        (y + 1) * 1024)
+                    ) {
+                        chunk.build(this, this.editor.renderer.lvzLayers);
                     }
                 }
             }
         }
 
-        this.cache.lvlSprites.update();
-        this.cache.lvzSprites.update();
+        this.cache.onPreUpdate();
     }
 
     onUpdate(): void {
-
     }
 
     onPostUpdate(): void {
-
         this.selectionGroup.setDirty(false);
-
-        if (this.lvzDirty) {
-            this.lvzDirty = false;
-            this.lvzDirtyRange.x1 = 999999;
-            this.lvzDirtyRange.y1 = 999999;
-            this.lvzDirtyRange.x2 = -999999;
-            this.lvzDirtyRange.y2 = -999999;
-        }
-
-        if (this.lvzResourceDirty) {
-            this.lvzResourceDirty = false;
-        }
-    }
-
-    setLVZPointDirty(x: number, y: number): void {
-        this.lvzDirty = true;
-        if (this.lvzDirtyRange.x1 > x) {
-            this.lvzDirtyRange.x1 = x;
-        }
-        if (this.lvzDirtyRange.y1 > y) {
-            this.lvzDirtyRange.y1 = y;
-        }
-        if (this.lvzDirtyRange.x2 < x) {
-            this.lvzDirtyRange.x2 = x;
-        }
-        if (this.lvzDirtyRange.y2 < y) {
-            this.lvzDirtyRange.y2 = y;
-        }
-    }
-
-    setLVZDirty(x1: number = 0, y1: number = 0, x2: number = 16384, y2: number = 16384): void {
-        this.lvzDirty = true;
-        this.lvzDirtyRange.x1 = x1;
-        this.lvzDirtyRange.y1 = y1;
-        this.lvzDirtyRange.x2 = x2;
-        this.lvzDirtyRange.y2 = y2;
+        this.lvzManager.onPostUpdate();
     }
 }
 
@@ -227,7 +171,6 @@ export class SessionCache {
     regions: ELVLRegionRender[];
     _regions: PIXI.Container;
     _map: PIXI.Container;
-    _lvz: PIXI.Container;
     _border: LVLBorder;
     _background: Background;
     initialized: boolean;
@@ -267,10 +210,6 @@ export class SessionCache {
         this._map = new PIXI.Container();
         this._map.filters = [Renderer.chromaFilter];
         this._map.filterArea = screen;
-
-        this._lvz = new PIXI.Container();
-        this._lvz.filters = [Renderer.chromaFilter];
-        this._lvz.filterArea = screen;
 
         // Create chunks to view.
         this.chunks = new Array(16);
@@ -324,12 +263,6 @@ export class SessionCache {
 
         this.buildLVZ();
 
-        for (let x = 0; x < 16; x++) {
-            for (let y = 0; y < 16; y++) {
-                this._lvz.addChild(this.lvzChunks[x][y].container);
-            }
-        }
-
         this.initialized = true;
     }
 
@@ -344,11 +277,11 @@ export class SessionCache {
 
         this.lvzTextures = {};
 
+        let lvzPackages = this.session.lvzManager.packages;
 
+        for (let key in lvzPackages) {
 
-        for (let key in this.session.lvzPackages) {
-
-            let nextPkg = this.session.lvzPackages[key];
+            let nextPkg = lvzPackages[key];
 
             if (nextPkg.resources == null || nextPkg.resources.length === 0) {
                 continue;
@@ -366,9 +299,9 @@ export class SessionCache {
             }
         }
 
-        for (let key in this.session.lvzPackages) {
+        for (let key in lvzPackages) {
 
-            let nextPkg = this.session.lvzPackages[key];
+            let nextPkg = lvzPackages[key];
 
             if (nextPkg.images == null || nextPkg.images.length === 0) {
                 continue;
@@ -411,7 +344,7 @@ export class SessionCache {
             }
         }
 
-        this.session.lvzDirty = false;
+        this.session.lvzManager.dirty = false;
     }
 
     private onCallBack(name: string, texture: PIXI.Texture): void {
@@ -426,33 +359,43 @@ export class SessionCache {
         }
     }
 
-    set(stage: PIXI.Container) {
-
-        stage.removeChildren();
-
-        stage.addChild(this._background);
-        stage.addChild(this._regions);
-        stage.addChild(this._border);
-        stage.addChild(this.session.editor.renderer.grid);
-        stage.addChild(this._map);
-        stage.addChild(this._lvz);
+    set(): void {
 
         let renderer = this.session.editor.renderer;
+
+        // Background Layer
+        renderer.layers[1].removeChildren();
+        renderer.layers[1].addChild(this._background);
+
+        // Tile Layer
+        renderer.layers[2].removeChildren();
+        renderer.layers[2].addChild(this.session.editor.renderer.grid);
+        renderer.layers[2].addChild(this._map);
+
+        // Weapon Layer
+
+        // Ship Layer
+
+        // Gauges Layer
+
+        // Chat Layer
+
+        // Top-Most Layer
+
         let radar = renderer.radar;
         radar.draw().then(() => {
             radar.apply();
         });
 
-        let tilesetWindow = renderer.tilesetWindow;
-        tilesetWindow.draw();
+        renderer.paletteTab.draw();
+    }
+
+    onPreUpdate(): void {
+        this.lvlSprites.update();
+        this.lvzSprites.update();
     }
 
     destroy(): void {
-
-        if (this._lvz != null) {
-            this._lvz.removeChildren();
-            this._lvz = null;
-        }
 
         if (this._border != null) {
             this._border.texture.destroy();
@@ -467,11 +410,21 @@ export class SessionCache {
     }
 }
 
+/**
+ * The <i>SessionEvent</i> interface. TODO: Document.
+ *
+ * @author Jab
+ */
 export interface SessionEvent extends CustomEvent {
     session: Session,
     action: SessionAction
 }
 
+/**
+ * The <i>SessionAction</i> enum. TODO: Document.
+ *
+ * @author Jab
+ */
 export enum SessionAction {
     PRE_LOAD = 'pre-load',
     POST_LOAD = 'post-load',

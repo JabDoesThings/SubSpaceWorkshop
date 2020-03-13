@@ -5,16 +5,6 @@ import { MapSprite } from './MapSprite';
 import { Session } from '../Session';
 
 /**
- * The <i>LVZChunkEntry</i> interface. TODO: Document.
- */
-interface LVZChunkEntry {
-    object: CompiledLVZMapObject,
-    sprite: MapSprite,
-    texture: number,
-    _sprite: PIXI.Sprite
-}
-
-/**
  * The <i>LVZChunk</i> class. TODO: Document.
  *
  * @author Jab
@@ -23,37 +13,41 @@ export class LVZChunk {
 
     public static readonly LENGTH = 64;
 
-    container: PIXI.Container;
-
-    private view: MapRenderer;
     readonly x: number;
     readonly y: number;
 
-    bounds: PIXI.Rectangle;
-
+    private bounds: PIXI.Rectangle;
+    private renderer: MapRenderer;
     private animatedObjects: LVZChunkEntry[];
+    private objects: LVZChunkEntry[];
 
-    constructor(view: MapRenderer, x: number, y: number) {
+    /**
+     * Main constructor.
+     *
+     * @param renderer
+     * @param x
+     * @param y
+     */
+    constructor(renderer: MapRenderer, x: number, y: number) {
 
-        this.view = view;
+        this.renderer = renderer;
         this.x = x;
         this.y = y;
 
+        this.objects = [];
         this.animatedObjects = [];
-
-        this.container = new PIXI.Container();
         this.bounds = new PIXI.Rectangle(0, 0, 0, 0);
     }
 
     onUpdate(): void {
 
-        let session = this.view.session;
+        let session = this.renderer.session;
         if (session == null) {
             return;
         }
 
-        let lvzPackages = session.lvzPackages;
-        if (lvzPackages == null || lvzPackages.length === 0) {
+        let packages = session.lvzManager.packages;
+        if (packages == null || packages.length === 0) {
             return;
         }
 
@@ -70,13 +64,12 @@ export class LVZChunk {
                     let offset = next.sprite.offset;
                     if (next.sprite.sequence.length > offset) {
                         next._sprite.texture = next.sprite.sequence[next.sprite.offset];
-                        this.container.addChild(next._sprite);
                     }
                 }
             }
         };
 
-        let camera = this.view.camera;
+        let camera = this.renderer.camera;
 
         let contains = (): boolean => {
 
@@ -85,8 +78,8 @@ export class LVZChunk {
             let cy = cpos.y * 16;
             let scale = cpos.scale;
             let invScale = 1 / scale;
-            let sw = this.view.app.view.width;
-            let sh = this.view.app.view.height;
+            let sw = this.renderer.app.view.width;
+            let sh = this.renderer.app.view.height;
 
             let sw2 = (sw / 2) * invScale;
             let sh2 = (sh / 2) * invScale;
@@ -108,36 +101,19 @@ export class LVZChunk {
             return !(by2 < cy1 || by1 > cy2);
         };
 
-        let cpos = camera.position;
-        let cx = cpos.x * 16;
-        let cy = cpos.y * 16;
-        let scale = cpos.scale;
-
-        if (camera.isDirty()) {
-            let invScale = 1 / scale;
-            let sw = this.view.app.view.width * invScale;
-            let sh = this.view.app.view.height * invScale;
-            this.container.x = Math.floor((-1 + ((this.x * 64) - cx + sw / 2)) - (this.x * 64));
-            this.container.y = 1 + Math.floor(((this.y * 64) - cy + sh / 2) - (this.y * 64));
-            this.container.x *= scale;
-            this.container.y *= scale;
-            this.container.scale.x = scale;
-            this.container.scale.y = scale;
-        }
-
         if (contains()) {
             draw(this.animatedObjects);
         }
     }
 
-    build(session: Session): void {
+    build(session: Session, layers: PIXI.Container[]): void {
 
-        let lvzPackages = session.lvzPackages;
+        let packages = session.lvzManager.packages;
 
         let getNearbyPixels = (x1: number, y1: number, x2: number, y2: number): { packageName: string, image: CompiledLVZImage, object: CompiledLVZMapObject }[] => {
             let objects: { packageName: string, image: CompiledLVZImage, object: CompiledLVZMapObject }[] = [];
-            for (let index = 0; index < lvzPackages.length; index++) {
-                let next = lvzPackages[index];
+            for (let index = 0; index < packages.length; index++) {
+                let next = packages[index];
 
                 for (let index2 = 0; index2 < next.mapObjects.length; index2++) {
                     let nextObject = next.mapObjects[index2];
@@ -159,6 +135,22 @@ export class LVZChunk {
             return getNearbyPixels(x1 * 16, y1 * 16, x2 * 16, y2 * 16);
         };
 
+        if (this.objects.length !== 0) {
+            for (let index = 0; index < this.objects.length; index++) {
+                let next = this.objects[index];
+                layers[next.object.layer].removeChild(next._sprite);
+            }
+            this.objects = [];
+        }
+
+        if (this.animatedObjects.length !== 0) {
+            for (let index = 0; index < this.animatedObjects.length; index++) {
+                let next = this.animatedObjects[index];
+                layers[next.object.layer].removeChild(next._sprite);
+            }
+            this.animatedObjects = [];
+        }
+
         let minX = 999999;
         let minY = 999999;
         let maxX = -999999;
@@ -168,11 +160,6 @@ export class LVZChunk {
         let y1 = this.y * 64;
         let x2 = (this.x + 1) * 64;
         let y2 = (this.y + 1) * 64;
-
-        let staticObjects = [];
-        this.animatedObjects = [];
-
-        this.container.removeChildren();
 
         let objects = getNearbyTiles(x1, y1, x2, y2);
 
@@ -197,10 +184,12 @@ export class LVZChunk {
                 _sprite: _sprite
             };
 
+            layers[object.layer].addChild(_sprite);
+
             if ((image.xFrames > 1 || image.yFrames > 1) && image.animationTime !== 0) {
                 this.animatedObjects.push(profile);
             } else {
-                staticObjects.push(profile);
+                this.objects.push(profile);
             }
 
             if (minX > x) {
@@ -222,4 +211,14 @@ export class LVZChunk {
         this.bounds.width = maxX - minX;
         this.bounds.height = maxY - minY;
     }
+}
+
+/**
+ * The <i>LVZChunkEntry</i> interface. TODO: Document.
+ */
+interface LVZChunkEntry {
+    object: CompiledLVZMapObject,
+    sprite: MapSprite,
+    texture: number,
+    _sprite: PIXI.Sprite
 }

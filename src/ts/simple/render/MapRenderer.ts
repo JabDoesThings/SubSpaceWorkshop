@@ -1,6 +1,6 @@
 import { MapGrid } from './MapGrid';
 import { MapRadar } from './MapRadar';
-import { AssetPanel } from '../ui/AssetPanel';
+import { PalettePanel } from '../ui/PalettePanel';
 import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Renderer';
 import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
@@ -17,18 +17,27 @@ import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
  */
 export class MapRenderer extends Renderer {
 
+    readonly layers: PIXI.Container[];
+    readonly lvzLayers: PIXI.Container[];
     grid: MapGrid;
     session: Session;
     radar: Radar;
-    tilesetWindow: AssetPanel;
     tab: HTMLDivElement;
     leftPanel: UIPanel;
     rightPanel: UIPanel;
     mapObjectSection: UIMapObjectSection;
+    paletteTab: PalettePanel;
 
     public constructor() {
         super();
         this.radar = new MapRadar(this);
+
+        this.layers = [];
+        this.lvzLayers = [];
+        for (let index = 0; index < 8; index++) {
+            this.layers.push(new PIXI.Container());
+            this.lvzLayers.push(new PIXI.Container());
+        }
 
         let leftOpen = false;
         let rightOpen = false;
@@ -72,17 +81,10 @@ export class MapRenderer extends Renderer {
 
         let viewportFrame = document.getElementById('viewport-frame');
 
-        let paletteTab = this.rightPanel.createPanel('palette', 'Palette');
+        // let paletteTab = this.rightPanel.createPanel('palette', 'Palette');
+        this.paletteTab = new PalettePanel(this);
+        this.rightPanel.add(this.paletteTab);
 
-        let standardTileDiv = document.createElement('div');
-        standardTileDiv.id = 'standard-tileset';
-        standardTileDiv.classList.add('standard-tileset');
-
-        let standardTileSection = paletteTab.createSection('standard-tiles', 'Standard Tiles');
-        standardTileSection.setContents([standardTileDiv]);
-
-        let specialTileSection = paletteTab.createSection('special-tiles', 'Special Tiles');
-        let mapImageSection = paletteTab.createSection('map-images', 'Map Images');
         let objectsTab = this.rightPanel.createPanel('objects', 'Objects');
 
         this.mapObjectSection = new UIMapObjectSection('map-objects', 'Map Objects');
@@ -112,8 +114,8 @@ export class MapRenderer extends Renderer {
             updateViewport();
         });
 
-        paletteTab.openAllSections();
-        this.rightPanel.select(paletteTab);
+        this.paletteTab.openAllSections();
+        this.rightPanel.select(this.paletteTab);
 
         updateViewport();
     }
@@ -130,7 +132,7 @@ export class MapRenderer extends Renderer {
         // this.grid.renderAxisLines = false;
         // this.grid.renderBaseGrid = false;
 
-        this.tilesetWindow = new AssetPanel(this);
+        // this.paletteTab = new PalettePanel(this);
 
         let drawn = false;
         let downPrimary = false;
@@ -224,8 +226,9 @@ export class MapRenderer extends Renderer {
             let imageIndex = parseInt(split[1]);
             let lvzPackage: LVZPackage;
 
-            for (let index = 0; index < this.session.lvzPackages.length; index++) {
-                let next = this.session.lvzPackages[index];
+            let packages = this.session.lvzManager.packages;
+            for (let index = 0; index < packages.length; index++) {
+                let next = packages[index];
                 if (next.name === lvzPackageName) {
                     lvzPackage = next;
                     break;
@@ -238,7 +241,7 @@ export class MapRenderer extends Renderer {
 
             let coords = {x: event.data.tileX * 16, y: event.data.tileY * 16};
             lvzPackage.createMapObject(imageIndex, coords);
-            this.session.setLVZPointDirty(coords.x, coords.y);
+            this.session.lvzManager.setDirtyPoint(coords.x, coords.y);
         });
 
         this.events.addMouseListener((event: MapMouseEvent): void => {
@@ -347,6 +350,24 @@ export class MapRenderer extends Renderer {
             if (this.grid.visible) {
                 this.grid.draw();
             }
+
+            let cpos = this.camera.position;
+            let cx = cpos.x * 16;
+            let cy = cpos.y * 16;
+            let scale = cpos.scale;
+            let invScale = 1 / scale;
+            let sw = this.app.view.width * invScale;
+            let sh = this.app.view.height * invScale;
+            let x = (Math.floor((-1 + (-cx + sw / 2)))) * scale;
+            let y = (1 + Math.floor(( -cy + sh / 2))) * scale;
+
+            for(let index = 0; index < 8; index++) {
+                let next = this.lvzLayers[index];
+                next.x = x;
+                next.y = y;
+                next.scale.x = scale;
+                next.scale.y = scale;
+            }
         }
 
         for (let x = 0; x < 16; x++) {
@@ -373,7 +394,7 @@ export class MapRenderer extends Renderer {
             }
         }
 
-        this.tilesetWindow.update();
+        this.paletteTab.update();
 
         return true;
     }
@@ -397,16 +418,27 @@ export class MapRenderer extends Renderer {
             this.session.cache.init();
         }
 
+        this.app.stage.removeChildren();
+        for (let index = 0; index < 8; index++) {
+            this.layers[index].removeChildren();
+            this.lvzLayers[index].removeChildren();
+            if (index == 2) {
+                this.app.stage.addChild(this.grid);
+            }
+            this.app.stage.addChild(this.layers[index]);
+            this.app.stage.addChild(this.lvzLayers[index]);
+        }
+
         if (this.session == null) {
             console.log("Active session: none.");
         } else {
-            session.cache.set(this.app.stage);
+            session.cache.set();
             console.log("Active session: " + this.session._name);
-            session.setLVZDirty();
+            session.lvzManager.setDirtyArea();
         }
 
-        this.tilesetWindow.draw();
-        this.tilesetWindow.update();
+        this.paletteTab.draw();
+        this.paletteTab.update();
         this.radar.draw().then(() => {
             this.radar.apply();
         });
@@ -461,11 +493,11 @@ export class UIMapObjectSection extends UIPanelSection {
 
         this.entries = [];
 
-        if(this.pkgs.length === 0) {
+        if (this.pkgs.length === 0) {
             return;
         }
 
-        for(let pkgIndex = 0; pkgIndex < this.pkgs.length; pkgIndex++) {
+        for (let pkgIndex = 0; pkgIndex < this.pkgs.length; pkgIndex++) {
 
             let nextPkg = this.pkgs[pkgIndex];
             let mapObjects = nextPkg.mapObjects;

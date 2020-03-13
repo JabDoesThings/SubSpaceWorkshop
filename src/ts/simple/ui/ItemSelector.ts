@@ -2,7 +2,7 @@ import * as PIXI from "pixi.js";
 import { MapSprite } from '../render/MapSprite';
 import { Dirtable } from '../../util/Dirtable';
 import Rectangle = PIXI.Rectangle;
-import { AssetPanel } from './AssetPanel';
+import { PalettePanel } from './PalettePanel';
 import { SelectionSlot, Selection } from './Selection';
 import { CustomEvent, CustomEventListener } from './CustomEventListener';
 
@@ -28,7 +28,7 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
     listener: ItemSelectorListener;
     hoveredItem: Item;
     hovered: boolean;
-    panel: AssetPanel;
+    panel: PalettePanel;
 
     /**
      * Main constructor.
@@ -36,7 +36,7 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
      * @param panel
      * @param container
      */
-    constructor(panel: AssetPanel, container: HTMLElement = null) {
+    constructor(panel: PalettePanel, container: HTMLElement = null) {
 
         super();
 
@@ -298,7 +298,7 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
 
     selectPrimary(item: Item): void {
 
-        let selectionGroup = this.panel.view.session.selectionGroup;
+        let selectionGroup = this.panel.renderer.session.selectionGroup;
         let primary = selectionGroup.getSelection(SelectionSlot.PRIMARY);
 
         if (item.type === primary.type && item.id === primary.id) {
@@ -306,12 +306,12 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
         }
 
         let selection = new Selection(item.type, item.id);
-        this.panel.view.session.selectionGroup.setSelection(SelectionSlot.PRIMARY, selection);
+        this.panel.renderer.session.selectionGroup.setSelection(SelectionSlot.PRIMARY, selection);
     }
 
     selectSecondary(item: Item): void {
 
-        let selectionGroup = this.panel.view.session.selectionGroup;
+        let selectionGroup = this.panel.renderer.session.selectionGroup;
         let secondary = selectionGroup.getSelection(SelectionSlot.SECONDARY);
 
         if (item.type === secondary.type && item.id === secondary.id) {
@@ -319,7 +319,7 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
         }
 
         let selection = new Selection(item.type, item.id);
-        this.panel.view.session.selectionGroup.setSelection(SelectionSlot.SECONDARY, selection);
+        this.panel.renderer.session.selectionGroup.setSelection(SelectionSlot.SECONDARY, selection);
     }
 
     // @Override
@@ -345,6 +345,11 @@ export class ItemSelectorListener {
     readonly selector: ItemSelector;
     private readonly _compare: Rectangle;
 
+    /**
+     * Main constructor.
+     *
+     * @param selector
+     */
     constructor(selector: ItemSelector) {
         this.selector = selector;
         this._compare = new Rectangle(0, 0, 1, 1);
@@ -483,13 +488,13 @@ export abstract class Item implements Dirtable {
     }
 
     isPrimary(): boolean {
-        let selectionGroup = this.selector.panel.view.session.selectionGroup;
+        let selectionGroup = this.selector.panel.renderer.session.selectionGroup;
         let primary = selectionGroup.getSelection(SelectionSlot.PRIMARY);
         return primary.id === this.id && primary.type === this.type;
     }
 
     isSecondary(): boolean {
-        let selectionGroup = this.selector.panel.view.session.selectionGroup;
+        let selectionGroup = this.selector.panel.renderer.session.selectionGroup;
         let secondary = selectionGroup.getSelection(SelectionSlot.SECONDARY);
         return secondary.id === this.id && secondary.type === this.type;
     }
