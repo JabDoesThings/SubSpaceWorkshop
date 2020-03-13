@@ -1,5 +1,5 @@
 import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
-import { LVZPackage } from '../io/LVZ';
+import { CompiledLVZScreenObject, LVZPackage } from '../io/LVZ';
 import { LVZ } from '../io/LVZUtils';
 
 /**
@@ -104,6 +104,25 @@ export class LVZManager extends CustomEventListener<LVZEvent> {
         this.lvzDirtyRange.y1 = y1;
         this.lvzDirtyRange.x2 = x2;
         this.lvzDirtyRange.y2 = y2;
+    }
+
+    getScreenObjects(): CompiledLVZScreenObject[] {
+
+        let objects: CompiledLVZScreenObject[] = [];
+
+        for (let index = 0; index < this.packages.length; index++) {
+
+            let nextPkg = this.packages[index];
+            if (nextPkg.screenObjects.length === 0) {
+                continue;
+            }
+
+            for (let sIndex = 0; sIndex < nextPkg.screenObjects.length; sIndex++) {
+                objects.push(nextPkg.screenObjects[sIndex]);
+            }
+        }
+
+        return objects;
     }
 }
 

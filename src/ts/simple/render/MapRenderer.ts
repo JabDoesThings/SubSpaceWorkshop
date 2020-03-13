@@ -6,9 +6,11 @@ import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
 import { Session } from '../Session';
 import { Selection, SelectionSlot, SelectionType } from '../ui/Selection';
-import { CompiledLVZMapObject, LVZPackage } from '../../io/LVZ';
+import { CompiledLVZMapObject, CompiledLVZScreenObject, LVZPackage, LVZXType, LVZYType } from '../../io/LVZ';
 import { PanelOrientation, TabOrientation, TabPanelAction, UIPanel, UIPanelSection } from '../ui/UI';
 import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
+import { MapSprite } from './MapSprite';
+import * as PIXI from "pixi.js";
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -17,8 +19,10 @@ import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
  */
 export class MapRenderer extends Renderer {
 
-    readonly layers: PIXI.Container[];
-    readonly lvzLayers: PIXI.Container[];
+    readonly layers: LayerCluster;
+    readonly mapLayers: LayerCluster;
+    readonly screenLayers: LayerCluster;
+
     grid: MapGrid;
     session: Session;
     radar: Radar;
@@ -28,20 +32,19 @@ export class MapRenderer extends Renderer {
     mapObjectSection: UIMapObjectSection;
     paletteTab: PalettePanel;
 
+    screen: ScreenManager;
+
     public constructor() {
         super();
         this.radar = new MapRadar(this);
 
-        this.layers = [];
-        this.lvzLayers = [];
-        for (let index = 0; index < 8; index++) {
-            this.layers.push(new PIXI.Container());
-            this.lvzLayers.push(new PIXI.Container());
-        }
+        this.layers = new LayerCluster();
+        this.mapLayers = new LayerCluster();
+        this.screenLayers = new LayerCluster();
+        this.screen = new ScreenManager(this);
 
         let leftOpen = false;
         let rightOpen = false;
-
         let width = 320;
 
         let viewport = <HTMLDivElement> document.getElementsByClassName('viewport').item(0);
@@ -79,9 +82,6 @@ export class MapRenderer extends Renderer {
             TabOrientation.RIGHT, width
         );
 
-        let viewportFrame = document.getElementById('viewport-frame');
-
-        // let paletteTab = this.rightPanel.createPanel('palette', 'Palette');
         this.paletteTab = new PalettePanel(this);
         this.rightPanel.add(this.paletteTab);
 
@@ -94,7 +94,6 @@ export class MapRenderer extends Renderer {
         let container = <HTMLDivElement> document.getElementById('viewport-container');
         container.appendChild(this.leftPanel.element);
         container.appendChild(this.rightPanel.element);
-        console.log(this.rightPanel);
 
         this.leftPanel.addEventListener((event) => {
             if (event.action == TabPanelAction.DESELECT) {
@@ -127,12 +126,6 @@ export class MapRenderer extends Renderer {
         this.grid.filters = [];
         this.grid.filterArea = this.app.renderer.screen;
         // this.grid.visible = false;
-
-        // this.grid.renderChunkGrid = false;
-        // this.grid.renderAxisLines = false;
-        // this.grid.renderBaseGrid = false;
-
-        // this.paletteTab = new PalettePanel(this);
 
         let drawn = false;
         let downPrimary = false;
@@ -359,10 +352,10 @@ export class MapRenderer extends Renderer {
             let sw = this.app.view.width * invScale;
             let sh = this.app.view.height * invScale;
             let x = (Math.floor((-1 + (-cx + sw / 2)))) * scale;
-            let y = (1 + Math.floor(( -cy + sh / 2))) * scale;
+            let y = (1 + Math.floor((-cy + sh / 2))) * scale;
 
-            for(let index = 0; index < 8; index++) {
-                let next = this.lvzLayers[index];
+            for (let index = 0; index < 8; index++) {
+                let next = this.mapLayers.layers[index];
                 next.x = x;
                 next.y = y;
                 next.scale.x = scale;
@@ -396,6 +389,8 @@ export class MapRenderer extends Renderer {
 
         this.paletteTab.update();
 
+        this.screen.update();
+
         return true;
     }
 
@@ -420,13 +415,14 @@ export class MapRenderer extends Renderer {
 
         this.app.stage.removeChildren();
         for (let index = 0; index < 8; index++) {
-            this.layers[index].removeChildren();
-            this.lvzLayers[index].removeChildren();
+            this.layers.layers[index].removeChildren();
+            this.mapLayers.layers[index].removeChildren();
             if (index == 2) {
                 this.app.stage.addChild(this.grid);
             }
-            this.app.stage.addChild(this.layers[index]);
-            this.app.stage.addChild(this.lvzLayers[index]);
+            this.app.stage.addChild(this.layers.layers[index]);
+            this.app.stage.addChild(this.mapLayers.layers[index]);
+            this.app.stage.addChild(this.screenLayers.layers[index]);
         }
 
         if (this.session == null) {
@@ -437,6 +433,7 @@ export class MapRenderer extends Renderer {
             session.lvzManager.setDirtyArea();
         }
 
+        this.screen.draw();
         this.paletteTab.draw();
         this.paletteTab.update();
         this.radar.draw().then(() => {
@@ -573,4 +570,161 @@ export class UIMapObjectEntry extends CustomEventListener<UIMapObjectEvent> {
         this.nameLabelElement.innerText = this.object.id + ' (' + this.object.pkg.name + ")";
     }
 
+}
+
+/**
+ * The <i>LayerCluster</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class LayerCluster {
+
+    readonly layers: PIXI.Container[];
+
+    /**
+     * Main constructor.
+     */
+    constructor() {
+        this.layers = [];
+        for (let index = 0; index < 8; index++) {
+            this.layers.push(new PIXI.Container());
+        }
+    }
+
+    clear(): void {
+        for (let index = 0; index < 8; index++) {
+            this.layers[index].removeChildren();
+        }
+    }
+}
+
+export class ScreenManager {
+
+    private renderer: MapRenderer;
+    private previousScreen: PIXI.Rectangle;
+
+    private objects: LVZScreenEntry[];
+    private animatedObjects: LVZScreenEntry[];
+
+    constructor(renderer: MapRenderer) {
+        this.renderer = renderer;
+        this.previousScreen = new PIXI.Rectangle();
+        this.objects = [];
+        this.animatedObjects = [];
+    }
+
+    update(): void {
+
+        let screen = this.renderer.app.screen;
+
+        if (this.previousScreen.x !== screen.x
+            || this.previousScreen.y !== screen.y
+            || this.previousScreen.width !== screen.width
+            || this.previousScreen.height !== screen.height) {
+            this.draw();
+        }
+
+        if (this.animatedObjects.length !== 0) {
+            for (let index = 0; index < this.animatedObjects.length; index++) {
+                ScreenManager.drawEntry(this.animatedObjects[index]);
+            }
+        }
+    }
+
+    draw(): void {
+
+        let screen = this.renderer.app.screen;
+        let center = {x: screen.width / 2, y: screen.height / 2};
+
+        let calculate = (x: number, y: number, xType: LVZXType, yType: LVZYType): { x: number, y: number } => {
+
+            let result = {x: x, y: y};
+
+            if (xType === LVZXType.SCREEN_CENTER) {
+                result.x = x + center.x;
+            } else if (xType === LVZXType.SCREEN_RIGHT) {
+                result.x = x + screen.width;
+            }
+
+            if (yType === LVZYType.SCREEN_CENTER) {
+                result.y = y + center.y;
+            } else if (yType === LVZYType.SCREEN_BOTTOM) {
+                result.y = y + screen.height;
+            }
+
+            // TODO: Implement all coordinates.
+
+            return result;
+        };
+
+        let cluster = this.renderer.screenLayers;
+        cluster.clear();
+
+        let session = this.renderer.session;
+        if (session == null) {
+            return;
+        }
+
+        let screenObjects = session.lvzManager.getScreenObjects();
+        if (screenObjects.length === 0) {
+            return;
+        }
+
+        for (let index = 0; index < screenObjects.length; index++) {
+
+            let object = screenObjects[index];
+            let pkg = object.pkg;
+            let image = pkg.images[screenObjects[index].image];
+            let packageName = screenObjects[index].pkg.name;
+
+            let coordinates = calculate(object.x, object.y, object.xType, object.yType);
+
+            let _sprite = new PIXI.Sprite();
+            _sprite.x = coordinates.x;
+            _sprite.y = coordinates.y;
+
+            let sprite = session.cache.lvzSprites.getSpriteById(packageName + '>>>' + object.image);
+
+            let profile = <LVZScreenEntry> {
+                sprite: sprite,
+                _sprite: _sprite,
+                object: object
+            };
+
+            ScreenManager.drawEntry(profile);
+
+            cluster.layers[object.layer].addChild(_sprite);
+
+            if ((image.xFrames > 1 || image.yFrames > 1) && image.animationTime !== 0) {
+                this.animatedObjects.push(profile);
+            } else {
+                this.objects.push(profile);
+            }
+        }
+
+        this.previousScreen.x = screen.x;
+        this.previousScreen.y = screen.y;
+        this.previousScreen.width = screen.width;
+        this.previousScreen.height = screen.height;
+    }
+
+    private static drawEntry(entry: LVZScreenEntry): void {
+
+        if (entry.sprite == null) {
+            return;
+        }
+
+        if (entry.sprite.sequence != null) {
+            let offset = entry.sprite.offset;
+            if (entry.sprite.sequence.length > offset) {
+                entry._sprite.texture = entry.sprite.sequence[entry.sprite.offset];
+            }
+        }
+    }
+}
+
+export interface LVZScreenEntry {
+    sprite: MapSprite,
+    _sprite: PIXI.Sprite,
+    object: CompiledLVZScreenObject
 }

@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { MapRenderer } from './MapRenderer';
+import { LayerCluster, MapRenderer } from './MapRenderer';
 import { CompiledLVZImage, CompiledLVZMapObject } from '../../io/LVZ';
 import { MapSprite } from './MapSprite';
 import { Session } from '../Session';
@@ -106,7 +106,7 @@ export class LVZChunk {
         }
     }
 
-    build(session: Session, layers: PIXI.Container[]): void {
+    build(session: Session, cluster: LayerCluster): void {
 
         let packages = session.lvzManager.packages;
 
@@ -138,7 +138,7 @@ export class LVZChunk {
         if (this.objects.length !== 0) {
             for (let index = 0; index < this.objects.length; index++) {
                 let next = this.objects[index];
-                layers[next.object.layer].removeChild(next._sprite);
+                cluster.layers[next.object.layer].removeChild(next._sprite);
             }
             this.objects = [];
         }
@@ -146,7 +146,7 @@ export class LVZChunk {
         if (this.animatedObjects.length !== 0) {
             for (let index = 0; index < this.animatedObjects.length; index++) {
                 let next = this.animatedObjects[index];
-                layers[next.object.layer].removeChild(next._sprite);
+                cluster.layers[next.object.layer].removeChild(next._sprite);
             }
             this.animatedObjects = [];
         }
@@ -184,7 +184,7 @@ export class LVZChunk {
                 _sprite: _sprite
             };
 
-            layers[object.layer].addChild(_sprite);
+            cluster.layers[object.layer].addChild(_sprite);
 
             if ((image.xFrames > 1 || image.yFrames > 1) && image.animationTime !== 0) {
                 this.animatedObjects.push(profile);

@@ -135,7 +135,7 @@ export class Session extends CustomEventListener<SessionEvent> {
                         (x + 1) * 1024,
                         (y + 1) * 1024)
                     ) {
-                        chunk.build(this, this.editor.renderer.lvzLayers);
+                        chunk.build(this, this.editor.renderer.mapLayers);
                     }
                 }
             }
@@ -364,13 +364,13 @@ export class SessionCache {
         let renderer = this.session.editor.renderer;
 
         // Background Layer
-        renderer.layers[1].removeChildren();
-        renderer.layers[1].addChild(this._background);
+        renderer.layers.layers[1].removeChildren();
+        renderer.layers.layers[1].addChild(this._background);
 
         // Tile Layer
-        renderer.layers[2].removeChildren();
-        renderer.layers[2].addChild(this.session.editor.renderer.grid);
-        renderer.layers[2].addChild(this._map);
+        renderer.layers.layers[2].removeChildren();
+        renderer.layers.layers[2].addChild(this.session.editor.renderer.grid);
+        renderer.layers.layers[2].addChild(this._map);
 
         // Weapon Layer
 

@@ -356,10 +356,10 @@ export class LVZ {
                     offset += 2;
 
                     let xType = second & 0x0F;
-                    let x = second >> 4;
+                    let x = (second >> 4) - 4096;
 
                     let yType = third & 0x0F;
-                    let y = third >> 4;
+                    let y = (third >> 4) - 4096;
 
                     let image = buffer.readUInt8(offset++);
                     let layer = buffer.readUInt8(offset++);
