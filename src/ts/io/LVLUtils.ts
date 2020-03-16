@@ -17,16 +17,7 @@ export class LVL {
     static readonly TILESET_DIMENSIONS: number[] = [304, 160];
     static readonly MAP_LENGTH = 1024;
 
-    static DEFAULT_TILESET = LVL.readTilesetImage("assets/media/tiles.bmp");
-    static FLAG_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/flag.png", {scaleMode: SCALE_MODES.NEAREST});
-    static GOAL_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/goal.png", {scaleMode: SCALE_MODES.NEAREST});
-    static PRIZES_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/prizes.png", {scaleMode: SCALE_MODES.NEAREST});
-    static OVER1_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over1.png", {scaleMode: SCALE_MODES.NEAREST});
-    static OVER2_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over2.png", {scaleMode: SCALE_MODES.NEAREST});
-    static OVER3_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over3.png", {scaleMode: SCALE_MODES.NEAREST});
-    static OVER4_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over4.png", {scaleMode: SCALE_MODES.NEAREST});
-    static OVER5_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/over5.png", {scaleMode: SCALE_MODES.NEAREST});
-    static EXTRAS_TEXTURE: PIXI.Texture = PIXI.Texture.from("assets/media/extras.bmp", {scaleMode: SCALE_MODES.NEAREST});
+    static DEFAULT_TILESET = LVL.readTilesetImage("assets/media/tiles.png");
 
     static read(path: string): LVLMap {
 
@@ -82,7 +73,9 @@ export class LVL {
         let tileBuffer = LVL.toTileBuffer(map);
         let buffer: Buffer;
         if (map.tileset != null && map.tileset !== LVL.DEFAULT_TILESET) {
-            tileSetBuffer = Bitmap.toBuffer(map.tileset.source, map.tileset.bitCount, true);
+            // @ts-ignore
+            let source = global.editor.renderer.toCanvas(map.tileset.texture);
+            tileSetBuffer = Bitmap.toBuffer(source, map.tileset.bitCount, true);
             buffer = Buffer.concat([tileSetBuffer, tileBuffer]);
         } else {
             buffer = tileBuffer;
@@ -92,13 +85,22 @@ export class LVL {
     }
 
     static readTilesetImage(path: string): LVLTileSet {
-        let buffer = fs.readFileSync(path);
-        return LVL.readTileset(buffer);
+
+        let split = path.toLowerCase().split('.');
+        let extension = split[split.length - 1];
+
+        if(extension.endsWith('bmp') || extension.endsWith('bm2') ) {
+            let buffer = fs.readFileSync(path);
+            return LVL.readTileset(buffer);
+        }
+
+        let texture = PIXI.Texture.from(path, {scaleMode: SCALE_MODES.NEAREST});
+        return new LVLTileSet(texture);
     }
 
-    static readTileset(buffer: Buffer): LVLTileSet {
+    static readTileset(bitmapBuffer: Buffer): LVLTileSet {
 
-        let bitmap = new Bitmap(buffer);
+        let bitmap = new Bitmap(bitmapBuffer);
         let imageData = bitmap.convertToImageData();
 
         let canvas = document.createElement('canvas');
@@ -155,7 +157,6 @@ export class LVL {
                 + " given)"
             );
         }
-
     }
 
     /**
@@ -175,7 +176,6 @@ export class LVL {
         } else if (startY > endY) {
             throw new EvalError("'startY' is greater than 'endY'.");
         }
-
     }
 
     /**
@@ -323,27 +323,6 @@ export class LVL {
                 "Tile values can only be between 0 and 255. (" + value + " given)");
         }
     }
-
-    // static validatePosition(x: number, y: number): void {
-    //
-    //     let messages: string[] = [];
-    //
-    //     if (x < 0) {
-    //         messages.push("The 'x' coordinate given is negative. (" + x + " given)");
-    //     } else if (x > 1023) {
-    //         messages.push("The 'x' coordinate given is greater than 1023. (" + x + " given)");
-    //     }
-    //
-    //     if (y < 0) {
-    //         messages.push("The 'y' coordinate given is negative. (" + y + " given)");
-    //     } else if (y > 1023) {
-    //         messages.push("The 'y' coordinate given is greater than 1023. (" + y + " given)");
-    //     }
-    //
-    //     if (messages.length != 0) {
-    //         throw new Error(messages.join("\n"));
-    //     }
-    // }
 
     static validateArea(x1: number, y1: number, x2: number, y2: number) {
 

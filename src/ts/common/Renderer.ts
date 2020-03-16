@@ -20,6 +20,8 @@ export abstract class Renderer extends UpdatedObject {
     static fragmentSrc = fs.readFileSync("assets/glsl/pixi_chroma.frag").toString();
     static chromaFilter = new Filter(undefined, Renderer.fragmentSrc, undefined);
 
+    private readonly __toCanvasSprite: PIXI.Sprite = new PIXI.Sprite();
+
     app: PIXI.Application;
     camera: Camera;
     stats: Stats;
@@ -131,11 +133,6 @@ export abstract class Renderer extends UpdatedObject {
 
         resize();
 
-        // Listen for window resize events
-        // window.addEventListener('resize', resize);
-        // container.addEventListener('resize', resize);
-        // container.parentElement.addEventListener('resize', resize);
-
         this.setDirty(true);
     }
 
@@ -168,6 +165,27 @@ export abstract class Renderer extends UpdatedObject {
 
     protected abstract onPreUpdate(delta: number): void;
     protected abstract onPostUpdate(delta: number): void;
+
+    /**
+     * Converts a PIXI.Texture to a HTMLCanvasElement.
+     *
+     * @param texture The texture to convert.
+     *
+     * @return Returns the texture as a HTMLCanvasElement.
+     *
+     * @throws Error Thrown if the texture is null or undefined.
+     */
+    toCanvas(texture: PIXI.Texture): HTMLCanvasElement {
+
+        if (texture == null) {
+            throw new Error('The texture given is null or undefined.');
+        }
+
+        this.__toCanvasSprite.texture = texture;
+        this.__toCanvasSprite.width = texture.width;
+        this.__toCanvasSprite.height = texture.height;
+        return this.app.renderer.extract.canvas(this.__toCanvasSprite);
+    }
 }
 
 /**
@@ -381,14 +399,7 @@ export class Camera extends UpdatedObject {
 
         this.bounds = new PIXI.Rectangle(0, 0, 0, 0);
 
-        // new KeyListener("Shift", () => {
-        //     this.shift = true;
-        // }, null, () => {
-        //     this.shift = false;
-        // });
-
-        // Make sure anything dependent on the camera being dirty renders on the first
-        // render call.
+        // Make sure anything dependent on the camera being dirty renders on the first render call.
         this.setDirty(true);
     }
 

@@ -31,9 +31,11 @@ export class MapRenderer extends Renderer {
     rightPanel: UIPanel;
     mapObjectSection: UIMapObjectSection;
     paletteTab: PalettePanel;
-
     screen: ScreenManager;
 
+    /**
+     * Main constructor.
+     */
     public constructor() {
         super();
         this.radar = new MapRadar(this);
@@ -430,7 +432,6 @@ export class MapRenderer extends Renderer {
         } else {
             session.cache.set();
             console.log("Active session: " + this.session._name);
-            session.lvzManager.setDirtyArea();
         }
 
         this.screen.draw();
@@ -603,13 +604,13 @@ export class ScreenManager {
     private renderer: MapRenderer;
     private previousScreen: PIXI.Rectangle;
 
-    private objects: LVZScreenEntry[];
+    // private objects: LVZScreenEntry[];
     private animatedObjects: LVZScreenEntry[];
 
     constructor(renderer: MapRenderer) {
         this.renderer = renderer;
         this.previousScreen = new PIXI.Rectangle();
-        this.objects = [];
+        // this.objects = [];
         this.animatedObjects = [];
     }
 
@@ -665,6 +666,8 @@ export class ScreenManager {
             return;
         }
 
+        let atlas = session.atlas;
+
         let screenObjects = session.lvzManager.getScreenObjects();
         if (screenObjects.length === 0) {
             return;
@@ -679,11 +682,14 @@ export class ScreenManager {
 
             let coordinates = calculate(object.x, object.y, object.xType, object.yType);
 
+            let sprite = atlas.getSpriteById(packageName + '>>>' + object.image);
+            if (sprite == null) {
+                continue;
+            }
+
             let _sprite = new PIXI.Sprite();
             _sprite.x = coordinates.x;
             _sprite.y = coordinates.y;
-
-            let sprite = session.cache.lvzSprites.getSpriteById(packageName + '>>>' + object.image);
 
             let profile = <LVZScreenEntry> {
                 sprite: sprite,
@@ -698,7 +704,7 @@ export class ScreenManager {
             if ((image.xFrames > 1 || image.yFrames > 1) && image.animationTime !== 0) {
                 this.animatedObjects.push(profile);
             } else {
-                this.objects.push(profile);
+                // this.objects.push(profile);
             }
         }
 

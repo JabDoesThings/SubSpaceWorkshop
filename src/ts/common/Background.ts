@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 import { MapRenderer } from '../simple/render/MapRenderer';
 import { Renderer } from './Renderer';
 import { SeededRandom } from '../util/SeededRandom';
+import { Session } from '../simple/Session';
 
 /**
  * The <i>Background</i> class. TODO: Document.
@@ -20,11 +21,14 @@ export class Background extends PIXI.Container {
     private lh: number;
     random: SeededRandom;
     seed: number;
+    session: Session;
+    private dirty: boolean;
 
-    constructor(view: Renderer, seed: number) {
+    constructor(session: Session, view: Renderer, seed: number) {
 
         super();
 
+        this.session = session;
         this.view = view;
         this.setSeed(seed);
 
@@ -35,10 +39,13 @@ export class Background extends PIXI.Container {
         this.lw = -1;
         this.lh = -1;
 
+        this.dirty = true;
+
         this.draw();
     }
 
     draw(): void {
+
         this.removeChildren();
 
         this.layer1 = new StarFieldLayer(this, 0x606060, 8);
@@ -49,9 +56,15 @@ export class Background extends PIXI.Container {
         this.addChild(this.layer1);
         this.addChild(this.layer2);
         this.addChild(this.texLayer);
+
+        this.dirty = false;
     }
 
     update(): void {
+
+        if(this.dirty) {
+            this.draw();
+        }
 
         let camera = this.view.camera;
 
@@ -112,6 +125,15 @@ export class Background extends PIXI.Container {
         this.seed = seed;
         this.random = new SeededRandom(seed);
     }
+
+    isDirty(): boolean {
+        return this.dirty;
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+        this.dirty = flag;
+    }
 }
 
 /**
@@ -121,8 +143,8 @@ export class Background extends PIXI.Container {
  */
 export class BackgroundObjectLayer extends PIXI.Container {
 
-    static backgroundTextures: PIXI.Texture[];
-    static starTextures: PIXI.Texture[];
+    // static backgroundTextures: PIXI.Texture[];
+    // static starTextures: PIXI.Texture[];
 
     private background: Background;
 
@@ -193,11 +215,24 @@ export class BackgroundObjectLayer extends PIXI.Container {
 
         let random = this.background.random;
 
+        let atlas = this.background.session.atlas;
+
+        let bgs: PIXI.Texture[] = [];
+        let stars: PIXI.Texture[] = [];
+
+        let textures = atlas.getTextureAtlases();
+        for (let key in textures) {
+            if (key.toLowerCase().startsWith('bg')) {
+                bgs.push(textures[key].texture);
+            } else if (key.toLowerCase().startsWith('star')) {
+                stars.push(textures[key].texture);
+            }
+        }
+
         for (let index = 0; index < 256; index++) {
 
-            let tex = Math.floor(random.nextDouble() * BackgroundObjectLayer.starTextures.length);
-
-            let sprite = new PIXI.Sprite(BackgroundObjectLayer.starTextures[tex]);
+            let tex = Math.floor(random.nextDouble() * stars.length);
+            let sprite = new PIXI.Sprite(stars[tex]);
             sprite.filters = [MapRenderer.chromaFilter];
             sprite.filterArea = this.background.view.app.screen;
             sprite.x = Math.floor(minX + (random.nextDouble() * dx));
@@ -213,9 +248,8 @@ export class BackgroundObjectLayer extends PIXI.Container {
 
         for (let index = 0; index < 32; index++) {
 
-            let tex = Math.floor(random.nextDouble() * BackgroundObjectLayer.backgroundTextures.length);
-
-            let sprite = new PIXI.Sprite(BackgroundObjectLayer.backgroundTextures[tex]);
+            let tex = Math.floor(random.nextDouble() * bgs.length);
+            let sprite = new PIXI.Sprite(bgs[tex]);
             sprite.filters = [MapRenderer.chromaFilter];
             sprite.filterArea = this.background.view.app.screen;
             sprite.x = Math.floor(minX + (random.nextDouble() * dx));
@@ -297,18 +331,18 @@ export class StarFieldLayer extends PIXI.Container {
     }
 }
 
-BackgroundObjectLayer.backgroundTextures = [];
-
-for (let index = 1; index <= 14; index++) {
-    let ext = index < 10 ? "0" + index : "" + index;
-    let path = "assets/media/bg" + ext + ".bm2";
-    BackgroundObjectLayer.backgroundTextures[index] = PIXI.Texture.from(path);
-}
-
-BackgroundObjectLayer.starTextures = [];
-
-for (let index = 1; index <= 7; index++) {
-    let ext = index < 10 ? "0" + index : "" + index;
-    let path = "assets/media/star" + ext + ".bm2";
-    BackgroundObjectLayer.starTextures[index] = PIXI.Texture.from(path);
-}
+// BackgroundObjectLayer.backgroundTextures = [];
+//
+// for (let index = 1; index <= 14; index++) {
+//     let ext = index < 10 ? "0" + index : "" + index;
+//     let path = "assets/media/bg" + ext + ".png";
+//     BackgroundObjectLayer.backgroundTextures[index] = PIXI.Texture.from(path);
+// }
+//
+// BackgroundObjectLayer.starTextures = [];
+//
+// for (let index = 1; index <= 7; index++) {
+//     let ext = index < 10 ? "0" + index : "" + index;
+//     let path = "assets/media/star" + ext + ".png";
+//     BackgroundObjectLayer.starTextures[index] = PIXI.Texture.from(path);
+// }

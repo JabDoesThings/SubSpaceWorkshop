@@ -199,28 +199,30 @@ export class MapSprite implements Validatable {
 
     texture: PIXI.Texture;
     current: number[];
-
     frameWidth: number;
     frameHeight: number;
-    private framesX: number;
-    private framesY: number;
-    private startX: number;
-    private startY: number;
-    private endX: number;
-    private endY: number;
 
-    frameOffset: number;
-    private frameX: number;
-    private frameY: number;
-    private frameTime: number;
+    framesX: number;
+    framesY: number;
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+
+    frameX: number;
+    frameY: number;
+    frameTime: number;
+
     private last: number;
 
     offset: number;
 
     sequence: PIXI.Texture[];
-    source: HTMLImageElement;
+    // source: HTMLImageElement;
     private dirty: boolean;
+
     id: string;
+    dynamic: boolean;
 
     /**
      * Main constructor.
@@ -235,7 +237,7 @@ export class MapSprite implements Validatable {
      * @param endX
      * @param endY
      */
-    constructor(frameWidth: number, frameHeight: number, framesX: number = 1, framesY: number = 1, frameTime: number = 1, startX: number = null, startY: number = null, endX: number = null, endY: number = null) {
+    constructor(frameWidth: number = -1, frameHeight: number = -1, framesX: number = 1, framesY: number = 1, frameTime: number = 1, startX: number = null, startY: number = null, endX: number = null, endY: number = null) {
 
         this.id = uuid.v4();
 
@@ -300,7 +302,35 @@ export class MapSprite implements Validatable {
         this.validate();
 
         this.reset();
+
+        this.dynamic = frameWidth === -1 && frameHeight === -1;
         this.dirty = true;
+    }
+
+    clone(): MapSprite {
+        let mapSprite = new MapSprite(this.frameWidth, this.frameHeight);
+
+        mapSprite.id = this.id;
+        mapSprite.frameX = this.frameX;
+        mapSprite.frameY = this.frameY;
+        mapSprite.framesX = this.framesX;
+        mapSprite.framesY = this.framesY;
+        mapSprite.startX = this.startX;
+        mapSprite.startY = this.startY;
+        mapSprite.endX = this.endX;
+        mapSprite.endY = this.endY;
+        mapSprite.frameTime = this.frameTime;
+        mapSprite.texture = this.texture;
+        mapSprite.current = this.current;
+        mapSprite.offset = this.offset;
+        mapSprite.sequence = [];
+        for (let index = 0; index < this.sequence.length; index++) {
+            mapSprite.sequence.push(this.sequence[index]);
+        }
+
+        mapSprite.reset();
+
+        return mapSprite;
     }
 
     // @Override
@@ -354,9 +384,8 @@ export class MapSprite implements Validatable {
     reset(): void {
 
         this.offset = 0;
-        this.frameOffset = 0;
-        this.framesX = this.startX;
-        this.framesY = this.startY;
+        this.frameX = this.startX;
+        this.frameY = this.startY;
 
         this.updateCurrent();
 
@@ -379,14 +408,12 @@ export class MapSprite implements Validatable {
     next(): void {
 
         this.offset++;
-        this.frameOffset++;
         this.frameX++;
         if (this.frameX > this.endX) {
             this.frameY++;
             this.frameX = this.startX;
             if (this.frameY > this.endY) {
                 this.frameY = this.startY;
-                this.frameOffset = 0;
                 this.offset = 0;
             }
         }
@@ -420,26 +447,49 @@ export class MapSprite implements Validatable {
         }
     }
 
-    sequenceTexture(): void {
+    setTexture(texture: PIXI.Texture = null): void {
 
-        // Cleanup if present.
-        if (this.sequence != null && this.sequence.length != 0) {
-            for (let index = 0; index < this.sequence.length; index++) {
-                this.sequence[index].destroy(false);
-            }
-        }
+        if (texture != null) {
+            this.texture = texture;
 
-        this.sequence = [];
+            let apply = () => {
 
-        let w = this.frameWidth;
-        let h = this.frameHeight;
-        let base = this.texture.baseTexture;
-        for (let y = this.startY; y <= this.endY; y++) {
-            for (let x = this.startX; x <= this.endX; x++) {
-                let rect = new Rectangle(x * w, y * h, w, h);
-                let tex = new PIXI.Texture(base, rect);
-                this.sequence.push(tex);
-            }
+                if (this.frameWidth == -1) {
+                    this.frameWidth = Math.round(this.texture.width / this.framesX);
+                } else if (this.frameHeight == -1) {
+                    this.frameHeight = Math.round(this.texture.height / this.framesY);
+                }
+
+                // Cleanup if present.
+                if (this.sequence != null && this.sequence.length != 0) {
+                    for (let index = 0; index < this.sequence.length; index++) {
+                        this.sequence[index].destroy(false);
+                    }
+                }
+
+                // If the texture does not animate, set the only sequenced texture as the one assigned
+                //   to the sprite.
+                if (this.startX === this.endX && this.startY === this.endY) {
+                    this.sequence = [texture];
+                    this.reset();
+                    return;
+                }
+
+                this.sequence = [];
+
+                let w = this.frameWidth;
+                let h = this.frameHeight;
+                let base = this.texture.baseTexture;
+                for (let y = this.startY; y <= this.endY; y++) {
+                    for (let x = this.startX; x <= this.endX; x++) {
+                        let rect = new Rectangle(x * w, y * h, w, h);
+                        let tex = new PIXI.Texture(base, rect);
+                        this.sequence.push(tex);
+                    }
+                }
+            };
+
+            apply();
         }
     }
 

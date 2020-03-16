@@ -1,9 +1,7 @@
 import * as PIXI from "pixi.js";
+import { DEFAULT_ATLAS } from '../main';
 import { LVLArea, LVLMap } from '../io/LVL';
 import { LVL } from '../io/LVLUtils';
-import { LVZ } from '../io/LVZUtils';
-import { LVLSpriteCollection } from './render/LVLSpriteCollection';
-import { MapSprite, MapSpriteCollection } from './render/MapSprite';
 import { LVLBorder, LVLChunk } from './render/LVLRender';
 import { LVZChunk } from './render/LVZChunk';
 import { ELVLRegionRender } from './render/ELVLRegionRender';
@@ -14,13 +12,14 @@ import { Selection, SelectionGroup, SelectionSlot, SelectionType } from './ui/Se
 import { UITab } from './ui/UI';
 import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
 import { LVZManager } from './LVZManager';
+import { SessionAtlas, SessionAtlasEvent, TextureAtlasEvent } from './render/SessionAtlas';
 
 /**
  * The <i>Session</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Session extends CustomEventListener<SessionEvent> {
+export class Session extends CustomEventListener<CustomEvent> {
 
     selectionGroup: SelectionGroup;
     lvzManager: LVZManager;
@@ -28,6 +27,7 @@ export class Session extends CustomEventListener<SessionEvent> {
     cache: SessionCache;
     tab: UITab;
     map: LVLMap;
+    atlas: SessionAtlas;
     lvzPaths: string[];
     lvlPath: string;
     _name: string;
@@ -43,7 +43,10 @@ export class Session extends CustomEventListener<SessionEvent> {
 
         super();
 
-        this.lvzManager = new LVZManager();
+        let split = lvlPath.split("/");
+        this._name = split[split.length - 1].split('.')[0];
+
+        this.lvzManager = new LVZManager(this);
 
         this.lvlPath = lvlPath;
         this.lvzPaths = lvzPaths;
@@ -52,10 +55,12 @@ export class Session extends CustomEventListener<SessionEvent> {
         this.selectionGroup.setSelection(SelectionSlot.PRIMARY, new Selection(SelectionType.TILE, 1));
         this.selectionGroup.setSelection(SelectionSlot.SECONDARY, new Selection(SelectionType.TILE, 2));
 
-        this.cache = new SessionCache(this);
+        this.atlas = DEFAULT_ATLAS.clone();
+        this.atlas.addEventListener((event) => {
+            this.dispatch(event);
+        });
 
-        let split = lvlPath.split("/");
-        this._name = split[split.length - 1].split('.')[0];
+        this.cache = new SessionCache(this);
     }
 
     /**
@@ -76,16 +81,27 @@ export class Session extends CustomEventListener<SessionEvent> {
             this.unload(true);
         }
 
-        if (this.dispatch({session: this, action: SessionAction.PRE_LOAD, forced: override})) {
+        if (this.dispatch(<SessionEvent> {
+            eventType: 'SessionEvent',
+            session: this,
+            action: SessionAction.PRE_LOAD,
+            forced: override
+        })) {
             return true;
         }
 
         this.map = LVL.read(this.lvlPath);
 
+        this.atlas.getTextureAtlas('tiles').setTexture(this.map.tileset.texture);
         this.lvzManager.load(this.lvzPaths);
         this.loaded = true;
 
-        this.dispatch({session: this, action: SessionAction.POST_LOAD, forced: true});
+        this.dispatch(<SessionEvent>{
+            eventType: 'SessionEvent',
+            session: this,
+            action: SessionAction.POST_LOAD,
+            forced: true
+        });
     }
 
     /**
@@ -102,28 +118,33 @@ export class Session extends CustomEventListener<SessionEvent> {
             return true;
         }
 
-        if (this.dispatch({session: this, action: SessionAction.PRE_UNLOAD, forced: override})) {
+        if (this.dispatch(<SessionEvent> {
+            eventType: 'SessionEvent',
+            session: this,
+            action: SessionAction.PRE_UNLOAD,
+            forced: override
+        })) {
             return true;
         }
 
         let tileset = this.map.tileset;
         if (tileset != null && tileset !== LVL.DEFAULT_TILESET) {
             tileset.texture.destroy(true);
-            tileset.source = null;
         }
 
         this.lvzManager.unload();
         this.loaded = false;
 
-        this.dispatch({session: this, action: SessionAction.POST_UNLOAD, forced: true});
+        this.dispatch(<SessionEvent>{
+            eventType: 'SessionEvent',
+            session: this,
+            action: SessionAction.POST_UNLOAD,
+            forced: true
+        });
         return false;
     }
 
     onPreUpdate(): void {
-
-        if (this.lvzManager.resourceDirty) {
-            this.cache.buildLVZ();
-        }
 
         if (this.lvzManager.dirty) {
             for (let y = 0; y < 16; y++) {
@@ -133,8 +154,8 @@ export class Session extends CustomEventListener<SessionEvent> {
                         x * 1024,
                         y * 1024,
                         (x + 1) * 1024,
-                        (y + 1) * 1024)
-                    ) {
+                        (y + 1) * 1024
+                    )) {
                         chunk.build(this, this.editor.renderer.mapLayers);
                     }
                 }
@@ -145,11 +166,13 @@ export class Session extends CustomEventListener<SessionEvent> {
     }
 
     onUpdate(): void {
+        this.atlas.update();
     }
 
     onPostUpdate(): void {
         this.selectionGroup.setDirty(false);
         this.lvzManager.onPostUpdate();
+        this.atlas.setDirty(false);
     }
 }
 
@@ -161,10 +184,6 @@ export class Session extends CustomEventListener<SessionEvent> {
 export class SessionCache {
 
     readonly session: Session;
-    readonly lvlSprites: LVLSpriteCollection;
-    readonly lvzSprites: MapSpriteCollection;
-
-    lvzTextures: { [id: string]: PIXI.Texture };
 
     chunks: LVLChunk[][];
     lvzChunks: LVZChunk[][];
@@ -176,14 +195,43 @@ export class SessionCache {
     initialized: boolean;
 
     callbacks: { [name: string]: ((texture: PIXI.Texture) => void)[] };
+    private sListener: (event: CustomEvent) => void;
 
+    /**
+     * Main constructor.
+     *
+     * @param session
+     */
     constructor(session: Session) {
         this.session = session;
-        this.lvlSprites = new LVLSpriteCollection();
-        this.lvzSprites = new MapSpriteCollection();
         this.initialized = false;
         this.regions = [];
         this.callbacks = {};
+
+        this.sListener = (event: CustomEvent) => {
+            console.log(event);
+            if(event.eventType === 'TextureAtlasEvent') {
+                let tEvent = <TextureAtlasEvent> event;
+                let textureAtlas = tEvent.textureAtlas;
+                let id = textureAtlas.id;
+                if(id.startsWith('bg') || id.startsWith('star')) {
+
+                    this._background.setDirty(true);
+                }
+            } else if(event.eventType == 'SessionAtlasEvent') {
+                let sEvent = <SessionAtlasEvent> event;
+                let textures = sEvent.textures;
+                console.log(sEvent);
+
+                for(let key in textures) {
+                    if(key.startsWith('bg') || key.startsWith('star')) {
+                        this._background.setDirty(true);
+                    }
+                }
+            }
+        };
+
+        session.addEventListener(this.sListener);
     }
 
     init(): void {
@@ -197,7 +245,7 @@ export class SessionCache {
             seed += name.charCodeAt(index);
         }
 
-        this._background = new Background(renderer, seed);
+        this._background = new Background(this.session, renderer, seed);
         this._background.texLayer.draw();
 
         this._regions = new PIXI.Container();
@@ -261,102 +309,7 @@ export class SessionCache {
             tileset.setDirty(true);
         }
 
-        this.buildLVZ();
-
         this.initialized = true;
-    }
-
-    buildLVZ(): void {
-
-        if (this.lvzTextures != null) {
-            for (let key in this.lvzTextures) {
-                let value = this.lvzTextures[key];
-                value.destroy(true);
-            }
-        }
-
-        this.lvzTextures = {};
-
-        let lvzPackages = this.session.lvzManager.packages;
-
-        for (let key in lvzPackages) {
-
-            let nextPkg = lvzPackages[key];
-
-            if (nextPkg.resources == null || nextPkg.resources.length === 0) {
-                continue;
-            }
-
-            for (let key in nextPkg.resources) {
-                let nextResource = nextPkg.resources[key];
-                if (nextResource.isImage() && !nextResource.isEmpty()) {
-                    LVZ.loadTexture(nextResource, (texture: PIXI.Texture) => {
-                        let fileId = nextResource.getName().toLowerCase();
-                        this.lvzTextures[fileId] = texture;
-                        this.onCallBack(fileId, texture);
-                    });
-                }
-            }
-        }
-
-        for (let key in lvzPackages) {
-
-            let nextPkg = lvzPackages[key];
-
-            if (nextPkg.images == null || nextPkg.images.length === 0) {
-                continue;
-            }
-
-            for (let index = 0; index < nextPkg.images.length; index++) {
-
-                let image = nextPkg.images[index];
-                let fileId = image.fileName.toLowerCase();
-                let id = nextPkg.name + '>>>' + index;
-                let time = image.animationTime / 10;
-                let sprite = new MapSprite(0, 0, image.xFrames, image.yFrames, time);
-                sprite.id = id;
-                sprite.texture = this.lvzTextures[fileId];
-                if (sprite.texture != null) {
-                    sprite.frameWidth = sprite.texture.width / image.xFrames;
-                    sprite.frameHeight = sprite.texture.height / image.yFrames;
-                    sprite.reset();
-                    sprite.sequenceTexture();
-                    sprite.setDirty(true);
-                    sprite.id = id;
-                }
-
-                let callbacks = this.callbacks[fileId];
-                if (callbacks == null) {
-                    callbacks = this.callbacks[fileId] = [];
-                }
-
-                callbacks.push((texture => {
-                    sprite.frameWidth = texture.width / image.xFrames;
-                    sprite.frameHeight = texture.height / image.yFrames;
-                    sprite.reset();
-                    sprite.texture = texture;
-                    sprite.sequenceTexture();
-                    sprite.setDirty(true);
-                    sprite.id = id;
-                }));
-
-                this.lvzSprites.addSprite(sprite);
-            }
-        }
-
-        this.session.lvzManager.dirty = false;
-    }
-
-    private onCallBack(name: string, texture: PIXI.Texture): void {
-
-        let callbacks = this.callbacks[name];
-        if (callbacks == null || callbacks.length === 0) {
-            return;
-        }
-
-        for (let index = 0; index < callbacks.length; index++) {
-            callbacks[index](texture);
-        }
     }
 
     set(): void {
@@ -369,7 +322,6 @@ export class SessionCache {
 
         // Tile Layer
         renderer.layers.layers[2].removeChildren();
-        renderer.layers.layers[2].addChild(this.session.editor.renderer.grid);
         renderer.layers.layers[2].addChild(this._map);
 
         // Weapon Layer
@@ -382,6 +334,8 @@ export class SessionCache {
 
         // Top-Most Layer
 
+        this.session.lvzManager.setDirtyArea();
+
         let radar = renderer.radar;
         radar.draw().then(() => {
             radar.apply();
@@ -391,8 +345,11 @@ export class SessionCache {
     }
 
     onPreUpdate(): void {
-        this.lvlSprites.update();
-        this.lvzSprites.update();
+        let atlas = this.session.atlas;
+        if (atlas.isDirty()) {
+            this.draw();
+        }
+        // this.lvzSprites.update();
     }
 
     destroy(): void {
@@ -407,6 +364,19 @@ export class SessionCache {
         this.regions = null;
         this.initialized = false;
         this._background = null;
+    }
+
+    private draw(): void {
+        if (this._background != null) {
+            this._background.draw();
+        }
+        if (this.chunks != null) {
+            for (let x = 0; x < 16; x++) {
+                for (let y = 0; y < 16; y++) {
+                    this.chunks[x][y].draw();
+                }
+            }
+        }
     }
 }
 

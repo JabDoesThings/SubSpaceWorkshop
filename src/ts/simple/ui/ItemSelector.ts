@@ -50,7 +50,7 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
 
         this.items = {};
         this.tileSize = 16;
-        this.maxHeightTiles = 8;
+        this.maxWidthTiles = 8;
         this.maxHeightTiles = 8;
         this.minYSlots = 1;
         this.maxYSlots = 256;
@@ -107,7 +107,12 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
             });
         }
 
-        if (this.dispatch({item: null, action: ItemSelectorAction.PRE_DRAW, forced: false})) {
+        if (this.dispatch({
+            eventType: "ItemSelectorEvent",
+            item: null,
+            action: ItemSelectorAction.PRE_DRAW,
+            forced: false
+        })) {
             return true;
         }
 
@@ -171,6 +176,7 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
             let height = item.getSourceHeight();
 
             if (width == 0 || height == 0) {
+                console.log("\tItem width and height are zero.");
                 return null;
             }
 
@@ -261,7 +267,12 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
 
         this.app.renderer.resize(this.app.renderer.width, largestTileY * this.tileSize);
 
-        this.dispatch({item: null, action: ItemSelectorAction.POST_DRAW, forced: true});
+        this.dispatch({
+            eventType: "ItemSelectorEvent",
+            item: null,
+            action: ItemSelectorAction.POST_DRAW,
+            forced: true
+        });
 
         return false;
     }
@@ -389,7 +400,12 @@ export class ItemSelectorListener {
                 return;
             }
 
-            if (this.selector.dispatch({item: item, action: ItemSelectorAction.SELECT_ITEM, forced: false})) {
+            if (this.selector.dispatch({
+                eventType: "ItemSelectorEvent",
+                item: item,
+                action: ItemSelectorAction.SELECT_ITEM,
+                forced: false
+            })) {
                 return true;
             }
 
@@ -409,12 +425,22 @@ export class ItemSelectorListener {
             down = false;
             this.selector.hoveredItem = null;
             this.selector.hovered = false;
-            this.selector.dispatch({item: null, action: ItemSelectorAction.HOVER_EXIT, forced: true});
+            this.selector.dispatch({
+                eventType: "ItemSelectorEvent",
+                item: null,
+                action: ItemSelectorAction.HOVER_EXIT,
+                forced: true
+            });
         });
 
         this.selector.app.view.addEventListener('pointerenter', () => {
             this.selector.hovered = true;
-            this.selector.dispatch({item: null, action: ItemSelectorAction.HOVER_ENTER, forced: true});
+            this.selector.dispatch({
+                eventType: "ItemSelectorEvent",
+                item: null,
+                action: ItemSelectorAction.HOVER_ENTER,
+                forced: true
+            });
         });
 
         this.selector.app.view.addEventListener('pointerdown', (e: PointerEvent) => {
@@ -436,7 +462,12 @@ export class ItemSelectorListener {
             if (!down) {
                 let item = this.getItem(mx, my);
                 if (this.selector.hoveredItem !== item) {
-                    this.selector.dispatch({item: item, action: ItemSelectorAction.HOVER_ITEM, forced: true});
+                    this.selector.dispatch({
+                        eventType: "ItemSelectorEvent",
+                        item: item,
+                        action: ItemSelectorAction.HOVER_ITEM,
+                        forced: true
+                    });
                     this.selector.hoveredItem = item;
                 }
             } else {
@@ -588,10 +619,7 @@ export class SpriteItem extends Item {
     // @Override
     onUpdate(): void {
 
-        this.sprite.update();
-
         if (this.selector.hovered && !this.isPrimary() && !this.isSecondary() && this.selector.hoveredItem !== this) {
-
             if (this._sprite.alpha > this.hoverAlphaMin) {
                 this._sprite.alpha -= this.hoverAlphaIncrement;
                 if (this._sprite.alpha < this.hoverAlphaMin) {
@@ -638,7 +666,15 @@ export class SpriteItem extends Item {
 
         this.drawOutline();
 
-        this._sprite.texture = this.sprite.sequence[this.sprite.offset];
+        if (this.sprite.sequence != null) {
+            let texture = this.sprite.sequence[this.sprite.offset];
+            if (texture != null) {
+                this._sprite.texture = texture;
+                this._sprite.visible = true;
+            }
+        } else {
+            this._sprite.visible = false;
+        }
     }
 
     // @Override

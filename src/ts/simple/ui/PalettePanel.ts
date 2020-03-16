@@ -6,6 +6,7 @@ import { Selection, SelectionSlot, SelectionType } from './Selection';
 import { UIPanelSection, UIPanelTab } from './UI';
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
+import { LVZManager } from '../LVZManager';
 
 /**
  * The <i>PalettePanel</i> class. TODO: Document.
@@ -21,11 +22,10 @@ export class PalettePanel extends UIPanelTab {
     selectorMapImage: ItemSelector;
 
     private lastSession: Session;
-    private contentFrameResize: boolean = false;
-
     private sectionStandardTile: UIPanelSection;
     private sectionSpecialTile: UIPanelSection;
     private sectionMapImage: UIPanelSection;
+    private contentFrameResize: boolean = false;
 
     /**
      * Main constructor.
@@ -69,8 +69,10 @@ export class PalettePanel extends UIPanelTab {
     update(): void {
 
         let session = this.renderer.session;
+        let atlas = session.atlas;
 
-        let spriteDirty = session !== this.lastSession;
+        let spriteDirty = atlas.isDirty() || session !== this.lastSession;
+
         if (!spriteDirty) {
             for (let key in this.selectorMapImage.items) {
                 if (this.selectorMapImage.items[key].isDirty()) {
@@ -117,23 +119,35 @@ export class PalettePanel extends UIPanelTab {
     createTileSprites(session: Session): void {
         this.selectorSpecialTile.clear();
         let add = (id: string, sprite: MapSprite, selector: ItemSelector): void => {
+            if (sprite == null) {
+                throw new Error('The sprite given is null for the id: ' + id);
+            }
             let item = new SpriteItem(selector, SelectionType.TILE, id, sprite);
             selector.add(item);
         };
-        let lvlSprites = session.cache.lvlSprites;
-        add('216', lvlSprites.mapSpriteOver1, this.selectorSpecialTile);
-        add('217', lvlSprites.mapSpriteOver2, this.selectorSpecialTile);
-        add('218', lvlSprites.mapSpriteOver3, this.selectorSpecialTile);
-        add('219', lvlSprites.mapSpriteOver4, this.selectorSpecialTile);
-        add('220', lvlSprites.mapSpriteOver5, this.selectorSpecialTile);
-        add('252', lvlSprites.mapSpriteBrickBlue, this.selectorSpecialTile);
-        add('253', lvlSprites.mapSpriteBrickYellow, this.selectorSpecialTile);
-        add('255', lvlSprites.mapSpritePrize, this.selectorSpecialTile);
+
+        let atlas = session.atlas;
+        add('191', atlas.getTextureAtlas('tile191').getSpriteById('tile191'), this.selectorSpecialTile);
+        add('192', atlas.getTextureAtlas('tile').getSpriteById('tile'), this.selectorSpecialTile);
+        add('216', atlas.getTextureAtlas('over1').getSpriteById('over1'), this.selectorSpecialTile);
+        add('217', atlas.getTextureAtlas('over2').getSpriteById('over2'), this.selectorSpecialTile);
+        add('218', atlas.getTextureAtlas('over3').getSpriteById('over3'), this.selectorSpecialTile);
+        add('219', atlas.getTextureAtlas('over4').getSpriteById('over4'), this.selectorSpecialTile);
+        add('220', atlas.getTextureAtlas('over5').getSpriteById('over5'), this.selectorSpecialTile);
+        add('241', atlas.getTextureAtlas('tilenoweapon').getSpriteById('tilenoweapon'), this.selectorSpecialTile);
+        add('242', atlas.getTextureAtlas('tilenothor').getSpriteById('tilenothor'), this.selectorSpecialTile);
+        add('243', atlas.getTextureAtlas('tilenoradar').getSpriteById('tilenoradar'), this.selectorSpecialTile);
+        add('252', atlas.getTextureAtlas('wall').getSpriteById('wallblue'), this.selectorSpecialTile);
+        add('253', atlas.getTextureAtlas('wall').getSpriteById('wallyellow'), this.selectorSpecialTile);
+        add('254', atlas.getTextureAtlas('tilenobrick').getSpriteById('tilenobrick'), this.selectorSpecialTile);
+        add('255', atlas.getTextureAtlas('prizes').getSpriteById('prizes'), this.selectorSpecialTile);
     }
 
     createLVZAssets(session: Session): void {
 
         this.selectorMapImage.clear();
+
+        // return;
 
         let packages = session.lvzManager.packages;
         if (packages == null || packages.length == 0) {
@@ -141,6 +155,7 @@ export class PalettePanel extends UIPanelTab {
         }
 
         let add = (id: string, sprite: MapSprite, selector: ItemSelector): void => {
+
             let item = new SpriteItem(selector, SelectionType.IMAGE, id, sprite);
             selector.add(item);
             let callbacks = session.cache.callbacks[id];
@@ -152,6 +167,18 @@ export class PalettePanel extends UIPanelTab {
             });
         };
 
+        let isRestricted = (name: string): boolean => {
+            name = name.split('.')[0].toLowerCase();
+
+            for (let index = 0; index < LVZManager.LVZ_EXEMPT_IMAGES.length; index++) {
+                if (LVZManager.LVZ_EXEMPT_IMAGES[index] === name) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
         for (let key in packages) {
 
             let pkg = packages[key];
@@ -161,11 +188,20 @@ export class PalettePanel extends UIPanelTab {
             }
 
             for (let index = 0; index < pkg.images.length; index++) {
-                let id = pkg.name + ">>>" + index;
-                let sprite: MapSprite = session.cache.lvzSprites.getSpriteById(id);
+
+                let fileName = pkg.images[index].fileName;
+
+                if (isRestricted(fileName)) {
+                    continue;
+                }
+
+                let id = pkg.name.toLowerCase() + ">>>" + index;
+                let sprite: MapSprite = session.atlas.getSpriteById(id);
+
                 if (sprite == null) {
                     continue;
                 }
+
                 add(id, sprite, this.selectorMapImage);
             }
         }
@@ -291,8 +327,6 @@ export class TileSection {
     draw(): void {
 
         let ctx = this.canvas.getContext('2d');
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, 304, 160);
 
         let session = this.panel.renderer.session;
         if (session == null) {
@@ -306,7 +340,19 @@ export class TileSection {
 
         let tileset = map.tileset;
         if (tileset != null) {
-            ctx.drawImage(tileset.source, 0, 0);
+
+            let tex = tileset.texture;
+            if (!tex.valid) {
+                tex.addListener('loaded', () => {
+                    ctx.fillStyle = 'black';
+                    ctx.fillRect(0, 0, 304, 160);
+                    ctx.drawImage(session.editor.renderer.toCanvas(tileset.texture), 0, 0);
+                });
+            } else {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, 304, 160);
+                ctx.drawImage(session.editor.renderer.toCanvas(tileset.texture), 0, 0);
+            }
         }
 
         let selectionGroup = this.panel.renderer.session.selectionGroup;

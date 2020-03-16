@@ -49,7 +49,7 @@
     "jquery-ui": "^1.12.1",
     "node": "^12.6.0",
     "node-fetch": "^2.6.0",
-    "pixi-tilemap": "^2.0.3",
+    "pixi-tilemap": "^2.0.6",
     "pixi.js": "^5.2.1",
     "stats.js": "latest",
     "suncalc": "^1.8.0",

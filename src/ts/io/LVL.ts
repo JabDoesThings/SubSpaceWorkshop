@@ -229,19 +229,21 @@ export class LVLTileSet implements Dirtable {
     private readonly tileCoordinates: number[][];
     readonly tileColor: string[];
 
-    source: HTMLCanvasElement;
     texture: PIXI.Texture;
     borderTile: PIXI.Texture;
     bitCount: number;
 
     private dirty: boolean;
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvasOrTexture: HTMLCanvasElement | PIXI.Texture) {
 
-        this.source = canvas;
-        this.texture = PIXI.Texture.from(canvas.toDataURL());
-        this.bitCount = 8;
+        if (canvasOrTexture instanceof HTMLCanvasElement) {
+            this.texture = PIXI.Texture.from(canvasOrTexture.toDataURL());
+        } else {
+            this.texture = canvasOrTexture;
+        }
 
+        this.bitCount = 24;
         this.tileCoordinates = [];
         this.tiles = [];
         this.tiles.push(null);
@@ -258,46 +260,46 @@ export class LVLTileSet implements Dirtable {
             }
         }
 
-        let ctx = this.source.getContext('2d');
+        // let ctx = this.source.getContext('2d');
 
         this.tileColor = [];
         this.tileColor.push('black');
         for (let y = 0; y < 4; y++) {
             for (let x = 0; x < 19; x++) {
 
-                let imgData = ctx.getImageData(x * 16, y * 16, 16, 16).data;
-
-                let pixelCount = 0;
-                let ar = 0;
-                let ag = 0;
-                let ab = 0;
-
-                let offset = 0;
-                for (let py = 0; py < 16; py++) {
-                    for (let px = 0; px < 16; px++) {
-                        let r = imgData[offset];
-                        let g = imgData[offset + 1];
-                        let b = imgData[offset + 2];
-
-                        if (r !== 0 && g !== 0 && b !== 0) {
-                            pixelCount++;
-                            ar += r;
-                            ag += g;
-                            ab += b;
-                        }
-
-                        offset += 4;
-                    }
-                }
+                // let imgData = ctx.getImageData(x * 16, y * 16, 16, 16).data;
+                //
+                // let pixelCount = 0;
+                // let ar = 0;
+                // let ag = 0;
+                // let ab = 0;
+                //
+                // let offset = 0;
+                // for (let py = 0; py < 16; py++) {
+                //     for (let px = 0; px < 16; px++) {
+                //         let r = imgData[offset];
+                //         let g = imgData[offset + 1];
+                //         let b = imgData[offset + 2];
+                //
+                //         if (r !== 0 && g !== 0 && b !== 0) {
+                //             pixelCount++;
+                //             ar += r;
+                //             ag += g;
+                //             ab += b;
+                //         }
+                //
+                //         offset += 4;
+                //     }
+                // }
 
                 let color = '#aaaaaa';
 
-                if (pixelCount != 0) {
-                    ar /= pixelCount;
-                    ag /= pixelCount;
-                    ab /= pixelCount;
-                    color = 'rgb(' + ar + ',' + ag + ',' + ab + ')';
-                }
+                // if (pixelCount != 0) {
+                //     ar /= pixelCount;
+                //     ag /= pixelCount;
+                //     ab /= pixelCount;
+                //     color = 'rgb(' + ar + ',' + ag + ',' + ab + ')';
+                // }
 
                 this.tileColor.push(color);
             }

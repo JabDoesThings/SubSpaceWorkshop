@@ -1,3 +1,5 @@
+import { TextureAtlasEvent } from '../render/SessionAtlas';
+
 /**
  * The <i>UIEventListener</i> abstract class. TODO: Document.
  *
@@ -59,6 +61,20 @@ export abstract class CustomEventListener<E extends CustomEvent> {
         this.listeners.push(callback);
     }
 
+    removeEventListener(callback: (event: E) => (void | boolean)) {
+        let newArray: ((event: E) => void | boolean)[] = [];
+
+        for (let index = 0; index < this.listeners.length; index++) {
+            let next = this.listeners[index];
+            if (next === callback) {
+                continue;
+            }
+            newArray.push(next);
+        }
+
+        this.listeners = newArray;
+    }
+
     clearEventListeners(): void {
         this.listeners = [];
     }
@@ -70,5 +86,6 @@ export abstract class CustomEventListener<E extends CustomEvent> {
  * @author Jab
  */
 export interface CustomEvent {
+    eventType: string,
     forced: boolean
 }

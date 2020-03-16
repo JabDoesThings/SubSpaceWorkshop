@@ -3,6 +3,7 @@ import { KeyListener } from '../util/KeyListener';
 import { Session } from './Session';
 import { TabAction, UITabEvent, UITabMenu } from './ui/UI';
 import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
+import * as PIXI from "pixi.js";
 
 /**
  * The <i>SimpleEditor</i> class. TODO: Document.
@@ -92,6 +93,7 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
     add(sessions: Session[]): boolean {
 
         if (this.dispatch(<EditorSessionEvent> {
+            eventType: "EditorSessionEvent",
             editor: this,
             action: EditorAction.SESSION_ADD,
             sessions: sessions,
@@ -106,6 +108,7 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
         }
 
         this.dispatch(<EditorSessionEvent> {
+            eventType: "EditorSessionEvent",
             editor: this,
             action: EditorAction.SESSION_ADDED,
             sessions: sessions,
@@ -128,6 +131,7 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
         }
 
         if (this.dispatch(<EditorSessionEvent> {
+            eventType: "EditorSessionEvent",
             editor: this,
             action: EditorAction.SESSION_REMOVE,
             sessions: sessions,
@@ -192,6 +196,7 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
         }
 
         this.dispatch(<EditorSessionEvent> {
+            eventType: "EditorSessionEvent",
             editor: this,
             action: EditorAction.SESSION_REMOVED,
             sessions: sessions,
@@ -208,6 +213,7 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
     setActive(index: number): boolean {
 
         if (this.dispatch(<EditorSessionEvent> {
+            eventType: "EditorSessionEvent",
             editor: this,
             action: EditorAction.SESSION_ACTIVATE,
             forced: false,
@@ -231,6 +237,7 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
         }
 
         this.dispatch(<EditorSessionEvent> {
+            eventType: "EditorSessionEvent",
             editor: this,
             action: EditorAction.SESSION_ACTIVATED,
             forced: true,
@@ -271,3 +278,5 @@ export enum EditorAction {
     SESSION_REMOVE = 'session-remove',
     SESSION_REMOVED = 'session-removed'
 }
+
+

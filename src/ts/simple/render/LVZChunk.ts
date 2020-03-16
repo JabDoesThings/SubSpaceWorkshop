@@ -63,8 +63,18 @@ export class LVZChunk {
                 if (next.sprite.sequence != null) {
                     let offset = next.sprite.offset;
                     if (next.sprite.sequence.length > offset) {
-                        next._sprite.texture = next.sprite.sequence[next.sprite.offset];
+                        {
+                            let texture = next.sprite.sequence[next.sprite.offset];
+                            if (texture != null) {
+                                next._sprite.texture = texture;
+                                next._sprite.visible = true;
+                            } else {
+                                next._sprite.visible = false;
+                            }
+                        }
                     }
+                } else {
+                    next._sprite.visible = false;
                 }
             }
         };
@@ -108,6 +118,7 @@ export class LVZChunk {
 
     build(session: Session, cluster: LayerCluster): void {
 
+        let atlas = session.atlas;
         let packages = session.lvzManager.packages;
 
         let getNearbyPixels = (x1: number, y1: number, x2: number, y2: number): { packageName: string, image: CompiledLVZImage, object: CompiledLVZMapObject }[] => {
@@ -171,11 +182,15 @@ export class LVZChunk {
             let x = object.x;
             let y = object.y;
 
+            let mapSprite = atlas.getSpriteById(packageName + '>>>' + object.image);
+
+            if (mapSprite == null) {
+                continue;
+            }
+
             let _sprite = new PIXI.Sprite();
             _sprite.x = x;
             _sprite.y = y;
-
-            let mapSprite = session.cache.lvzSprites.getSpriteById(packageName + '>>>' + object.image);
 
             let profile = {
                 object: object,

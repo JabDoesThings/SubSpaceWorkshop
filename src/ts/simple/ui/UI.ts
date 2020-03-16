@@ -82,7 +82,12 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
     select(tabPanel: UIPanelTab): boolean {
 
         // If the event is cancelled, don't apply the event.
-        if (this.dispatch({tabPanel: tabPanel, action: TabPanelAction.SELECT, forced: false})) {
+        if (this.dispatch({
+            eventType: "UIPanelEvent",
+            tabPanel: tabPanel,
+            action: TabPanelAction.SELECT,
+            forced: false
+        })) {
             return true;
         }
 
@@ -140,7 +145,12 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
 
         let tabPanel = this.panels[this.selectedTab];
 
-        if (this.dispatch({tabPanel: tabPanel, action: TabPanelAction.DESELECT, forced: false})) {
+        if (this.dispatch({
+            eventType: "UIPanelEvent",
+            tabPanel: tabPanel,
+            action: TabPanelAction.DESELECT,
+            forced: false
+        })) {
             return true;
         }
 
@@ -191,7 +201,12 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
     add(panelTab: UIPanelTab, title: string, open: boolean = false): boolean {
 
         // Package the event. If the event is cancelled, cancel the action.
-        if (this.dispatch({tabPanel: panelTab, action: TabPanelAction.ADD, forced: false})) {
+        if (this.dispatch({
+            eventType: "UIPanelEvent",
+            tabPanel: panelTab,
+            action: TabPanelAction.ADD,
+            forced: false
+        })) {
             return true;
         }
 
@@ -226,7 +241,12 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
         }
 
         // Package the event. If the event is cancelled, cancel the action.
-        if (this.dispatch({tabPanel: panelTab, action: TabPanelAction.REMOVE, forced: false})) {
+        if (this.dispatch({
+            eventType: "UIPanelEvent",
+            tabPanel: panelTab,
+            action: TabPanelAction.REMOVE,
+            forced: false
+        })) {
             return true;
         }
 
@@ -256,9 +276,19 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
     sort(comparator: (a: UIPanelTab, b: UIPanelTab) => number = null, force: boolean = false): boolean {
 
         if (force) {
-            this.dispatch({tabPanel: null, action: TabPanelAction.SORT, forced: true});
+            this.dispatch({
+                eventType: "UIPanelEvent",
+                tabPanel: null,
+                action: TabPanelAction.SORT,
+                forced: true
+            });
         } else {
-            this.dispatch({tabPanel: null, action: TabPanelAction.SORT, forced: false});
+            this.dispatch({
+                eventType: "UIPanelEvent",
+                tabPanel: null,
+                action: TabPanelAction.SORT,
+                forced: false
+            });
         }
 
         removeAllChildren(this.slidePane);
@@ -746,7 +776,12 @@ export class UITabMenu {
         }
 
         // Package the event. If the event is cancelled, cancel the action.
-        if (this.dispatch({tab: tab, action: TabAction.ADD, forced: false})) {
+        if (this.dispatch({
+            eventType: "UITabEvent",
+            tab: tab,
+            action: TabAction.ADD,
+            forced: false
+        })) {
             return true;
         }
 
@@ -773,7 +808,12 @@ export class UITabMenu {
         }
 
         // Package the event. If the event is cancelled, cancel the action.
-        if (this.dispatch({tab: tab, action: TabAction.REMOVE, forced: false})) {
+        if (this.dispatch({
+            eventType: "UITabEvent",
+            tab: tab,
+            action: TabAction.REMOVE,
+            forced: false
+        })) {
             return true;
         }
 
@@ -803,7 +843,12 @@ export class UITabMenu {
     clear(): boolean {
 
         // Package the event. If the event is cancelled, cancel the action.
-        if (this.dispatch({tab: null, action: TabAction.CLEAR, forced: false})) {
+        if (this.dispatch({
+            eventType: "UITabEvent",
+            tab: null,
+            action: TabAction.CLEAR,
+            forced: false
+        })) {
             return true;
         }
 
@@ -841,9 +886,19 @@ export class UITabMenu {
 
         if (force) {
             // Package the event. Ignore the event being cancelled.
-            this.dispatch({tab: null, action: TabAction.SORT, forced: true}, true);
+            this.dispatch({
+                eventType: "UITabEvent",
+                tab: null,
+                action: TabAction.SORT,
+                forced: true
+            });
         } else {
-            this.dispatch({tab: null, action: TabAction.SORT, forced: false});
+            this.dispatch({
+                eventType: "UITabEvent",
+                tab: null,
+                action: TabAction.SORT,
+                forced: false
+            });
         }
 
         let removeAllChildren = (element: HTMLElement) => {
@@ -888,7 +943,12 @@ export class UITabMenu {
     select(tab: UITab): boolean {
 
         // If the event is cancelled, don't apply the event.
-        if (this.dispatch({tab: tab, action: TabAction.SELECT, forced: false})) {
+        if (this.dispatch({
+            eventType: "UITabEvent",
+            tab: tab,
+            action: TabAction.SELECT,
+            forced: false
+        })) {
             return true;
         }
 
@@ -935,7 +995,12 @@ export class UITabMenu {
 
         let tab = this.tabs[this.selectedTab];
 
-        if (this.dispatch({tab: tab, action: TabAction.DESELECT, forced: false})) {
+        if (this.dispatch({
+            eventType: "UITabEvent",
+            tab: tab,
+            action: TabAction.DESELECT,
+            forced: false
+        })) {
             return true;
         }
 
@@ -1042,10 +1107,20 @@ export class UITab extends CustomEventListener<UITabEvent> {
         this.element.addEventListener('click', () => {
             if (this.isSelected()) {
                 if (!this.menu.deselect()) {
-                    this.dispatch({tab: this, action: TabAction.DESELECT, forced: false});
+                    this.dispatch({
+                        eventType: "UITabEvent",
+                        tab: this,
+                        action: TabAction.DESELECT,
+                        forced: false
+                    });
                 }
             } else if (!this.menu.select(this)) {
-                this.dispatch({tab: this, action: TabAction.SELECT, forced: false});
+                this.dispatch({
+                    eventType: "UITabEvent",
+                    tab: this,
+                    action: TabAction.SELECT,
+                    forced: false
+                });
             }
         });
     }

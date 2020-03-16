@@ -1,6 +1,5 @@
 import { UpdatedObject } from '../../util/UpdatedObject';
 import * as PIXI from "pixi.js";
-import { LVL } from '../../io/LVLUtils';
 import { MapRenderer } from './MapRenderer';
 import { LVLArea } from '../../io/LVL';
 
@@ -63,30 +62,33 @@ export class LVLChunk extends UpdatedObject {
         if (session == null) {
             return;
         }
-        let map = session.map;
+
+        let atlas = session.atlas;
 
         // @ts-ignore
-        this.tileMap = new PIXI.tilemap.CompositeRectTileLayer(0,
-            [
-                map.tileset.texture,
-                LVL.EXTRAS_TEXTURE
-            ]
-        );
+        this.tileMap = new PIXI.tilemap.CompositeRectTileLayer(0, [
+            atlas.getTextureAtlas('tiles'),
+            atlas.getTextureAtlas('tile191'),
+            atlas.getTextureAtlas('tile'),
+            atlas.getTextureAtlas('tilenoradar'),
+            atlas.getTextureAtlas('tilenobrick'),
+            atlas.getTextureAtlas('tilenoweapon'),
+            atlas.getTextureAtlas('tilenothor')
+        ]);
 
         // @ts-ignore
-        this.tileMapAnim = new PIXI.tilemap.CompositeRectTileLayer(0,
-            [
-                map.tileset.texture,
-                LVL.OVER1_TEXTURE,
-                LVL.OVER2_TEXTURE,
-                LVL.OVER3_TEXTURE,
-                LVL.OVER4_TEXTURE,
-                LVL.OVER5_TEXTURE,
-                LVL.FLAG_TEXTURE,
-                LVL.GOAL_TEXTURE,
-                LVL.PRIZES_TEXTURE,
-            ]
-        );
+        this.tileMapAnim = new PIXI.tilemap.CompositeRectTileLayer(0, [
+            atlas.getTextureAtlas('tiles'),
+            atlas.getTextureAtlas('over1'),
+            atlas.getTextureAtlas('over2'),
+            atlas.getTextureAtlas('over3'),
+            atlas.getTextureAtlas('over4'),
+            atlas.getTextureAtlas('over5'),
+            atlas.getTextureAtlas('flag'),
+            atlas.getTextureAtlas('goal'),
+            atlas.getTextureAtlas('prizes'),
+            atlas.getTextureAtlas('wall'),
+        ]);
 
         this.setDirty(true);
     }
@@ -119,6 +121,7 @@ export class LVLChunk extends UpdatedObject {
         let tiles = map.tiles;
 
         let tileset = map.tileset;
+        let atlas = session.atlas;
 
         if (camera.isDirty()) {
             let cpos = camera.position;
@@ -140,108 +143,10 @@ export class LVLChunk extends UpdatedObject {
             this.tileMapAnim.scale.x = this.tileMapAnim.scale.y = cpos.scale;
         }
 
-        if (map.isDirty() && map.containsDirtyArea(this.area.x1, this.area.y1, this.area.x2, this.area.y2)) {
 
-            // console.log("Drawing MapChunk: " + this.area);
 
-            this.tileMap.clear();
-            this.tilesAnim = [];
-
-            // Go through each tile position on the raster and add tiles when present.
-            for (let x = this.x * 64; x < (this.x + 1) * 64; x++) {
-                for (let y = this.y * 64; y < (this.y + 1) * 64; y++) {
-
-                    // Grab the next tile.
-                    let tileId = tiles[x][y];
-
-                    if (tileId > 0 && tileId <= 190) {
-
-                        let tileCoordinates = tileset.getTileCoordinates(tileId);
-                        let tu = tileCoordinates[0];
-                        let tv = tileCoordinates[1];
-
-                        if (tileId >= 162 && tileId <= 165) {
-                            this.tilesAnim.push({
-                                x: x * 16,
-                                y: y * 16,
-                                texture: 0,
-                                id: tileId
-                            });
-                        } else if (tileId >= 166 && tileId <= 169) {
-                            this.tilesAnim.push({
-                                x: x * 16,
-                                y: y * 16,
-                                texture: 0,
-                                id: tileId
-                            });
-                        } else if (tileId == 170) {
-                            this.tilesAnim.push({
-                                x: x * 16,
-                                y: y * 16,
-                                texture: 6,
-                                id: tileId
-                            });
-
-                        } else if (tileId == 172) {
-                            this.tilesAnim.push({
-                                x: x * 16,
-                                y: y * 16,
-                                texture: 7,
-                                id: tileId
-                            });
-
-                        }
-                            // These tiles are see-through in-game, so set these in animation tilemap
-                        //       So that they are see-through.
-                        else if (tileId >= 173 && tileId <= 190) {
-                            this.tilesAnim.push({
-                                x: x * 16,
-                                y: y * 16,
-                                texture: 0,
-                                id: tileId
-                            });
-                        } else {
-
-                            // @ts-ignore
-                            this.tileMap.addRect(0, tu, tv, x * 16, y * 16, 16, 16);
-
-                        }
-
-                    } else if ((tileId >= 216 && tileId <= 220) || tileId == 255) {
-
-                        let texture = 0;
-                        if (tileId == 216) {
-                            texture = 1;
-                        } else if (tileId == 217) {
-                            texture = 2;
-                        } else if (tileId == 218) {
-                            texture = 3;
-                        } else if (tileId == 219) {
-                            texture = 4;
-                        } else if (tileId == 220) {
-                            texture = 5;
-                        } else if (tileId == 255) {
-                            texture = 8;
-                        }
-
-                        this.tilesAnim.push({
-                            id: tileId,
-                            texture: texture,
-                            x: x * 16,
-                            y: y * 16
-                        });
-                    } else {
-                        let tileCoordinates = tileset.getTileCoordinates(tileId);
-                        if (tileCoordinates != null) {
-                            let tu = tileCoordinates[0];
-                            let tv = tileCoordinates[1];
-                            // @ts-ignore
-                            this.tileMap.addRect(1, tu, tv, x * 16, y * 16, 16, 16);
-                        }
-                    }
-                }
-            }
-
+        if (atlas.isDirty() || map.isDirty() && map.containsDirtyArea(this.area.x1, this.area.y1, this.area.x2, this.area.y2)) {
+            this.draw();
         }
 
         this.tileMapAnim.clear();
@@ -258,27 +163,33 @@ export class LVLChunk extends UpdatedObject {
 
             let frame = null;
 
-            let sprites = session.cache.lvlSprites;
+            let atlas = session.atlas;
 
             if (id >= 162 && id <= 165) {
-                frame = sprites.mapSpriteDoor1.current;
+                frame = atlas.getTextureAtlas('tiles').getSpriteById('door01').current;
             } else if (id >= 166 && id <= 169) {
-                frame = sprites.mapSpriteDoor2.current;
+                frame = atlas.getTextureAtlas('tiles').getSpriteById('door02').current;
             } else if (id == 170) {
-                frame = sprites.mapSpriteFlag.current;
+                frame = atlas.getTextureAtlas('flag').getSpriteById('flagblue').current;
             } else if (id == 172) {
-                frame = sprites.mapSpriteGoal.current;
+                frame = atlas.getTextureAtlas('goal').getSpriteById('goalblue').current;
             } else if (id == 216) {
                 texture = 3;
-                frame = sprites.mapSpriteOver1.current;
+                frame = atlas.getTextureAtlas('over1').getSpriteById('over1').current;
             } else if (id == 217) {
-                frame = sprites.mapSpriteOver2.current;
+                frame = atlas.getTextureAtlas('over2').getSpriteById('over2').current;
             } else if (id == 218) {
-                frame = sprites.mapSpriteOver3.current;
+                frame = atlas.getTextureAtlas('over3').getSpriteById('over3').current;
             } else if (id == 219) {
-                frame = sprites.mapSpriteOver4.current;
+                frame = atlas.getTextureAtlas('over4').getSpriteById('over4').current;
             } else if (id == 220) {
-                frame = sprites.mapSpriteOver5.current;
+                frame = atlas.getTextureAtlas('over5').getSpriteById('over5').current;
+            } else if (id == 252) {
+                frame = atlas.getTextureAtlas('wall').getSpriteById('wallblue').current;
+            } else if (id == 253) {
+                frame = atlas.getTextureAtlas('wall').getSpriteById('wallyellow').current;
+            } else if (id == 255) {
+                frame = atlas.getTextureAtlas('prizes').getSpriteById('prizes').current;
             }
 
             if (frame != null) {
@@ -292,6 +203,179 @@ export class LVLChunk extends UpdatedObject {
         }
 
         return true;
+    }
+
+    draw() {
+
+        let session = this.view.session;
+        if (session == null) {
+            return;
+        }
+
+        let map = session.map;
+        let tiles = map.tiles;
+        let tileset = map.tileset;
+        let atlas = session.atlas;
+
+        // console.log("Drawing MapChunk: " + this.area);
+        if(atlas.isDirty()) {
+            this.tileMap.setBitmaps([
+                atlas.getTextureAtlas('tiles').texture,
+                atlas.getTextureAtlas('tile191').texture,
+                atlas.getTextureAtlas('tile').texture,
+                atlas.getTextureAtlas('tilenoradar').texture,
+                atlas.getTextureAtlas('tilenobrick').texture,
+                atlas.getTextureAtlas('tilenoweapon').texture,
+                atlas.getTextureAtlas('tilenothor').texture
+            ]);
+
+            this.tileMapAnim.setBitmaps([
+                atlas.getTextureAtlas('tiles').texture,
+                atlas.getTextureAtlas('over1').texture,
+                atlas.getTextureAtlas('over2').texture,
+                atlas.getTextureAtlas('over3').texture,
+                atlas.getTextureAtlas('over4').texture,
+                atlas.getTextureAtlas('over5').texture,
+                atlas.getTextureAtlas('flag').texture,
+                atlas.getTextureAtlas('goal').texture,
+                atlas.getTextureAtlas('prizes').texture,
+                atlas.getTextureAtlas('wall').texture,
+            ]);
+        }
+        this.tileMap.clear();
+        this.tilesAnim = [];
+
+        // Go through each tile position on the raster and add tiles when present.
+        for (let x = this.x * 64; x < (this.x + 1) * 64; x++) {
+            for (let y = this.y * 64; y < (this.y + 1) * 64; y++) {
+
+                // Grab the next tile.
+                let tileId = tiles[x][y];
+
+                if (tileId > 0 && tileId <= 190) {
+
+                    let tileCoordinates = tileset.getTileCoordinates(tileId);
+                    let tu = tileCoordinates[0];
+                    let tv = tileCoordinates[1];
+
+                    if (tileId >= 162 && tileId <= 165) {
+                        this.tilesAnim.push({
+                            x: x * 16,
+                            y: y * 16,
+                            texture: 0,
+                            id: tileId
+                        });
+                    } else if (tileId >= 166 && tileId <= 169) {
+                        this.tilesAnim.push({
+                            x: x * 16,
+                            y: y * 16,
+                            texture: 0,
+                            id: tileId
+                        });
+                    } else if (tileId == 170) {
+                        this.tilesAnim.push({
+                            x: x * 16,
+                            y: y * 16,
+                            texture: 6,
+                            id: tileId
+                        });
+
+                    } else if (tileId == 172) {
+                        this.tilesAnim.push({
+                            x: x * 16,
+                            y: y * 16,
+                            texture: 7,
+                            id: tileId
+                        });
+
+                    }
+                        // These tiles are see-through in-game, so set these in animation tilemap
+                    //       So that they are see-through.
+                    else if (tileId >= 173 && tileId <= 190) {
+                        this.tilesAnim.push({
+                            x: x * 16,
+                            y: y * 16,
+                            texture: 0,
+                            id: tileId
+                        });
+                    } else {
+
+                        // @ts-ignore
+                        this.tileMap.addRect(0, tu, tv, x * 16, y * 16, 16, 16);
+
+                    }
+
+                } else if (tileId === 191) {
+                    // @ts-ignore
+                    this.tileMap.addRect(1, 0, 0, x * 16, y * 16, 16, 16);
+                } else if ((tileId >= 192 && tileId <= 215) || (tileId >= 221 && tileId <= 240)) {
+                    // @ts-ignore
+                    this.tileMap.addRect(2, 0, 0, x * 16, y * 16, 16, 16);
+                } else if (tileId >= 216 && tileId <= 220) {
+
+                    let texture = 0;
+                    if (tileId == 216) {
+                        texture = 1;
+                    } else if (tileId == 217) {
+                        texture = 2;
+                    } else if (tileId == 218) {
+                        texture = 3;
+                    } else if (tileId == 219) {
+                        texture = 4;
+                    } else if (tileId == 220) {
+                        texture = 5;
+                    }
+
+                    this.tilesAnim.push({
+                        id: tileId,
+                        texture: texture,
+                        x: x * 16,
+                        y: y * 16
+                    });
+                } else if ((tileId === 241)) {
+                    // @ts-ignore
+                    this.tileMap.addRect(5, 0, 0, x * 16, y * 16, 16, 16);
+                } else if ((tileId === 242)) {
+                    // @ts-ignore
+                    this.tileMap.addRect(6, 0, 0, x * 16, y * 16, 16, 16);
+                } else if ((tileId >= 243 && tileId <= 251)) {
+                    // @ts-ignore
+                    this.tileMap.addRect(3, 0, 0, x * 16, y * 16, 16, 16);
+                } else if ((tileId === 252)) {
+                    this.tilesAnim.push({
+                        id: tileId,
+                        texture: 9,
+                        x: x * 16,
+                        y: y * 16
+                    });
+                } else if ((tileId === 253)) {
+                    this.tilesAnim.push({
+                        id: tileId,
+                        texture: 9,
+                        x: x * 16,
+                        y: y * 16
+                    });
+                } else if ((tileId === 254)) {
+                    // @ts-ignore
+                    this.tileMap.addRect(4, 0, 0, x * 16, y * 16, 16, 16);
+                } else if ((tileId === 255)) {
+                    this.tilesAnim.push({
+                        id: tileId,
+                        texture: 8,
+                        x: x * 16,
+                        y: y * 16
+                    });
+                } else {
+                    let tileCoordinates = tileset.getTileCoordinates(tileId);
+                    if (tileCoordinates != null) {
+                        let tu = tileCoordinates[0];
+                        let tv = tileCoordinates[1];
+                        // @ts-ignore
+                        this.tileMap.addRect(1, tu, tv, x * 16, y * 16, 16, 16);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -346,6 +430,10 @@ export class LVLBorder extends PIXI.Container {
         }
 
         this.texture = map.tileset.borderTile;
+
+        if(this.texture == null) {
+            return;
+        }
 
         let sprite: PIXI.Sprite;
 

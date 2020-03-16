@@ -546,6 +546,7 @@ export class LVZ {
         image.decode().finally(() => {
 
             if (image.width === 0 || image.height === 0) {
+                console.warn('image width or height is 0. (width: ' + image.width + ", height: " + image.height + ")");
                 image = null;
                 return;
             }
