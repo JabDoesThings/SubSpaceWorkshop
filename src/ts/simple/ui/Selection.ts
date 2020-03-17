@@ -18,6 +18,7 @@ export class SelectionGroup implements Dirtable {
     }
 
     setSelection(slot: number, selection: Selection): void {
+        console.log('setSelection(slot: ' + slot + ", selection: ", selection, "}");
         this.selections[slot] = selection;
         this.setDirty(true);
     }
@@ -90,5 +91,6 @@ export enum SelectionType {
  */
 export enum SelectionSlot {
     PRIMARY = 0,
-    SECONDARY = 1
+    MIDDLE = 1,
+    SECONDARY = 2
 }

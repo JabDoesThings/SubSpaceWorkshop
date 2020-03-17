@@ -178,10 +178,7 @@ export class LVZManager extends CustomEventListener<LVZEvent> {
 
                     let nextResource = next.resources[rIndex];
 
-                    console.log("Next resource: " + nextResource.getName());
-
                     if (!nextResource.isImage() || nextResource.isEmpty()) {
-                        console.log("Not loading " + nextResource.getName());
                         continue;
                     }
 
@@ -195,8 +192,6 @@ export class LVZManager extends CustomEventListener<LVZEvent> {
                     }
 
                     LVZ.loadTexture(nextResource, (texture: Texture) => {
-                        console.log(id + "=>");
-                        console.log(texture);
                         textureAtlas.setTexture(texture);
                     });
                 }
@@ -250,8 +245,8 @@ export class LVZManager extends CustomEventListener<LVZEvent> {
     }
 
     static readonly LVZ_EXEMPT_IMAGES = [
-        // 'bg01', 'bg02', 'bg03', 'bg04', 'bg05', 'bg06', 'bg07', 'bg08', 'bg09', 'bg10', 'bg11', 'bg12', 'bg13', 'bg14',
-        // 'star01', 'star02', 'star03', 'star04', 'star05', 'star06', 'star07',
+        'bg01', 'bg02', 'bg03', 'bg04', 'bg05', 'bg06', 'bg07', 'bg08', 'bg09', 'bg10', 'bg11', 'bg12', 'bg13', 'bg14',
+        'star01', 'star02', 'star03', 'star04', 'star05', 'star06', 'star07',
         'hugefont', 'hugefontf', 'largefont', 'largefontf', 'tallfont', 'tallfontf', 'shrtfont', 'shrtfontf', 'specfont', 'engyfont',
         'junkjv', 'junklv', 'junknw', 'junksh', 'junksp', 'junkte', 'junkwb', 'junkwe',
         'jvroll', 'lvroll', 'nwroll', 'teroll', 'wbroll', 'weroll', 'shroll', 'sproll',

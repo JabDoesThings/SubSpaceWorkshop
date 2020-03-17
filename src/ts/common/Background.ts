@@ -48,6 +48,8 @@ export class Background extends PIXI.Container {
 
         this.removeChildren();
 
+        this.random = new SeededRandom(this.seed);
+
         this.layer1 = new StarFieldLayer(this, 0x606060, 8);
         this.layer2 = new StarFieldLayer(this, 0xB8B8B8, 6);
         this.texLayer = new BackgroundObjectLayer(this);
@@ -62,7 +64,7 @@ export class Background extends PIXI.Container {
 
     update(): void {
 
-        if(this.dirty) {
+        if (this.dirty) {
             this.draw();
         }
 
@@ -100,6 +102,7 @@ export class Background extends PIXI.Container {
         }
 
         if (camera.isDirty()) {
+
             this.texLayer.update();
             let cpos = camera.position;
             let scale = cpos.scale;
@@ -119,6 +122,8 @@ export class Background extends PIXI.Container {
             this.layer2.scale.x = scale;
             this.layer2.scale.y = scale;
         }
+
+        this.dirty = false;
     }
 
     setSeed(seed: number) {
@@ -143,9 +148,6 @@ export class Background extends PIXI.Container {
  */
 export class BackgroundObjectLayer extends PIXI.Container {
 
-    // static backgroundTextures: PIXI.Texture[];
-    // static starTextures: PIXI.Texture[];
-
     private background: Background;
 
     _scale: number;
@@ -166,38 +168,38 @@ export class BackgroundObjectLayer extends PIXI.Container {
 
     update(): void {
         let camera = this.background.view.camera;
-        // if (camera.isDirty()) {
+        if (camera.isDirty()) {
 
-        let cpos = camera.position;
-        let cx = (cpos.x * 16) / this._scale;
-        let cy = (cpos.y * 16) / this._scale;
-        let scale = cpos.scale;
-        let invScale = 1 / scale;
+            let cpos = camera.position;
+            let cx = (cpos.x * 16) / this._scale;
+            let cy = (cpos.y * 16) / this._scale;
+            let scale = cpos.scale;
+            let invScale = 1 / scale;
 
-        let screen = this.background.view.app.screen;
-        let sw = screen.width;
-        let sh = screen.height;
+            let screen = this.background.view.app.screen;
+            let sw = screen.width;
+            let sh = screen.height;
 
-        let sw2 = (sw / 2.0) * invScale;
-        let sh2 = (sh / 2.0) * invScale;
+            let sw2 = (sw / 2.0) * invScale;
+            let sh2 = (sh / 2.0) * invScale;
 
-        for (let key in this.children) {
+            for (let key in this.children) {
 
-            let next = this.children[key];
+                let next = this.children[key];
 
-            // @ts-ignore
-            let _x = next._x;
-            // @ts-ignore
-            let _y = next._y;
+                // @ts-ignore
+                let _x = next._x;
+                // @ts-ignore
+                let _y = next._y;
 
-            next.x = sw2 + (-cx) + _x;
-            next.y = sh2 + (-cy) + _y;
-            next.x *= scale;
-            next.y *= scale;
-            next.scale.x = scale;
-            next.scale.y = scale;
+                next.x = sw2 + (-cx) + _x;
+                next.y = sh2 + (-cy) + _y;
+                next.x *= scale;
+                next.y *= scale;
+                next.scale.x = scale;
+                next.scale.y = scale;
+            }
         }
-        // }
     }
 
     draw(): void {
@@ -231,8 +233,14 @@ export class BackgroundObjectLayer extends PIXI.Container {
 
         for (let index = 0; index < 256; index++) {
 
-            let tex = Math.floor(random.nextDouble() * stars.length);
-            let sprite = new PIXI.Sprite(stars[tex]);
+            let textureId = Math.floor(random.nextDouble() * stars.length);
+            let texture = stars[textureId];
+            if (texture == null || !texture.valid) {
+                continue;
+            }
+
+
+            let sprite = new PIXI.Sprite(texture);
             sprite.filters = [MapRenderer.chromaFilter];
             sprite.filterArea = this.background.view.app.screen;
             sprite.x = Math.floor(minX + (random.nextDouble() * dx));
@@ -248,8 +256,13 @@ export class BackgroundObjectLayer extends PIXI.Container {
 
         for (let index = 0; index < 32; index++) {
 
-            let tex = Math.floor(random.nextDouble() * bgs.length);
-            let sprite = new PIXI.Sprite(bgs[tex]);
+            let textureId = Math.floor(random.nextDouble() * bgs.length);
+            let texture = bgs[textureId];
+            if (texture == null || !texture.valid) {
+                continue;
+            }
+
+            let sprite = new PIXI.Sprite(texture);
             sprite.filters = [MapRenderer.chromaFilter];
             sprite.filterArea = this.background.view.app.screen;
             sprite.x = Math.floor(minX + (random.nextDouble() * dx));

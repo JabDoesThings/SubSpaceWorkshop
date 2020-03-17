@@ -3,6 +3,7 @@ import { LayerCluster, MapRenderer } from './MapRenderer';
 import { CompiledLVZImage, CompiledLVZMapObject } from '../../io/LVZ';
 import { MapSprite } from './MapSprite';
 import { Session } from '../Session';
+import { Camera } from '../../common/Renderer';
 
 /**
  * The <i>LVZChunk</i> class. TODO: Document.
@@ -51,68 +52,61 @@ export class LVZChunk {
             return;
         }
 
-        let draw = (objects: LVZChunkEntry[]) => {
-
-            for (let index = 0; index < objects.length; index++) {
-
-                let next = objects[index];
-                if (next.sprite == null) {
-                    continue;
-                }
-
-                if (next.sprite.sequence != null) {
-                    let offset = next.sprite.offset;
-                    if (next.sprite.sequence.length > offset) {
-                        {
-                            let texture = next.sprite.sequence[next.sprite.offset];
-                            if (texture != null) {
-                                next._sprite.texture = texture;
-                                next._sprite.visible = true;
-                            } else {
-                                next._sprite.visible = false;
-                            }
-                        }
-                    }
-                } else {
-                    next._sprite.visible = false;
-                }
-            }
-        };
-
         let camera = this.renderer.camera;
+        if (camera.isDirty() && this.contains(camera)) {
+            this.drawAnimated();
+        }
+    }
 
-        let contains = (): boolean => {
+    private contains(camera: Camera): boolean {
 
-            let cpos = camera.position;
-            let cx = cpos.x * 16;
-            let cy = cpos.y * 16;
-            let scale = cpos.scale;
-            let invScale = 1 / scale;
-            let sw = this.renderer.app.view.width;
-            let sh = this.renderer.app.view.height;
+        let cpos = camera.position;
+        let cx = cpos.x * 16;
+        let cy = cpos.y * 16;
+        let scale = cpos.scale;
+        let invScale = 1 / scale;
+        let sw = this.renderer.app.view.width;
+        let sh = this.renderer.app.view.height;
 
-            let sw2 = (sw / 2) * invScale;
-            let sh2 = (sh / 2) * invScale;
+        let sw2 = (sw / 2) * invScale;
+        let sh2 = (sh / 2) * invScale;
 
-            let cx1 = cx - sw2;
-            let cy1 = cy - sh2;
-            let cx2 = cx + sw2;
-            let cy2 = cy + sh2;
+        let cx1 = cx - sw2;
+        let cy1 = cy - sh2;
+        let cx2 = cx + sw2;
+        let cy2 = cy + sh2;
 
-            let bx1 = this.bounds.x;
-            let by1 = this.bounds.y;
-            let bx2 = this.bounds.x + this.bounds.width;
-            let by2 = this.bounds.y + this.bounds.height;
+        let bx1 = this.bounds.x;
+        let by1 = this.bounds.y;
+        let bx2 = this.bounds.x + this.bounds.width;
+        let by2 = this.bounds.y + this.bounds.height;
 
-            if (bx2 < cx1 || bx1 > cx2) {
-                return false;
+        return !(bx2 < cx1 || bx1 > cx2) && !(by2 < cy1 || by1 > cy2);
+    }
+
+    private drawAnimated(): void {
+
+        for (let index = 0; index < this.animatedObjects.length; index++) {
+
+            let next = this.animatedObjects[index];
+            if (next.sprite == null) {
+                continue;
             }
 
-            return !(by2 < cy1 || by1 > cy2);
-        };
-
-        if (contains()) {
-            draw(this.animatedObjects);
+            if (next.sprite.sequence != null) {
+                let offset = next.sprite.offset;
+                if (next.sprite.sequence.length > offset) {
+                    let texture = next.sprite.sequence[next.sprite.offset];
+                    if (texture != null) {
+                        next._sprite.texture = texture;
+                        next._sprite.visible = true;
+                    } else {
+                        next._sprite.visible = false;
+                    }
+                }
+            } else {
+                next._sprite.visible = false;
+            }
         }
     }
 
@@ -192,6 +186,8 @@ export class LVZChunk {
             _sprite.x = x;
             _sprite.y = y;
 
+            _sprite.interactive = false;
+
             let profile = {
                 object: object,
                 sprite: mapSprite,
@@ -204,6 +200,7 @@ export class LVZChunk {
             if ((image.xFrames > 1 || image.yFrames > 1) && image.animationTime !== 0) {
                 this.animatedObjects.push(profile);
             } else {
+                _sprite.cacheAsBitmap = true;
                 this.objects.push(profile);
             }
 

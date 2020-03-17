@@ -4,9 +4,11 @@ import { Session } from '../Session';
 import { ItemSelector, ItemSelectorAction, ItemSelectorEvent, SpriteItem } from './ItemSelector';
 import { Selection, SelectionSlot, SelectionType } from './Selection';
 import { UIPanelSection, UIPanelTab } from './UI';
+import { LVZManager } from '../LVZManager';
+import { CustomEvent } from './CustomEventListener';
+import { EditorAction, EditorSessionEvent } from '../SimpleEditor';
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
-import { LVZManager } from '../LVZManager';
 
 /**
  * The <i>PalettePanel</i> class. TODO: Document.
@@ -27,6 +29,10 @@ export class PalettePanel extends UIPanelTab {
     private sectionMapImage: UIPanelSection;
     private contentFrameResize: boolean = false;
 
+    private dirty: boolean;
+
+    sessionListener: (event: CustomEvent) => void | boolean;
+
     /**
      * Main constructor.
      *
@@ -37,6 +43,15 @@ export class PalettePanel extends UIPanelTab {
         super('palette');
 
         this.renderer = renderer;
+
+        this.sessionListener = (event: CustomEvent): void => {
+            if (event.eventType == 'EditorSessionEvent') {
+                let editorEvent = <EditorSessionEvent> event;
+                if (editorEvent.action == EditorAction.SESSION_ACTIVATED) {
+
+                }
+            }
+        };
 
         let width = 306;
         this.sectionStandardTile = this.createSection('standard-tiles', 'Standard Tiles');
@@ -64,6 +79,8 @@ export class PalettePanel extends UIPanelTab {
                 this.sectionMapImage.open();
             }
         });
+
+        this.dirty = true;
     }
 
     update(): void {
@@ -71,18 +88,18 @@ export class PalettePanel extends UIPanelTab {
         let session = this.renderer.session;
         let atlas = session.atlas;
 
-        let spriteDirty = atlas.isDirty() || session !== this.lastSession;
+        let shouldDraw = this.dirty || atlas.isDirty() || session !== this.lastSession;
 
-        if (!spriteDirty) {
+        if (!shouldDraw) {
             for (let key in this.selectorMapImage.items) {
                 if (this.selectorMapImage.items[key].isDirty()) {
-                    spriteDirty = true;
+                    shouldDraw = true;
                     break;
                 }
             }
         }
 
-        if (spriteDirty) {
+        if (shouldDraw) {
 
             this.createTileSprites(session);
             this.selectorStandardTile.draw();
@@ -117,7 +134,9 @@ export class PalettePanel extends UIPanelTab {
     }
 
     createTileSprites(session: Session): void {
+
         this.selectorSpecialTile.clear();
+
         let add = (id: string, sprite: MapSprite, selector: ItemSelector): void => {
             if (sprite == null) {
                 throw new Error('The sprite given is null for the id: ' + id);
@@ -205,6 +224,8 @@ export class PalettePanel extends UIPanelTab {
                 add(id, sprite, this.selectorMapImage);
             }
         }
+
+        this.dirty = false;
     }
 
     draw(): void {

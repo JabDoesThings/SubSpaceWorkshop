@@ -588,7 +588,12 @@ export class LayerCluster {
     constructor() {
         this.layers = [];
         for (let index = 0; index < 8; index++) {
-            this.layers.push(new PIXI.Container());
+            let layer = new PIXI.Container();
+            layer.sortableChildren = false;
+            layer.sortDirty = false;
+            layer.interactive = false;
+            layer.interactiveChildren = false;
+            this.layers.push(layer);
         }
     }
 
@@ -606,19 +611,21 @@ export class ScreenManager {
 
     // private objects: LVZScreenEntry[];
     private animatedObjects: LVZScreenEntry[];
+    private dirty: boolean;
 
     constructor(renderer: MapRenderer) {
         this.renderer = renderer;
         this.previousScreen = new PIXI.Rectangle();
         // this.objects = [];
         this.animatedObjects = [];
+        this.dirty = true;
     }
 
     update(): void {
 
         let screen = this.renderer.app.screen;
 
-        if (this.previousScreen.x !== screen.x
+        if (this.dirty || this.previousScreen.x !== screen.x
             || this.previousScreen.y !== screen.y
             || this.previousScreen.width !== screen.width
             || this.previousScreen.height !== screen.height) {
@@ -726,6 +733,16 @@ export class ScreenManager {
                 entry._sprite.texture = entry.sprite.sequence[entry.sprite.offset];
             }
         }
+    }
+
+    // @Override
+    isDirty(): boolean {
+        return this.dirty;
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+        this.dirty = flag;
     }
 }
 

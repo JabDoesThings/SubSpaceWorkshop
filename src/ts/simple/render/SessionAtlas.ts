@@ -14,17 +14,13 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
 
     private dirty: boolean;
 
-    private tListener: (event: TextureAtlasEvent) => void | boolean;
+    private readonly tListener: (event: TextureAtlasEvent) => void | boolean;
 
     /** Main constructor. */
     constructor() {
-
         super();
-
         this.textures = {};
-
         this.tListener = (event => this.dispatch(event));
-
         this.dirty = true;
     }
 
@@ -33,6 +29,7 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
         let sessionAtlas = new SessionAtlas();
         for (let id in this.textures) {
             sessionAtlas.textures[id] = this.textures[id].clone();
+            sessionAtlas.textures[id].addEventListener(sessionAtlas.tListener);
         }
 
         sessionAtlas.setDirty(true);
@@ -57,27 +54,26 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
 
         let texture = this.textures[textureId.toLowerCase()];
 
-        if(texture == null) {
+        if (texture == null) {
             return false;
-        }
-
-        let textures: { [id: string]: TextureAtlas } = {};
-        textures[textureId] = texture;
-
-        if (this.dispatch(<SessionAtlasEvent> {
-            eventType: 'SessionAtlasEvent',
-            sessionAtlas: this,
-            action: AtlasAction.REMOVE_TEXTURES,
-            textures: textures,
-            forced: false
-        })) {
-            return true;
         }
 
         texture.removeEventListener(this.tListener);
 
         this.textures[textureId.toLowerCase()] = null;
+
         this.dirty = true;
+
+        let textures: { [id: string]: TextureAtlas } = {};
+        textures[textureId] = texture;
+
+        this.dispatch(<SessionAtlasEvent> {
+            eventType: 'SessionAtlasEvent',
+            sessionAtlas: this,
+            action: AtlasAction.REMOVE_TEXTURES,
+            textures: textures,
+            forced: true
+        });
 
         return false;
     }
@@ -87,21 +83,19 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
      */
     clear(): boolean {
 
-        if (this.dispatch(<SessionAtlasEvent> {
-            eventType: 'SessionAtlasEvent',
-            sessionAtlas: this,
-            action: AtlasAction.REMOVE_TEXTURES,
-            textures: this.textures,
-            forced: false
-        })) {
-            return true;
-        }
-
         for (let textureId in this.textures) {
             this.textures[textureId] = null;
         }
 
         this.dirty = true;
+
+        this.dispatch(<SessionAtlasEvent> {
+            eventType: 'SessionAtlasEvent',
+            sessionAtlas: this,
+            action: AtlasAction.REMOVE_TEXTURES,
+            textures: this.textures,
+            forced: true
+        });
 
         return false;
     }
@@ -126,23 +120,23 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
             throw new Error('The TextureAtlas given is null or undefined.');
         }
 
-        let textures: { [id: string]: TextureAtlas } = {};
-        textures[texture.id] = texture;
-
-        if (this.removeTexture(texture.id) || this.dispatch(<SessionAtlasEvent> {
-            eventType: 'SessionAtlasEvent',
-            sessionAtlas: this,
-            action: AtlasAction.SET_TEXTURES,
-            textures: textures,
-            forced: false
-        })) {
-            return true;
-        }
+        this.removeTexture(texture.id);
 
         this.textures[texture.id] = texture;
         texture.addEventListener(this.tListener);
 
         this.dirty = true;
+
+        let textures: { [id: string]: TextureAtlas } = {};
+        textures[texture.id] = texture;
+
+        this.dispatch(<SessionAtlasEvent> {
+            eventType: 'SessionAtlasEvent',
+            sessionAtlas: this,
+            action: AtlasAction.SET_TEXTURES,
+            textures: textures,
+            forced: true
+        });
 
         return false;
     }
@@ -266,12 +260,21 @@ export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
         this.texture = texture;
 
         let apply = (): void => {
+
             for (let id in this.sprites) {
                 let sprite = this.sprites[id];
-                if (sprite.texture == null) {
+                // if (sprite.texture == null) {
                     this.applySprite(sprite);
-                }
+                // }
             }
+
+            this.dispatch({
+                eventType: 'TextureAtlasEvent',
+                textureAtlas: this,
+                action: TextureAtlasAction.UPDATE,
+                sprites: this.sprites,
+                forced: true
+            });
         };
 
         if (this.texture != null) {
@@ -285,16 +288,6 @@ export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
         } else {
             apply();
         }
-
-
-
-        this.dispatch({
-            eventType: 'TextureAtlasEvent',
-            textureAtlas: this,
-            action: TextureAtlasAction.UPDATE,
-            sprites: this.sprites,
-            forced: true
-        });
     }
 
     clear(): boolean {
@@ -343,9 +336,6 @@ export enum TextureAtlasAction {
 
 export enum AtlasAction {
     CLEAR = 'clear',
-    SET_TEXTURES = 'add-textures',
+    SET_TEXTURES = 'set-textures',
     REMOVE_TEXTURES = 'remove-textures',
-    ADD_SPRITES = 'add-sprites',
-    REMOVE_SPRITES = 'remove-sprites'
 }
-

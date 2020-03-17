@@ -17,8 +17,8 @@ function debugLVL() {
             "assets/lvl/crosshunt.lvl",
             [
                 'assets/lvz/#SpaceBG2.lvz',
-                // 'assets/lvz/@crosshunt.lvz',
-                // 'assets/lvz/&AstSet_1.lvz'
+                'assets/lvz/@crosshunt.lvz',
+                'assets/lvz/&AstSet_1.lvz'
             ]
         )
     );
@@ -27,26 +27,8 @@ function debugLVL() {
 // Entry Point from HTML.
 export let start = function () {
 
-    let options = {scaleMode: SCALE_MODES.NEAREST};
-
     let tex = (id: string, texture: PIXI.Texture): TextureAtlas => {
         return new TextureAtlas(id, texture);
-    };
-
-    let sprite = (
-        tex: PIXI.Texture,
-        frameWidth: number,
-        frameHeight: number,
-        framesX: number = 1,
-        framesY: number = 1,
-        frameTime: number = 1,
-        startX: number = null,
-        startY: number = null,
-        endX: number = null,
-        endY: number = null): MapSprite => {
-        let sprite = new MapSprite(frameWidth, frameHeight, framesX, framesY, frameTime, startX, startY, endX, endY);
-        sprite.setTexture(tex);
-        return sprite;
     };
 
     let loader = new PIXI.Loader();

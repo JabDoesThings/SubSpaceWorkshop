@@ -12,7 +12,7 @@ import { Selection, SelectionGroup, SelectionSlot, SelectionType } from './ui/Se
 import { UITab } from './ui/UI';
 import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
 import { LVZManager } from './LVZManager';
-import { SessionAtlas, SessionAtlasEvent, TextureAtlasEvent } from './render/SessionAtlas';
+import { SessionAtlas, SessionAtlasEvent, TextureAtlasAction, TextureAtlasEvent } from './render/SessionAtlas';
 
 /**
  * The <i>Session</i> class. TODO: Document.
@@ -96,7 +96,7 @@ export class Session extends CustomEventListener<CustomEvent> {
         this.lvzManager.load(this.lvzPaths);
         this.loaded = true;
 
-        this.dispatch(<SessionEvent>{
+        this.dispatch(<SessionEvent> {
             eventType: 'SessionEvent',
             session: this,
             action: SessionAction.POST_LOAD,
@@ -135,7 +135,7 @@ export class Session extends CustomEventListener<CustomEvent> {
         this.lvzManager.unload();
         this.loaded = false;
 
-        this.dispatch(<SessionEvent>{
+        this.dispatch(<SessionEvent> {
             eventType: 'SessionEvent',
             session: this,
             action: SessionAction.POST_UNLOAD,
@@ -203,30 +203,38 @@ export class SessionCache {
      * @param session
      */
     constructor(session: Session) {
+
         this.session = session;
         this.initialized = false;
         this.regions = [];
         this.callbacks = {};
 
         this.sListener = (event: CustomEvent) => {
-            console.log(event);
-            if(event.eventType === 'TextureAtlasEvent') {
-                let tEvent = <TextureAtlasEvent> event;
-                let textureAtlas = tEvent.textureAtlas;
-                let id = textureAtlas.id;
-                if(id.startsWith('bg') || id.startsWith('star')) {
 
-                    this._background.setDirty(true);
-                }
-            } else if(event.eventType == 'SessionAtlasEvent') {
-                let sEvent = <SessionAtlasEvent> event;
-                let textures = sEvent.textures;
-                console.log(sEvent);
-
-                for(let key in textures) {
-                    if(key.startsWith('bg') || key.startsWith('star')) {
+            if (this._background != null) {
+                if (event.eventType === 'TextureAtlasEvent') {
+                    let tEvent = <TextureAtlasEvent> event;
+                    let textureAtlas = tEvent.textureAtlas;
+                    let id = textureAtlas.id;
+                    if (id.startsWith('bg') || id.startsWith('star')) {
                         this._background.setDirty(true);
                     }
+                } else if (event.eventType == 'SessionAtlasEvent') {
+                    let sEvent = <SessionAtlasEvent> event;
+                    let textures = sEvent.textures;
+                    for (let key in textures) {
+                        if (key.startsWith('bg') || key.startsWith('star')) {
+                            this._background.setDirty(true);
+                        }
+                    }
+                }
+            }
+
+            if (event.eventType === 'TextureAtlasEvent') {
+                let tEvent = <TextureAtlasEvent> event;
+                if (tEvent.action == TextureAtlasAction.UPDATE) {
+                    this.session.lvzManager.setDirtyArea();
+                    this.session.editor.renderer.screen.setDirty(true);
                 }
             }
         };

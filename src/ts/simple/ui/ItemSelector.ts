@@ -95,6 +95,11 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
             }
         });
 
+        this.app.stage.sortDirty = false;
+        this.app.stage.sortableChildren = false;
+        this.app.stage.interactive = false;
+        this.app.stage.interactiveChildren = false;
+
         this.listener = new ItemSelectorListener(this);
         this.listener.init();
     }
@@ -247,7 +252,6 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
             next.setDirty(true);
 
             this.app.stage.addChild(next.getContainer());
-            this.app.stage.addChild(next.outline);
 
             let x1 = spot.x;
             let y1 = spot.y;
@@ -307,30 +311,40 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
         this.setDirty(true);
     }
 
-    selectPrimary(item: Item): void {
+    getSelected(slot: number): Item {
 
         let selectionGroup = this.panel.renderer.session.selectionGroup;
-        let primary = selectionGroup.getSelection(SelectionSlot.PRIMARY);
 
-        if (item.type === primary.type && item.id === primary.id) {
-            return;
+        let selection = selectionGroup.getSelection(slot);
+        if (selection == null) {
+            return null;
         }
 
-        let selection = new Selection(item.type, item.id);
-        this.panel.renderer.session.selectionGroup.setSelection(SelectionSlot.PRIMARY, selection);
+        for (let id in this.items) {
+            let next = this.items[id];
+            if (next.id == selection.id && next.type === selection.type) {
+                return next;
+            }
+        }
+
+        return null;
     }
 
-    selectSecondary(item: Item): void {
-
+    setSelected(slot: number, item: Item): void {
         let selectionGroup = this.panel.renderer.session.selectionGroup;
-        let secondary = selectionGroup.getSelection(SelectionSlot.SECONDARY);
 
-        if (item.type === secondary.type && item.id === secondary.id) {
-            return;
+        let previousItem = this.getSelected(slot);
+
+        if (item != null) {
+            selectionGroup.setSelection(slot, new Selection(item.type, item.id));
+            item.drawOutline();
+        } else {
+            selectionGroup.setSelection(slot, null);
         }
 
-        let selection = new Selection(item.type, item.id);
-        this.panel.renderer.session.selectionGroup.setSelection(SelectionSlot.SECONDARY, selection);
+        if (previousItem != null) {
+            previousItem.drawOutline();
+        }
     }
 
     // @Override
@@ -409,11 +423,7 @@ export class ItemSelectorListener {
                 return true;
             }
 
-            if (button == 0) {
-                this.selector.selectPrimary(item);
-            } else if (button == 2) {
-                this.selector.selectSecondary(item);
-            }
+            this.selector.setSelected(button, item);
 
             return false;
         };
@@ -610,7 +620,13 @@ export class SpriteItem extends Item {
         this._sprite.width = 0;
         this._sprite.height = 0;
 
+        this.container.removeChildren();
         this.container.addChild(this._sprite);
+        this.container.addChild(this.outline);
+        this.container.sortableChildren = false;
+        this.container.sortDirty = false;
+        this.container.interactive = false;
+        this.container.interactiveChildren = false;
     }
 
     hoverAlphaMin: number = 0.25;
@@ -664,7 +680,7 @@ export class SpriteItem extends Item {
             return;
         }
 
-        this.drawOutline();
+        // this.drawOutline();
 
         if (this.sprite.sequence != null) {
             let texture = this.sprite.sequence[this.sprite.offset];
