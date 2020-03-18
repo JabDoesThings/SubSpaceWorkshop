@@ -13,6 +13,7 @@ import { UITab } from './ui/UI';
 import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
 import { LVZManager } from './LVZManager';
 import { SessionAtlas, SessionAtlasEvent, TextureAtlasAction, TextureAtlasEvent } from './render/SessionAtlas';
+import { EditHistory } from './EditHistory';
 
 /**
  * The <i>Session</i> class. TODO: Document.
@@ -21,6 +22,7 @@ import { SessionAtlas, SessionAtlasEvent, TextureAtlasAction, TextureAtlasEvent 
  */
 export class Session extends CustomEventListener<CustomEvent> {
 
+    editHistory: EditHistory;
     selectionGroup: SelectionGroup;
     lvzManager: LVZManager;
     editor: SimpleEditor;
@@ -46,6 +48,7 @@ export class Session extends CustomEventListener<CustomEvent> {
         let split = lvlPath.split("/");
         this._name = split[split.length - 1].split('.')[0];
 
+        this.editHistory = new EditHistory(this);
         this.lvzManager = new LVZManager(this);
 
         this.lvlPath = lvlPath;

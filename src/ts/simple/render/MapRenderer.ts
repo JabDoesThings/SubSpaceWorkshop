@@ -11,6 +11,7 @@ import { PanelOrientation, TabOrientation, TabPanelAction, UIPanel, UIPanelSecti
 import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
 import { MapSprite } from './MapSprite';
 import * as PIXI from "pixi.js";
+import { BrushCanvas } from '../brushes/Brush';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -32,6 +33,8 @@ export class MapRenderer extends Renderer {
     mapObjectSection: UIMapObjectSection;
     paletteTab: PalettePanel;
     screen: ScreenManager;
+
+    brushCanvas: BrushCanvas;
 
     /**
      * Main constructor.
@@ -124,6 +127,8 @@ export class MapRenderer extends Renderer {
     // @Override
     protected onInit(): void {
 
+        this.brushCanvas = new BrushCanvas(this);
+
         this.grid = new MapGrid(this);
         this.grid.filters = [];
         this.grid.filterArea = this.app.renderer.screen;
@@ -133,14 +138,7 @@ export class MapRenderer extends Renderer {
         let downPrimary = false;
         let downSecondary = false;
 
-        let scales = [
-            2,
-            1,
-            0.5,
-            0.25,
-            0.1
-        ];
-
+        let scales = [2, 1, 0.5, 0.25, 0.1];
         let scaleIndex = 1;
 
         this.events.addMouseListener((event: MapMouseEvent) => {
@@ -193,122 +191,122 @@ export class MapRenderer extends Renderer {
             this.camera.pathTo({x: x, y: y, scale: scales[scaleIndex]}, ticks, PathMode.EASE_OUT);
         });
 
-        this.events.addMouseListener((event: MapMouseEvent): void => {
-
-            if (this.session == null) {
-                return;
-            }
-
-            if (event.type !== MapMouseEventType.DOWN) {
-                return;
-            }
-
-            let selectionGroup = this.session.selectionGroup;
-
-            let selection: Selection = null;
-            if (event.button == 0) {
-                selection = selectionGroup.getSelection(SelectionSlot.PRIMARY);
-            } else if (event.button == 2) {
-                selection = selectionGroup.getSelection(SelectionSlot.SECONDARY);
-            }
-
-            if (selection == null || selection.type !== SelectionType.IMAGE) {
-                return;
-            }
-
-            let split = (<string> selection.id).split('>>>');
-            let lvzPackageName = split[0];
-            let imageIndex = parseInt(split[1]);
-
-            let lvzPackage: LVZPackage;
-
-            let packages = this.session.lvzManager.packages;
-            for (let index = 0; index < packages.length; index++) {
-                let next = packages[index];
-                if (next.name.toLowerCase() === lvzPackageName) {
-                    lvzPackage = next;
-                    break;
-                }
-            }
-
-            if (lvzPackage == null) {
-                console.log('LVZPackage not found: ' + lvzPackageName);
-                return;
-            }
-
-            let coords = {x: event.data.tileX * 16, y: event.data.tileY * 16};
-            lvzPackage.createMapObject(imageIndex, coords);
-            this.session.lvzManager.setDirtyPoint(coords.x, coords.y);
-        });
-
-        this.events.addMouseListener((event: MapMouseEvent): void => {
-
-            if (this.session == null) {
-                return;
-            }
-
-            let button = event.button;
-
-            if (event.type === MapMouseEventType.DRAG) {
-                button = downPrimary ? 0 : downSecondary ? 2 : 99;
-            }
-
-            if (event.type === MapMouseEventType.UP) {
-
-                if (button == 0) {
-                    downPrimary = false;
-                } else if (button == 2) {
-                    downSecondary = false;
-                }
-
-                if (drawn) {
-                    this.radar.draw().then(() => {
-                        this.radar.apply();
-                    });
-                }
-                drawn = false;
-            }
-
-            if (event.type !== MapMouseEventType.DOWN && event.type !== MapMouseEventType.DRAG) {
-                return;
-            }
-
-            if (event.type === MapMouseEventType.DOWN) {
-                if (button == 0) {
-                    downPrimary = true;
-                } else if (button == 2) {
-                    downSecondary = true;
-                }
-            }
-
-            let data = event.data;
-            let x = data.tileX;
-            let y = data.tileY;
-
-            if ((downPrimary || downSecondary) && x >= 0 && x < 1024 && y >= 0 && y < 1024) {
-
-                let selectionGroup = this.session.selectionGroup;
-
-                let selection: Selection = null;
-                if (downPrimary) {
-                    selection = selectionGroup.getSelection(SelectionSlot.PRIMARY);
-                } else if (downSecondary) {
-                    selection = selectionGroup.getSelection(SelectionSlot.SECONDARY);
-                }
-
-                if (selection != null && selection.type == SelectionType.TILE) {
-                    let tileId: number;
-                    if (typeof selection.id == 'string') {
-                        tileId = parseInt(selection.id);
-                    } else {
-                        tileId = selection.id;
-                    }
-                    this.session.map.setTile(x, y, tileId);
-                }
-
-                drawn = true;
-            }
-        });
+        // this.events.addMouseListener((event: MapMouseEvent): void => {
+        //
+        //     if (this.session == null) {
+        //         return;
+        //     }
+        //
+        //     if (event.type !== MapMouseEventType.DOWN) {
+        //         return;
+        //     }
+        //
+        //     let selectionGroup = this.session.selectionGroup;
+        //
+        //     let selection: Selection = null;
+        //     if (event.button == 0) {
+        //         selection = selectionGroup.getSelection(SelectionSlot.PRIMARY);
+        //     } else if (event.button == 2) {
+        //         selection = selectionGroup.getSelection(SelectionSlot.SECONDARY);
+        //     }
+        //
+        //     if (selection == null || selection.type !== SelectionType.IMAGE) {
+        //         return;
+        //     }
+        //
+        //     let split = (<string> selection.id).split('>>>');
+        //     let lvzPackageName = split[0];
+        //     let imageIndex = parseInt(split[1]);
+        //
+        //     let lvzPackage: LVZPackage;
+        //
+        //     let packages = this.session.lvzManager.packages;
+        //     for (let index = 0; index < packages.length; index++) {
+        //         let next = packages[index];
+        //         if (next.name.toLowerCase() === lvzPackageName) {
+        //             lvzPackage = next;
+        //             break;
+        //         }
+        //     }
+        //
+        //     if (lvzPackage == null) {
+        //         console.log('LVZPackage not found: ' + lvzPackageName);
+        //         return;
+        //     }
+        //
+        //     let coords = {x: event.data.tileX * 16, y: event.data.tileY * 16};
+        //     lvzPackage.createMapObject(imageIndex, coords);
+        //     this.session.lvzManager.setDirtyPoint(coords.x, coords.y);
+        // });
+        //
+        // this.events.addMouseListener((event: MapMouseEvent): void => {
+        //
+        //     if (this.session == null) {
+        //         return;
+        //     }
+        //
+        //     let button = event.button;
+        //
+        //     if (event.type === MapMouseEventType.DRAG) {
+        //         button = downPrimary ? 0 : downSecondary ? 2 : 99;
+        //     }
+        //
+        //     if (event.type === MapMouseEventType.UP) {
+        //
+        //         if (button == 0) {
+        //             downPrimary = false;
+        //         } else if (button == 2) {
+        //             downSecondary = false;
+        //         }
+        //
+        //         if (drawn) {
+        //             this.radar.draw().then(() => {
+        //                 this.radar.apply();
+        //             });
+        //         }
+        //         drawn = false;
+        //     }
+        //
+        //     if (event.type !== MapMouseEventType.DOWN && event.type !== MapMouseEventType.DRAG) {
+        //         return;
+        //     }
+        //
+        //     if (event.type === MapMouseEventType.DOWN) {
+        //         if (button == 0) {
+        //             downPrimary = true;
+        //         } else if (button == 2) {
+        //             downSecondary = true;
+        //         }
+        //     }
+        //
+        //     let data = event.data;
+        //     let x = data.tileX;
+        //     let y = data.tileY;
+        //
+        //     if ((downPrimary || downSecondary) && x >= 0 && x < 1024 && y >= 0 && y < 1024) {
+        //
+        //         let selectionGroup = this.session.selectionGroup;
+        //
+        //         let selection: Selection = null;
+        //         if (downPrimary) {
+        //             selection = selectionGroup.getSelection(SelectionSlot.PRIMARY);
+        //         } else if (downSecondary) {
+        //             selection = selectionGroup.getSelection(SelectionSlot.SECONDARY);
+        //         }
+        //
+        //         if (selection != null && selection.type == SelectionType.TILE) {
+        //             let tileId: number;
+        //             if (typeof selection.id == 'string') {
+        //                 tileId = parseInt(selection.id);
+        //             } else {
+        //                 tileId = selection.id;
+        //             }
+        //             this.session.map.setTile(x, y, tileId);
+        //         }
+        //
+        //         drawn = true;
+        //     }
+        // });
     }
 
     // @Override

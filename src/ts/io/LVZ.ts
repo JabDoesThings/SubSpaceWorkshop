@@ -596,6 +596,27 @@ export class LVZPackage extends Printable implements Validatable {
         this.mapObjects.push(object);
     }
 
+    removeMapObject(object: CompiledLVZMapObject) {
+
+        if (object == null) {
+            throw new Error("The map-object given is null or undefined.");
+        }
+
+        let newArray: CompiledLVZMapObject[] = [];
+
+        for (let index = 0; index < this.mapObjects.length; index++) {
+
+            let next = this.mapObjects[index];
+            if (next === object) {
+                continue;
+            }
+
+            newArray.push(next);
+        }
+
+        this.mapObjects = newArray;
+    }
+
     public addScreenObject(object: CompiledLVZScreenObject): void {
         this.screenObjects.push(object);
     }
