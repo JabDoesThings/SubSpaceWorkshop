@@ -1,5 +1,5 @@
-import { SelectionGroup } from '../ui/Selection';
-import { Edit } from '../EditHistory';
+import { SelectionGroup, SelectionType } from '../ui/Selection';
+import { Edit, EditTileTransform } from '../EditHistory';
 import { MapRenderer } from '../render/MapRenderer';
 import { MapMouseEvent, MapMouseEventType } from '../../common/Renderer';
 import { Session } from '../Session';
@@ -43,11 +43,7 @@ export class BrushCanvas {
                 return;
             }
 
-            downBrush.onStart(downSession.selectionGroup, edits, {
-                button: event.button,
-                x: event.data.x,
-                y: event.data.y
-            });
+            downBrush.onStart(downSession.selectionGroup, edits, event);
         };
 
         let handleUp = (event: MapMouseEvent): void => {
@@ -56,11 +52,7 @@ export class BrushCanvas {
                 return;
             }
 
-            downBrush.onStop(downSession.selectionGroup, edits, {
-                button: event.button,
-                x: event.data.x,
-                y: event.data.y
-            });
+            downBrush.onStop(downSession.selectionGroup, edits, event);
 
             downSession.editHistory.execute(edits);
 
@@ -75,11 +67,7 @@ export class BrushCanvas {
                 return;
             }
 
-            downBrush.onDrag(downSession.selectionGroup, edits, {
-                button: event.button,
-                x: event.data.x,
-                y: event.data.y
-            });
+            downBrush.onDrag(downSession.selectionGroup, edits, event);
         };
 
         this.renderer.events.addMouseListener((event: MapMouseEvent) => {
@@ -128,11 +116,11 @@ export abstract class Brush {
         this.canvas.height = 1024;
     }
 
-    abstract onStart(group: SelectionGroup, edit: Edit[], mouse: { button: number, x: number, y: number }): void;
+    abstract onStart(group: SelectionGroup, edit: Edit[], event: MapMouseEvent): void;
 
-    abstract onDrag(group: SelectionGroup, edit: Edit[], mouse: { button: number, x: number, y: number }): void;
+    abstract onDrag(group: SelectionGroup, edit: Edit[], event: MapMouseEvent): void;
 
-    abstract onStop(group: SelectionGroup, edit: Edit[], mouse: { button: number, x: number, y: number }): void;
+    abstract onStop(group: SelectionGroup, edit: Edit[], event: MapMouseEvent): void;
 }
 
 export class PencilBrush extends Brush {
@@ -141,23 +129,48 @@ export class PencilBrush extends Brush {
         super();
     }
 
-    onStart(group: SelectionGroup, edits: Edit[], mouse: { button: number, x: number; y: number }): void {
+    private last: { x: number, y: number } = {x: 0, y: 0};
 
-        let selection = group.getSelection(mouse.button);
-        if(selection == null) {
+    onStart(group: SelectionGroup, edits: Edit[], event: MapMouseEvent): void {
+
+        let selection = group.getSelection(event.button);
+        if (selection == null) {
             return;
         }
+
+        if (selection.type == SelectionType.TILE) {
+
+            let x = event.data.tileX;
+            let y = event.data.tileY;
+            let id = typeof selection.id === 'string' ? parseInt(selection.id) : selection.id;
+            let edit = new EditTileTransform(0, {x: x, y: y, id: id});
+            edits.push(edit);
+        }
+
+        this.last.x = event.data.x;
+        this.last.y = event.data.y;
     }
 
-    onDrag(group: SelectionGroup, edits: Edit[], mouse: { button: number, x: number; y: number }): void {
+    onDrag(group: SelectionGroup, edits: Edit[], event: MapMouseEvent): void {
 
-        let selection = group.getSelection(mouse.button);
-        if(selection == null) {
+        let selection = group.getSelection(event.button);
+        if (selection == null) {
             return;
         }
+
+        if (selection.type == SelectionType.TILE) {
+            let x = event.data.tileX;
+            let y = event.data.tileY;
+            let id = typeof selection.id === 'string' ? parseInt(selection.id) : selection.id;
+            let edit = new EditTileTransform(0, {x: x, y: y, id: id});
+            edits.push(edit);
+        }
+
+        this.last.x = event.data.x;
+        this.last.y = event.data.y;
     }
 
-    onStop(group: SelectionGroup, edits: Edit[], mouse: { button: number, x: number; y: number }): void {
+    onStop(group: SelectionGroup, edits: Edit[], event: MapMouseEvent): void {
 
     }
 }

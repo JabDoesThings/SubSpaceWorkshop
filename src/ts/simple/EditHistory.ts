@@ -94,7 +94,7 @@ export class EditHistory {
      */
     undo(): void {
 
-        if (this.index <= 0) {
+        if (this.index < 0) {
             throw new Error("Cannot undo. The session's edit history is already reached.");
         }
 
@@ -170,7 +170,6 @@ export class EditTileTransform extends Edit {
     readonly transform: LVLMapTileProperties;
 
     originalTransform: LVLMapTileProperties;
-    idPrevious: number;
 
     /**
      * Main constructor.
@@ -204,8 +203,8 @@ export class EditTileTransform extends Edit {
 
         let map = history.session.map;
 
-        if (this.idPrevious == null) {
-            throw new Error("The previous ID is not set and the action cannot be undone.");
+        if (this.originalTransform == null) {
+            throw new Error("The original transform is not set and the action cannot be undone.");
         }
 
         map.setTile(this.originalTransform.x, this.originalTransform.y, this.originalTransform.id);
