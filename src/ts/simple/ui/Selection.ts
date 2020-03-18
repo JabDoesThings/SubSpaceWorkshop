@@ -30,7 +30,6 @@ export class SelectionGroup implements Dirtable {
     getSelectionId(slot: number) {
 
         let selection = this.selections[slot];
-
         if (selection != null) {
             return selection.id;
         }

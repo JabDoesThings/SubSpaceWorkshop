@@ -608,7 +608,28 @@ export class LVZPackage extends Printable implements Validatable {
         return this.screenObjects;
     }
 
-    createMapObject(image: number, coords: { x: number; y: number }, layer: LVZRenderLayer = LVZRenderLayer.AfterTiles, time: number = 0, mode: LVZDisplayMode = LVZDisplayMode.ShowAlways) {
+    createMapObject(
+        image: number,
+        coords: { x: number; y: number },
+        layer: LVZRenderLayer = LVZRenderLayer.AfterTiles,
+        time: number = 0,
+        mode: LVZDisplayMode = LVZDisplayMode.ShowAlways
+    ) {
+        console.log(
+            'createMapObject(image: '
+            + image
+            + ", coords: {x: "
+            + coords.x
+            + ", y: "
+            + coords.y
+            + "}, layer: "
+            + layer
+            + ", time: "
+            + time
+            + ", mode: "
+            + mode
+            + ");"
+        );
         let index = this.mapObjects.length;
         this.mapObjects.push(new CompiledLVZMapObject(this, index, coords.x, coords.y, image, layer, time, mode));
     }

@@ -1,4 +1,3 @@
-import { TextureAtlasEvent } from '../render/SessionAtlas';
 
 /**
  * The <i>UIEventListener</i> abstract class. TODO: Document.

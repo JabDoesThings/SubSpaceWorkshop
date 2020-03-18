@@ -3,7 +3,6 @@ import { Session } from './simple/Session';
 import * as PIXI from "pixi.js";
 import { SessionAtlas, TextureAtlas } from './simple/render/SessionAtlas';
 import { MapSprite } from './simple/render/MapSprite';
-import SCALE_MODES = PIXI.SCALE_MODES;
 
 export let DEFAULT_ATLAS = new SessionAtlas();
 

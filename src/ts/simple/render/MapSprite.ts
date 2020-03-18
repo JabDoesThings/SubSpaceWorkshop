@@ -213,13 +213,12 @@ export class MapSprite implements Validatable {
     frameY: number;
     frameTime: number;
 
-    private last: number;
-
     offset: number;
 
     sequence: PIXI.Texture[];
-    // source: HTMLImageElement;
+
     private dirty: boolean;
+    private last: number;
 
     id: string;
     dynamic: boolean;
@@ -490,6 +489,35 @@ export class MapSprite implements Validatable {
             };
 
             apply();
+        }
+    }
+
+    isAnimated(): boolean {
+        return this.texture != null && this.sequence != null && (this.framesX != 1 || this.framesY != 1);
+    }
+
+    draw(sprite: PIXI.Sprite): void {
+
+        if (sprite == null) {
+            return;
+        }
+
+        if (this.isAnimated()) {
+            if (this.sequence[this.offset] != null) {
+                sprite.texture = this.sequence[this.offset];
+                sprite.visible = true;
+                sprite.cacheAsBitmap = false;
+            } else {
+                sprite.visible = false;
+            }
+        } else {
+            if (this.texture != null) {
+                sprite.texture = this.texture;
+                sprite.visible = true;
+                sprite.cacheAsBitmap = true;
+            } else {
+                sprite.visible = false;
+            }
         }
     }
 

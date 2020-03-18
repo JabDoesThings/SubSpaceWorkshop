@@ -53,8 +53,16 @@ export class LVZChunk {
         }
 
         let camera = this.renderer.camera;
-        if (camera.isDirty() && this.contains(camera)) {
-            this.drawAnimated();
+        if (this.contains(camera)) {
+            for (let index = 0; index < this.animatedObjects.length; index++) {
+
+                let next = this.animatedObjects[index];
+                if (next.sprite == null) {
+                    continue;
+                }
+
+                next.sprite.draw(next._sprite);
+            }
         }
     }
 
@@ -82,32 +90,6 @@ export class LVZChunk {
         let by2 = this.bounds.y + this.bounds.height;
 
         return !(bx2 < cx1 || bx1 > cx2) && !(by2 < cy1 || by1 > cy2);
-    }
-
-    private drawAnimated(): void {
-
-        for (let index = 0; index < this.animatedObjects.length; index++) {
-
-            let next = this.animatedObjects[index];
-            if (next.sprite == null) {
-                continue;
-            }
-
-            if (next.sprite.sequence != null) {
-                let offset = next.sprite.offset;
-                if (next.sprite.sequence.length > offset) {
-                    let texture = next.sprite.sequence[next.sprite.offset];
-                    if (texture != null) {
-                        next._sprite.texture = texture;
-                        next._sprite.visible = true;
-                    } else {
-                        next._sprite.visible = false;
-                    }
-                }
-            } else {
-                next._sprite.visible = false;
-            }
-        }
     }
 
     build(session: Session, cluster: LayerCluster): void {
@@ -172,37 +154,44 @@ export class LVZChunk {
 
             let packageName = objects[index].packageName;
             let object = objects[index].object;
-            let image = objects[index].image;
             let x = object.x;
             let y = object.y;
 
-            let mapSprite = atlas.getSpriteById(packageName + '>>>' + object.image);
-
+            let id = packageName + '>>>' + object.image;
+            let mapSprite = atlas.getSpriteById(id);
             if (mapSprite == null) {
+                console.warn("The id: '" + id + "' has a null MapSprite. Ignoring..");
                 continue;
             }
 
-            let _sprite = new PIXI.Sprite();
-            _sprite.x = x;
-            _sprite.y = y;
+            let _sprite: PIXI.Sprite;
 
-            _sprite.interactive = false;
+            if (mapSprite.isAnimated()) {
 
-            let profile = {
-                object: object,
-                sprite: mapSprite,
-                texture: -1,
-                _sprite: _sprite
-            };
+                _sprite = new PIXI.Sprite();
+                _sprite.x = x;
+                _sprite.y = y;
+                _sprite.interactive = false;
+
+                let profile = {
+                    object: object,
+                    sprite: mapSprite,
+                    texture: -1,
+                    _sprite: _sprite
+                };
+
+                this.animatedObjects.push(profile);
+
+            } else {
+
+                _sprite = new PIXI.Sprite(mapSprite.texture);
+                _sprite.x = x;
+                _sprite.y = y;
+                _sprite.interactive = false;
+                _sprite.texture = mapSprite.texture;
+            }
 
             cluster.layers[object.layer].addChild(_sprite);
-
-            if ((image.xFrames > 1 || image.yFrames > 1) && image.animationTime !== 0) {
-                this.animatedObjects.push(profile);
-            } else {
-                _sprite.cacheAsBitmap = true;
-                this.objects.push(profile);
-            }
 
             if (minX > x) {
                 minX = x;

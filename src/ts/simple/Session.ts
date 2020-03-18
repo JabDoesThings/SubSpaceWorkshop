@@ -357,7 +357,6 @@ export class SessionCache {
         if (atlas.isDirty()) {
             this.draw();
         }
-        // this.lvzSprites.update();
     }
 
     destroy(): void {

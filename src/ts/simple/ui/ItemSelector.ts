@@ -680,17 +680,7 @@ export class SpriteItem extends Item {
             return;
         }
 
-        // this.drawOutline();
-
-        if (this.sprite.sequence != null) {
-            let texture = this.sprite.sequence[this.sprite.offset];
-            if (texture != null) {
-                this._sprite.texture = texture;
-                this._sprite.visible = true;
-            }
-        } else {
-            this._sprite.visible = false;
-        }
+        this.sprite.draw(this._sprite);
     }
 
     // @Override

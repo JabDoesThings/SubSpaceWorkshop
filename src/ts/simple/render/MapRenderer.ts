@@ -219,18 +219,20 @@ export class MapRenderer extends Renderer {
             let split = (<string> selection.id).split('>>>');
             let lvzPackageName = split[0];
             let imageIndex = parseInt(split[1]);
+
             let lvzPackage: LVZPackage;
 
             let packages = this.session.lvzManager.packages;
             for (let index = 0; index < packages.length; index++) {
                 let next = packages[index];
-                if (next.name === lvzPackageName) {
+                if (next.name.toLowerCase() === lvzPackageName) {
                     lvzPackage = next;
                     break;
                 }
             }
 
             if (lvzPackage == null) {
+                console.log('LVZPackage not found: ' + lvzPackageName);
                 return;
             }
 
@@ -608,15 +610,13 @@ export class ScreenManager {
 
     private renderer: MapRenderer;
     private previousScreen: PIXI.Rectangle;
-
-    // private objects: LVZScreenEntry[];
     private animatedObjects: LVZScreenEntry[];
+
     private dirty: boolean;
 
     constructor(renderer: MapRenderer) {
         this.renderer = renderer;
         this.previousScreen = new PIXI.Rectangle();
-        // this.objects = [];
         this.animatedObjects = [];
         this.dirty = true;
     }
