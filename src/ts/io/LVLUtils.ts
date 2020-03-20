@@ -14,6 +14,8 @@ import SCALE_MODES = PIXI.SCALE_MODES;
  */
 export class LVL {
 
+    static TILE_DIMENSIONS: number[][] = [];
+
     static readonly TILESET_DIMENSIONS: number[] = [304, 160];
     static readonly MAP_LENGTH = 1024;
 
@@ -89,7 +91,7 @@ export class LVL {
         let split = path.toLowerCase().split('.');
         let extension = split[split.length - 1];
 
-        if(extension.endsWith('bmp') || extension.endsWith('bm2') ) {
+        if (extension.endsWith('bmp') || extension.endsWith('bm2')) {
             let buffer = fs.readFileSync(path);
             return LVL.readTileset(buffer);
         }
@@ -404,5 +406,29 @@ export class LVL {
         }
 
         return buffer;
+    }
+}
+
+// Create dimension array to reference for tools.
+for (let index = 0; index < 255; index++) {
+
+    LVL.TILE_DIMENSIONS[index] = new Array(2);
+
+    if (index == 217) {
+        // Large Asteroid
+        LVL.TILE_DIMENSIONS[index][0] = 2;
+        LVL.TILE_DIMENSIONS[index][1] = 2;
+    } else if (index == 219) {
+        // Station Tile
+        LVL.TILE_DIMENSIONS[index][0] = 6;
+        LVL.TILE_DIMENSIONS[index][1] = 6;
+    } else if (index == 220) {
+        // Wormhole Tile
+        LVL.TILE_DIMENSIONS[index][0] = 5;
+        LVL.TILE_DIMENSIONS[index][1] = 5;
+    } else {
+        // Other Tiles
+        LVL.TILE_DIMENSIONS[index][0] = 1;
+        LVL.TILE_DIMENSIONS[index][1] = 1;
     }
 }
