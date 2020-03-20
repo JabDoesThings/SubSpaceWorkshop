@@ -42,8 +42,6 @@ export class LineBrush extends Brush {
 
     private draw(session: Session, event: MapMouseEvent): Edit[] {
 
-        console.log(event.data);
-
         let selectionGroup = session.selectionGroup;
 
         let selection = selectionGroup.getSelection(event.button);

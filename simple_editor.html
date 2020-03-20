@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>SubSpace Workshop</title>
+    <script src="assets/vendor-js/FontAwesome.js"></script>
     <script type="module">
 
         window.$ = window.jQuery = require('jquery');
@@ -42,6 +43,28 @@
         <div class="map-viewport-container" style="display: block">
             <div id="viewport-container" class="map-viewport-canvas-container">
                 <div class="viewport">
+                    <div class="ui-icon-toolbar left medium">
+                        <div class="tool selected">
+                            <i class="fas fa-pencil-alt"></i>
+                            <div class="ui-tooltip"><label>Pencil</label></div>
+                        </div>
+                        <div class="tool">
+                            <i class="fas fa-eraser"></i>
+                            <div class="ui-tooltip"><label>Eraser</label></div>
+                        </div>
+                        <div class="tool">
+                            <i class="fas fa-slash"></i>
+                            <div class="ui-tooltip"><label>Line</label></div>
+                        </div>
+                        <div class="tool">
+                            <i class="fas fa-square"></i>
+                            <div class="ui-tooltip"><label>Square</label></div>
+                        </div>
+                        <div class="tool">
+                            <i class="fas fa-circle"></i>
+                            <div class="ui-tooltip"><label>Circle</label></div>
+                        </div>
+                    </div>
                     <div class="map-viewport-canvas-boxshadow"></div>
                     <div class="workspace-radar">
                         <canvas id="radar" class="radar" width="256" height="256"></canvas>

@@ -133,10 +133,6 @@ export class MapRenderer extends Renderer {
         this.grid.filterArea = this.app.renderer.screen;
         // this.grid.visible = false;
 
-        let drawn = false;
-        let downPrimary = false;
-        let downSecondary = false;
-
         let scales = [2, 1, 0.5, 0.25, 0.1];
         let scaleIndex = 1;
 
@@ -238,74 +234,6 @@ export class MapRenderer extends Renderer {
         //     this.session.lvzManager.setDirtyPoint(coords.x, coords.y);
         // });
         //
-        // this.events.addMouseListener((event: MapMouseEvent): void => {
-        //
-        //     if (this.session == null) {
-        //         return;
-        //     }
-        //
-        //     let button = event.button;
-        //
-        //     if (event.type === MapMouseEventType.DRAG) {
-        //         button = downPrimary ? 0 : downSecondary ? 2 : 99;
-        //     }
-        //
-        //     if (event.type === MapMouseEventType.UP) {
-        //
-        //         if (button == 0) {
-        //             downPrimary = false;
-        //         } else if (button == 2) {
-        //             downSecondary = false;
-        //         }
-        //
-        //         if (drawn) {
-        //             this.radar.draw().then(() => {
-        //                 this.radar.apply();
-        //             });
-        //         }
-        //         drawn = false;
-        //     }
-        //
-        //     if (event.type !== MapMouseEventType.DOWN && event.type !== MapMouseEventType.DRAG) {
-        //         return;
-        //     }
-        //
-        //     if (event.type === MapMouseEventType.DOWN) {
-        //         if (button == 0) {
-        //             downPrimary = true;
-        //         } else if (button == 2) {
-        //             downSecondary = true;
-        //         }
-        //     }
-        //
-        //     let data = event.data;
-        //     let x = data.tileX;
-        //     let y = data.tileY;
-        //
-        //     if ((downPrimary || downSecondary) && x >= 0 && x < 1024 && y >= 0 && y < 1024) {
-        //
-        //         let selectionGroup = this.session.selectionGroup;
-        //
-        //         let selection: Selection = null;
-        //         if (downPrimary) {
-        //             selection = selectionGroup.getSelection(SelectionSlot.PRIMARY);
-        //         } else if (downSecondary) {
-        //             selection = selectionGroup.getSelection(SelectionSlot.SECONDARY);
-        //         }
-        //
-        //         if (selection != null && selection.type == SelectionType.TILE) {
-        //             let tileId: number;
-        //             if (typeof selection.id == 'string') {
-        //                 tileId = parseInt(selection.id);
-        //             } else {
-        //                 tileId = selection.id;
-        //             }
-        //             this.session.map.setTile(x, y, tileId);
-        //         }
-        //
-        //         drawn = true;
-        //     }
-        // });
     }
 
     // @Override

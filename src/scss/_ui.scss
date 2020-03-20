@@ -247,3 +247,137 @@ $panelWidth: 320px;
     }
   }
 }
+
+.ui-icon-toolbar {
+  z-index: 4;
+
+  background-color: $color1;
+
+  .tool {
+    position: relative;
+    display: inline-block;
+    border: 1px solid transparent;
+    width: 30px;
+    height: 30px;
+
+    margin-bottom: -3px;
+    margin-right: -3px;
+
+    border-radius: 3px;
+
+    transition: background-color 200ms, border-color 200ms, box-shadow 200ms;
+
+
+    .fas {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-shadow: 2px 1px rgb(0,0,0);
+      color: $color8;
+      transition: color 200ms;
+    }
+
+    .ui-tooltip {
+      z-index: 2;
+      position: absolute;
+      font-size: 12px;
+      background-color: $color3;
+    }
+
+    &:hover {
+      background-color: $color3;
+      border-color: $color8;
+      box-shadow: inset 0 0 2px 2px rgba(0,0,0,0.5);
+      transition: background-color 0s, border-color 0s, box-shadow 0s;
+
+      .fas {
+        color: $color7;
+        transition: color 0s;
+      }
+    }
+  }
+
+  .tool.selected {
+    box-shadow: inset 0 0 2px 2px rgba(0,0,0,0.5);
+    background-color: $color4;
+    border-color: $color8;
+
+    .fas {
+      color: $color9;
+      text-shadow: 2px 1px rgb(0,0,0);
+    }
+  }
+
+}
+
+$tooltip_border_color: $color8;
+
+.ui-icon-toolbar.left {
+  position: absolute;
+  display: inline-block;
+  width: 32px;
+  height: 100%;
+
+  .tool {
+    .ui-tooltip {
+      z-index: -1;
+      opacity: 0;
+
+      top: 50%;
+      left: calc(100% - 8px);
+      height: 14px;
+      padding: 2px 4px 2px 2px;
+      transform: translateY(-50%);
+
+      border-top: 1px solid $tooltip_border_color;
+      border-bottom: 1px solid $tooltip_border_color;
+      border-right: 1px solid $tooltip_border_color;
+      border-left: 1px solid transparent;
+
+      transition: opacity 200ms, left 200ms;
+
+      label {
+        z-index: 1;
+      }
+
+      .ui-tooltip {
+        transition-delay: 0s;
+      }
+
+      &:before {
+        z-index: -1;
+        position: absolute;
+        left: -7px;
+        width: 13px;
+        height: 13px;
+        transform: rotate(45deg);
+
+        background-color: $color3;
+
+        border-left: 1px solid $tooltip_border_color;
+        border-bottom: 1px solid $tooltip_border_color;
+
+        content: '';
+      }
+    }
+
+    &:hover {
+      .ui-tooltip {
+        opacity: 1;
+        left: calc(100% + 12px);
+
+        transition: opacity 100ms, left 100ms;
+        transition-delay: 500ms;
+      }
+    }
+  }
+}
+
+.ui-icon-toolbar.medium {
+  .tool {
+    .fas {
+      font-size: 18px;
+    }
+  }
+}

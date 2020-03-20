@@ -3,13 +3,14 @@ import MouseMoveEvent = JQuery.MouseMoveEvent;
 import { Vector2 } from 'three';
 import { Renderer } from './Renderer';
 import { PathMode } from '../util/Path';
+import { Dirtable } from '../util/Dirtable';
 
 /**
  * The <i>Radar</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Radar {
+export class Radar implements Dirtable {
 
     protected readonly view: Renderer;
     private readonly canvas: HTMLCanvasElement;
@@ -17,8 +18,9 @@ export class Radar {
     private readonly largeSize: number;
     private readonly smallSize: number;
 
-    private large: boolean;
     lock: boolean;
+    private large: boolean;
+    private dirty: boolean;
 
     constructor(view: Renderer) {
 
@@ -99,6 +101,8 @@ export class Radar {
                 update(button, mx, my);
             }
         });
+
+        this.dirty = true;
     }
 
     update(): void {
@@ -124,6 +128,13 @@ export class Radar {
             this.canvas.parentElement.style.height = this.smallSize + 'px';
             this.apply();
         }
+
+        if(this.isDirty()) {
+            this.draw().finally(()=> {
+               this.apply();
+            });
+            this.setDirty(false);
+        }
     }
 
     apply(): void {
@@ -131,6 +142,16 @@ export class Radar {
         let ctx = this.canvas.getContext('2d');
         let size = this.large ? largeSize : this.smallSize;
         ctx.drawImage(this.drawCanvas, 0, 0, 1024, 1024, 0, 0, size, size);
+    }
+
+    // @Override
+    isDirty(): boolean {
+        return this.dirty;
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+        this.dirty = flag;
     }
 
     async draw() {

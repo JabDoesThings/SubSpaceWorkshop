@@ -27,7 +27,7 @@ export class BrushManager {
 
         this.brushes['pencil'] = new PencilBrush();
         this.brushes['line'] = new LineBrush();
-        this.setActive('line');
+        this.setActive('pencil');
 
         let downBrush: Brush;
         let downSession: Session;
@@ -79,6 +79,7 @@ export class BrushManager {
             }
             if (push) {
                 downSession.editManager.push();
+                downSession.editor.renderer.radar.setDirty(true);
             }
             if (reset) {
                 downBrush = null;
