@@ -6,8 +6,21 @@ import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
 import { Session } from '../Session';
 import { CompiledLVZMapObject, CompiledLVZScreenObject, LVZPackage, LVZXType, LVZYType } from '../../io/LVZ';
-import { PanelOrientation, TabOrientation, TabPanelAction, UIPanel, UIPanelSection } from '../ui/UI';
-import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
+import {
+    IconToolbarAction,
+    PanelOrientation,
+    TabOrientation,
+    TabPanelAction,
+    ToolbarOrientation,
+    UIIcon,
+    UIIconToolbar,
+    UIIconToolbarEvent,
+    UIPanel,
+    UIPanelSection,
+    UITool,
+    UITooltip
+} from '../ui/UI';
+import { CustomEvent, CustomEventListener } from '../ui/CustomEventListener';
 import { MapSprite } from './MapSprite';
 import * as PIXI from "pixi.js";
 import { BrushManager } from '../BrushManager';
@@ -27,19 +40,22 @@ export class MapRenderer extends Renderer {
     session: Session;
     radar: Radar;
     tab: HTMLDivElement;
+    toolbarLeft: UIIconToolbar;
     leftPanel: UIPanel;
     rightPanel: UIPanel;
     mapObjectSection: UIMapObjectSection;
     paletteTab: PalettePanel;
-    screen: ScreenManager;
 
+    screen: ScreenManager;
     brushCanvas: BrushManager;
 
     /**
      * Main constructor.
      */
     public constructor() {
+
         super();
+
         this.radar = new MapRadar(this);
 
         this.layers = new LayerCluster();
@@ -119,6 +135,36 @@ export class MapRenderer extends Renderer {
 
         this.paletteTab.openAllSections();
         this.rightPanel.select(this.paletteTab);
+
+        let toolPencil = new UITool('pencil', new UIIcon(['fas', 'fa-pencil-alt']), new UITooltip('Pencil'));
+        let toolEraser = new UITool('eraser', new UIIcon(['fas', 'fa-eraser']), new UITooltip('Eraser'));
+        let toolLine = new UITool('line', new UIIcon(['fas', 'fa-slash']), new UITooltip('Line'));
+        let toolSquare = new UITool('square', new UIIcon(['fas', 'fa-square']), new UITooltip('Square'));
+        let toolCircle = new UITool('circle', new UIIcon(['fas', 'fa-circle']), new UITooltip('Circle'));
+
+        this.toolbarLeft = new UIIconToolbar(ToolbarOrientation.LEFT);
+        this.toolbarLeft.add(toolPencil);
+        this.toolbarLeft.add(toolEraser);
+        this.toolbarLeft.add(toolLine);
+        this.toolbarLeft.add(toolSquare);
+        this.toolbarLeft.add(toolCircle);
+        this.toolbarLeft.addEventListener((event: UIIconToolbarEvent) => {
+
+            if (event.action !== IconToolbarAction.SET_ACTIVE) {
+                return;
+            }
+
+            let tool = event.tool;
+            if(tool == null) {
+                return;
+            }
+
+            this.brushCanvas.setActive(tool.id);
+            console.log("SET TOOL: " + tool.id);
+        });
+
+        let vp = container.getElementsByClassName('viewport').item(0);
+        vp.appendChild(this.toolbarLeft.element);
 
         updateViewport();
     }

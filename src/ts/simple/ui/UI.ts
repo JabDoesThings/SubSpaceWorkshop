@@ -1157,6 +1157,244 @@ export class UITab extends CustomEventListener<UITabEvent> {
     }
 }
 
+export class UIIconToolbar extends CustomEventListener<UIIconToolbarEvent> {
+
+    readonly element: HTMLDivElement;
+
+    readonly tools: UITool[];
+    active: number;
+
+    private toolListener: (event: UIToolEvent) => void;
+
+    constructor(orientation: ToolbarOrientation = ToolbarOrientation.TOP) {
+
+        super();
+
+        this.tools = [];
+
+        this.element = document.createElement('div');
+        this.element.classList.add('ui-icon-toolbar');
+        this.element.classList.add(orientation);
+
+        this.active = -1;
+
+        this.toolListener = (event: UIToolEvent): void => {
+            let index = this.getIndex(event.tool);
+            if (index == -1) {
+                return;
+            }
+
+            this.setActiveIndex(index);
+        };
+    }
+
+    getIndex(tool: UITool): number {
+
+        for (let index = 0; index < this.tools.length; index++) {
+            let next = this.tools[index];
+            if (next === tool) {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    add(tool: UITool): void {
+
+        tool.toolbar = this;
+
+        let classList = tool.element.classList;
+        if (classList.contains('selected')) {
+            classList.remove('selected');
+        }
+
+        tool.addEventListener(this.toolListener);
+
+        this.element.appendChild(tool.element);
+
+        this.tools.push(tool);
+
+        this.dispatch({
+            eventType: 'UIIconToolbarEvent',
+            toolBar: this,
+            tool: tool,
+            action: IconToolbarAction.ADD_TOOL,
+            forced: true
+        });
+    }
+
+    remove(tool: UITool): void {
+
+        tool.toolbar = null;
+        this.element.removeChild(tool.element);
+
+        let classList = tool.element.classList;
+        if (classList.contains('selected')) {
+            classList.remove('selected');
+        }
+
+        tool.removeEventListener(this.toolListener);
+
+        let temp = [];
+        for (let index = 0; index < this.tools.length; index++) {
+            let next = this.tools[index];
+            if (next === tool) {
+                continue;
+            }
+            temp.push(tool);
+        }
+
+        this.tools.length = 0;
+        for (let index = 0; index < temp.length; index++) {
+            this.tools.push(temp[index]);
+        }
+
+        this.dispatch({
+            eventType: 'UIIconToolbarEvent',
+            toolBar: this,
+            tool: tool,
+            action: IconToolbarAction.REMOVE_TOOL,
+            forced: true
+        });
+    }
+
+    setActive(tool: UITool): void {
+        this.setActiveIndex(this.getIndex(tool));
+    }
+
+    setActiveIndex(index: number): void {
+
+        let tool = this.tools[this.active];
+
+        if (tool != null) {
+            let classList = tool.element.classList;
+            if (classList.contains('selected')) {
+                classList.remove('selected');
+            }
+        }
+
+        this.active = index;
+
+        tool = this.tools[this.active];
+
+        if (tool != null) {
+            let classList = tool.element.classList;
+            if (!classList.contains('selected')) {
+                classList.add('selected');
+            }
+        }
+
+        this.dispatch({
+            eventType: 'UIIconToolbarEvent',
+            toolBar: this,
+            tool: tool,
+            action: IconToolbarAction.SET_ACTIVE,
+            forced: true
+        });
+    }
+
+    get(index: number): UITool {
+        return this.tools[index];
+    }
+}
+
+export interface UIIconToolbarEvent {
+    toolBar: UIIconToolbar,
+    tool: UITool,
+    action: IconToolbarAction
+}
+
+export enum IconToolbarAction {
+    SET_ACTIVE = 'set-active',
+    ADD_TOOL = 'add-tool',
+    REMOVE_TOOL = 'remove-tool'
+}
+
+export class UITool extends CustomEventListener<UIToolEvent> {
+
+    readonly element: HTMLDivElement;
+    readonly id: string;
+    private readonly icon: UIIcon;
+    private readonly tooltip: UITooltip;
+
+    toolbar: UIIconToolbar;
+
+    constructor(id: string, icon: UIIcon, tooltip: UITooltip) {
+
+        super();
+
+        this.id = id;
+        this.icon = icon;
+        this.tooltip = tooltip;
+
+        this.toolbar = null;
+
+        this.element = document.createElement('div');
+        this.element.classList.add('tool');
+        this.element.appendChild(icon.element);
+        this.element.appendChild(tooltip.element);
+        this.element.addEventListener('click', (event) => {
+            this.dispatch({
+                eventType: 'UIToolEvent',
+                tool: this,
+                action: ToolAction.SELECT,
+                forced: true
+            });
+        });
+    }
+}
+
+export interface UIToolEvent extends CustomEvent {
+    tool: UITool,
+    action: ToolAction
+}
+
+export enum ToolAction {
+    SELECT = 'select'
+}
+
+export class UIIcon {
+
+    readonly element: HTMLElement;
+
+    constructor(classes: string[]) {
+
+        this.element = document.createElement('i');
+
+        for (let index = 0; index < classes.length; index++) {
+            this.element.classList.add(classes[index]);
+        }
+    }
+}
+
+export class UITooltip {
+
+    readonly element: HTMLDivElement;
+    readonly labelElement: HTMLLabelElement;
+
+    constructor(text: string) {
+
+        this.labelElement = document.createElement('label');
+        this.labelElement.innerText = text;
+
+        this.element = document.createElement('div');
+        this.element.classList.add('ui-tooltip');
+        this.element.appendChild(this.labelElement);
+    }
+}
+
+export interface UIIconToolbarEvent extends CustomEvent {
+
+}
+
+export enum ToolbarOrientation {
+    TOP = 'top',
+    BOTTOM = 'bottom',
+    LEFT = 'left',
+    RIGHT = 'right'
+}
+
 /**
  * The <i>TabAction</i> enum. TODO: Document.
  *

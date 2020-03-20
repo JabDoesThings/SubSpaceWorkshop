@@ -5,6 +5,7 @@ import { MapMouseEvent, MapMouseEventType } from '../common/Renderer';
 import { Brush } from './brushes/Brush';
 import { Edit } from './edits/Edit';
 import { LineBrush } from './brushes/LineBrush';
+import { EraserBrush } from './brushes/EraserBrush';
 
 /**
  * The <i>BrushCanvas</i> class. TODO: Document.
@@ -26,8 +27,8 @@ export class BrushManager {
         this.active = null;
 
         this.brushes['pencil'] = new PencilBrush();
+        this.brushes['eraser'] = new EraserBrush();
         this.brushes['line'] = new LineBrush();
-        this.setActive('pencil');
 
         let downBrush: Brush;
         let downSession: Session;
