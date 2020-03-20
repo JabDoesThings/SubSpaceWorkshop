@@ -23,7 +23,7 @@ import {
 import { CustomEvent, CustomEventListener } from '../ui/CustomEventListener';
 import { MapSprite } from './MapSprite';
 import * as PIXI from "pixi.js";
-import { BrushManager } from '../BrushManager';
+import { ToolManager } from '../ToolManager';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -47,7 +47,7 @@ export class MapRenderer extends Renderer {
     paletteTab: PalettePanel;
 
     screen: ScreenManager;
-    brushCanvas: BrushManager;
+    toolManager: ToolManager;
 
     /**
      * Main constructor.
@@ -159,7 +159,7 @@ export class MapRenderer extends Renderer {
                 return;
             }
 
-            this.brushCanvas.setActive(tool.id);
+            this.toolManager.setActive(tool.id);
             console.log("SET TOOL: " + tool.id);
         });
 
@@ -172,7 +172,7 @@ export class MapRenderer extends Renderer {
     // @Override
     protected onInit(): void {
 
-        this.brushCanvas = new BrushManager(this);
+        this.toolManager = new ToolManager(this);
 
         this.grid = new MapGrid(this);
         this.grid.filters = [];

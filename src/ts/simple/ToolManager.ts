@@ -1,20 +1,20 @@
 import { MapRenderer } from './render/MapRenderer';
-import { PencilBrush } from './brushes/PencilBrush';
+import { PencilTool } from './tools/PencilTool';
 import { Session } from './Session';
 import { MapMouseEvent, MapMouseEventType } from '../common/Renderer';
-import { Brush } from './brushes/Brush';
+import { Tool } from './tools/Tool';
 import { Edit } from './edits/Edit';
-import { LineBrush } from './brushes/LineBrush';
-import { EraserBrush } from './brushes/EraserBrush';
+import { LineTool } from './tools/LineTool';
+import { EraserTool } from './tools/EraserTool';
 
 /**
- * The <i>BrushCanvas</i> class. TODO: Document.
+ * The <i>ToolManager</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class BrushManager {
+export class ToolManager {
 
-    private readonly brushes: { [id: string]: Brush };
+    private readonly tools: { [id: string]: Tool };
     private readonly renderer: MapRenderer;
 
     private active: string;
@@ -23,14 +23,14 @@ export class BrushManager {
 
         this.renderer = renderer;
 
-        this.brushes = {};
+        this.tools = {};
         this.active = null;
 
-        this.brushes['pencil'] = new PencilBrush();
-        this.brushes['eraser'] = new EraserBrush();
-        this.brushes['line'] = new LineBrush();
+        this.tools['pencil'] = new PencilTool();
+        this.tools['eraser'] = new EraserTool();
+        this.tools['line'] = new LineTool();
 
-        let downBrush: Brush;
+        let downTool: Tool;
         let downSession: Session;
 
         this.renderer.events.addMouseListener((event: MapMouseEvent) => {
@@ -42,36 +42,36 @@ export class BrushManager {
             switch (event.type) {
                 case MapMouseEventType.DOWN:
                     downSession = renderer.session;
-                    downBrush = this.getActive();
-                    if (downSession == null || downBrush == null) {
+                    downTool = this.getActive();
+                    if (downSession == null || downTool == null) {
                         return;
                     }
-                    edits = downBrush.start(downSession, event);
+                    edits = downTool.start(downSession, event);
                     break;
                 case MapMouseEventType.UP:
-                    if (downSession == null || downBrush == null) {
+                    if (downSession == null || downTool == null) {
                         return;
                     }
-                    edits = downBrush.stop(downSession, event);
+                    edits = downTool.stop(downSession, event);
                     push = reset = true;
                     break;
                 case MapMouseEventType.DRAG:
-                    if (downSession == null || downBrush == null) {
+                    if (downSession == null || downTool == null) {
                         return;
                     }
-                    edits = downBrush.drag(downSession, event);
+                    edits = downTool.drag(downSession, event);
                     break;
                 case MapMouseEventType.ENTER:
-                    if (downSession == null || downBrush == null) {
+                    if (downSession == null || downTool == null) {
                         return;
                     }
-                    edits = downBrush.enter(downSession, event);
+                    edits = downTool.enter(downSession, event);
                     break;
                 case MapMouseEventType.EXIT:
-                    if (downSession == null || downBrush == null) {
+                    if (downSession == null || downTool == null) {
                         return;
                     }
-                    edits = downBrush.exit(downSession, event);
+                    edits = downTool.exit(downSession, event);
                     break;
             }
 
@@ -83,25 +83,25 @@ export class BrushManager {
                 downSession.editor.renderer.radar.setDirty(true);
             }
             if (reset) {
-                downBrush = null;
+                downTool = null;
                 downSession = null;
             }
         });
     }
 
-    getActive(): Brush {
-        return this.active == null ? null : this.brushes[this.active];
+    getActive(): Tool {
+        return this.active == null ? null : this.tools[this.active];
     }
 
     setActive(id: string): void {
         this.active = id;
     }
 
-    addBrush(id: string, brush: Brush): void {
-        this.brushes[id] = brush;
+    addTool(id: string, brush: Tool): void {
+        this.tools[id] = brush;
     }
 
-    getBrush(id: string): Brush {
-        return this.brushes[id];
+    getTool(id: string): Tool {
+        return this.tools[id];
     }
 }

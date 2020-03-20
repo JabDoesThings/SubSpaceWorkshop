@@ -4,11 +4,11 @@ import { TileCache } from '../../util/map/TileCache';
 import { Edit } from '../edits/Edit';
 
 /**
- * The <i>Brush</i> abstract class. TODO: Document.
+ * The <i>Tool</i> abstract class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class Brush {
+export abstract class Tool {
 
     protected readonly tileCache: TileCache;
 

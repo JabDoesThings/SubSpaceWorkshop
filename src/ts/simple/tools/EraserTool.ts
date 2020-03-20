@@ -1,16 +1,16 @@
 import { Session } from '../Session';
 import { MapMouseEvent } from '../../common/Renderer';
 import { LVLMap } from '../../io/LVL';
-import { Brush } from './Brush';
+import { Tool } from './Tool';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 
 /**
- * The <i>EraserBrush</i> class. TODO: Document.
+ * The <i>EraserTool</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EraserBrush extends Brush {
+export class EraserTool extends Tool {
 
     /**
      * Main constructor.

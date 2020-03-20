@@ -1,12 +1,12 @@
 import { Session } from '../Session';
 import { MapMouseEvent } from '../../common/Renderer';
 import { LVLMap } from '../../io/LVL';
-import { Brush } from './Brush';
+import { Tool } from './Tool';
 import { SelectionType } from '../ui/Selection';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 
-export class LineBrush extends Brush {
+export class PencilTool extends Tool {
 
     /**
      * Main constructor.
@@ -43,7 +43,6 @@ export class LineBrush extends Brush {
     private draw(session: Session, event: MapMouseEvent): Edit[] {
 
         let selectionGroup = session.selectionGroup;
-
         let selection = selectionGroup.getSelection(event.button);
         if (selection == null || event.data == null) {
             return;
@@ -53,24 +52,21 @@ export class LineBrush extends Brush {
             return;
         }
 
-        // With the line tool, we only need the latest edits to push.
-        session.editManager.reset();
-
         let tiles: { x: number, y: number }[];
 
-        if (this.down != null) {
+        if (this.last != null) {
 
-            tiles = LVLMap.tracePixels(
-                event.data.x,
-                event.data.y,
-                this.down.x,
-                this.down.y
+            tiles = LVLMap.traceTiles(
+                event.data.tileX,
+                event.data.tileY,
+                this.last.tileX,
+                this.last.tileY
             );
 
         } else {
 
-            let x = event.data.x;
-            let y = event.data.y;
+            let x = event.data.tileX;
+            let y = event.data.tileY;
             if (x < 0 || x > 1023 || y < 0 || y > 1023) {
                 return;
             }
@@ -89,6 +85,11 @@ export class LineBrush extends Brush {
         for (let index = 0; index < tiles.length; index++) {
 
             let tile = tiles[index];
+
+            // Make sure not to repeat the same tile being changed.
+            if (this.tileCache.isCached(tile.x, tile.y)) {
+                continue;
+            }
 
             apply.push({
                 x: tile.x,
