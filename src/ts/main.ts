@@ -26,6 +26,13 @@ function debugLVL() {
 // Entry Point from HTML.
 export let start = function () {
 
+    PIXI.settings.RESOLUTION = window.devicePixelRatio;
+    PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+    PIXI.settings.RENDER_OPTIONS.antialias = false;
+    PIXI.settings.RENDER_OPTIONS.forceFXAA = false;
+    PIXI.settings.MIPMAP_TEXTURES = PIXI.MIPMAP_MODES.OFF;
+    PIXI.settings.SPRITE_MAX_TEXTURES = 1024;
+
     let tex = (id: string, texture: PIXI.Texture): TextureAtlas => {
         return new TextureAtlas(id, texture);
     };

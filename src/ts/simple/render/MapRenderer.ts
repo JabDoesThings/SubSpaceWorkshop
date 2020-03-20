@@ -5,13 +5,12 @@ import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Rendere
 import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
 import { Session } from '../Session';
-import { Selection, SelectionSlot, SelectionType } from '../ui/Selection';
 import { CompiledLVZMapObject, CompiledLVZScreenObject, LVZPackage, LVZXType, LVZYType } from '../../io/LVZ';
 import { PanelOrientation, TabOrientation, TabPanelAction, UIPanel, UIPanelSection } from '../ui/UI';
 import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
 import { MapSprite } from './MapSprite';
 import * as PIXI from "pixi.js";
-import { BrushCanvas } from '../brushes/Brush';
+import { BrushManager } from '../BrushManager';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -34,7 +33,7 @@ export class MapRenderer extends Renderer {
     paletteTab: PalettePanel;
     screen: ScreenManager;
 
-    brushCanvas: BrushCanvas;
+    brushCanvas: BrushManager;
 
     /**
      * Main constructor.
@@ -127,7 +126,7 @@ export class MapRenderer extends Renderer {
     // @Override
     protected onInit(): void {
 
-        this.brushCanvas = new BrushCanvas(this);
+        this.brushCanvas = new BrushManager(this);
 
         this.grid = new MapGrid(this);
         this.grid.filters = [];

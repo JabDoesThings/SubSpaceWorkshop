@@ -6,7 +6,7 @@ import { SelectionType } from '../ui/Selection';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 
-export class PencilBrush extends Brush {
+export class LineBrush extends Brush {
 
     /**
      * Main constructor.
@@ -42,7 +42,10 @@ export class PencilBrush extends Brush {
 
     private draw(session: Session, event: MapMouseEvent): Edit[] {
 
+        console.log(event.data);
+
         let selectionGroup = session.selectionGroup;
+
         let selection = selectionGroup.getSelection(event.button);
         if (selection == null || event.data == null) {
             return;
@@ -52,21 +55,24 @@ export class PencilBrush extends Brush {
             return;
         }
 
+        // With the line tool, we only need the latest edits to push.
+        session.editManager.reset();
+
         let tiles: { x: number, y: number }[];
 
-        if (this.last != null) {
+        if (this.down != null) {
 
-            tiles = LVLMap.traceTiles(
-                event.data.tileX,
-                event.data.tileY,
-                this.last.tileX,
-                this.last.tileY
+            tiles = LVLMap.tracePixels(
+                event.data.x,
+                event.data.y,
+                this.down.x,
+                this.down.y
             );
 
         } else {
 
-            let x = event.data.tileX;
-            let y = event.data.tileY;
+            let x = event.data.x;
+            let y = event.data.y;
             if (x < 0 || x > 1023 || y < 0 || y > 1023) {
                 return;
             }
@@ -85,11 +91,6 @@ export class PencilBrush extends Brush {
         for (let index = 0; index < tiles.length; index++) {
 
             let tile = tiles[index];
-
-            // Make sure not to repeat the same tile being changed.
-            if (this.tileCache.isCached(tile.x, tile.y)) {
-                continue;
-            }
 
             apply.push({
                 x: tile.x,

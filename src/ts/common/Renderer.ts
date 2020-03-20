@@ -37,13 +37,6 @@ export abstract class Renderer extends UpdatedObject {
 
     init(container: HTMLElement, id: string = 'viewport', stats: boolean): void {
 
-        PIXI.settings.RESOLUTION = window.devicePixelRatio;
-        PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-        PIXI.settings.RENDER_OPTIONS.antialias = false;
-        PIXI.settings.RENDER_OPTIONS.forceFXAA = false;
-        PIXI.settings.MIPMAP_TEXTURES = PIXI.MIPMAP_MODES.OFF;
-        PIXI.settings.SPRITE_MAX_TEXTURES = 1024;
-
         this.app = new PIXI.Application({
             width: 800,
             height: 600,
@@ -83,12 +76,11 @@ export abstract class Renderer extends UpdatedObject {
             let width = container.clientWidth;
             let height = container.clientHeight;
 
-            if(lastWidth != width || lastHeight != height) {
+            if (lastWidth != width || lastHeight != height) {
                 resize();
                 lastWidth = width;
                 lastHeight = height;
             }
-
 
             if (enableLerp < enableTicks) {
                 enableLerp++;
@@ -164,6 +156,7 @@ export abstract class Renderer extends UpdatedObject {
     protected abstract onInit(): void;
 
     protected abstract onPreUpdate(delta: number): void;
+
     protected abstract onPostUpdate(delta: number): void;
 
     /**
@@ -207,24 +200,51 @@ export class RenderEvents {
         renderer.app.stage.interactive = true;
 
         let down = false;
+        let downButton = -999999;
+
+        window.addEventListener('pointerup', (e) => {
+
+            down = false;
+            downButton = -999999;
+
+            this.dispatch({data: null, type: MapMouseEventType.UP, button: e.button, e: e});
+        });
 
         this.renderer.app.view.addEventListener('pointerleave', (e) => {
-            down = false;
 
+            let sx = e.offsetX;
+            let sy = e.offsetY;
             let sw = this.renderer.app.screen.width;
             let sh = this.renderer.app.screen.height;
-            let mapSpace = this.renderer.camera.toMapSpace(-999999, -999999, sw, sh);
+            let mapSpace = this.renderer.camera.toMapSpace(sx, sy, sw, sh);
 
             this.dispatch({
                 data: mapSpace,
-                type: MapMouseEventType.UP,
-                button: -999999,
+                type: MapMouseEventType.EXIT,
+                button: downButton,
+                e: null
+            });
+        });
+
+        this.renderer.app.view.addEventListener('pointerenter', (e) => {
+
+            let sx = e.offsetX;
+            let sy = e.offsetY;
+            let sw = this.renderer.app.screen.width;
+            let sh = this.renderer.app.screen.height;
+            let mapSpace = this.renderer.camera.toMapSpace(sx, sy, sw, sh);
+
+            this.dispatch({
+                data: mapSpace,
+                type: MapMouseEventType.ENTER,
+                button: downButton,
                 e: null
             });
         });
 
         this.renderer.app.view.addEventListener('pointerdown', (e) => {
             down = true;
+            downButton = e.button;
 
             let sx = e.offsetX;
             let sy = e.offsetY;
@@ -237,6 +257,7 @@ export class RenderEvents {
 
         this.renderer.app.view.addEventListener('pointerup', (e) => {
             down = false;
+            downButton = -999999;
 
             let sx = e.offsetX;
             let sy = e.offsetY;
@@ -257,7 +278,7 @@ export class RenderEvents {
             this.dispatch({
                 data: mapSpace,
                 type: down ? MapMouseEventType.DRAG : MapMouseEventType.HOVER,
-                button: e.button,
+                button: downButton,
                 e: e
             });
         });
@@ -346,16 +367,16 @@ export class RenderEvents {
  */
 export class Camera extends UpdatedObject {
 
+    private readonly keys: { [key: string]: boolean };
+
     path: Path;
     alt: KeyListener;
     bounds: PIXI.Rectangle;
     coordinateMin: number;
     coordinateMax: number;
-
     position: { x: number, y: number, scale: number };
     private positionPrevious: { x: number, y: number, scale: number };
     private shift: boolean;
-    private readonly keys: { [key: string]: boolean };
     private renderer: Renderer;
 
     /**
@@ -498,14 +519,22 @@ export class Camera extends UpdatedObject {
             scale = this.position.scale;
         }
 
+        let invScale = 1 / scale;
+
         let tileLength = 16 * scale;
         let cx = this.position.x * tileLength;
         let cy = this.position.y * tileLength;
-        let mx = Math.floor(cx + (sx - (sw / 2.0)));
-        let my = Math.floor(cy + (sy - (sh / 2.0)));
+        let mx = Math.floor((cx + (sx - (sw / 2.0))));
+        let my = Math.floor((cy + (sy - (sh / 2.0))));
         let tx = Math.floor(mx / tileLength);
         let ty = Math.floor(my / tileLength);
-        return {x: mx, y: my, tileX: tx, tileY: ty};
+
+        return {
+            x: Math.floor(mx * invScale),
+            y: Math.floor(my * invScale),
+            tileX: tx,
+            tileY: ty
+        };
     };
 
     pathTo(coordinates: PathCoordinates, ticks: number = 1, mode: PathMode = PathMode.LINEAR) {

@@ -13,6 +13,10 @@
         const PIXI = window.PIXI = require("pixi.js");
         require("pixi-tilemap");
 
+        $(document).on('dragstart', '*', function (event) {
+            event.preventDefault();
+        });
+
         const tilemapChromaFragmentShader = fs.readFileSync("assets/glsl/tilemap_chroma.frag").toString();
         window.tilemapChromaFragmentShader = tilemapChromaFragmentShader;
         PIXI.tilemap.shaderGenerator.generateFragmentSrc = (maxTextures) => {

@@ -61,7 +61,6 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
         texture.removeEventListener(this.tListener);
 
         this.textures[textureId.toLowerCase()] = null;
-
         this.dirty = true;
 
         let textures: { [id: string]: TextureAtlas } = {};
@@ -263,9 +262,7 @@ export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
 
             for (let id in this.sprites) {
                 let sprite = this.sprites[id];
-                // if (sprite.texture == null) {
-                    this.applySprite(sprite);
-                // }
+                this.applySprite(sprite);
             }
 
             this.dispatch({

@@ -2,6 +2,7 @@ import { Dirtable } from '../util/Dirtable';
 import * as PIXI from "pixi.js";
 import { LVL } from './LVLUtils';
 import { ELVLCollection } from './ELVL';
+import { Path } from '../util/Path';
 
 /**
  * The <i>LVLMap</i> class. TODO: Document.
@@ -215,6 +216,82 @@ export class LVLMap implements Dirtable {
 
     getMetadata(): ELVLCollection {
         return this.metadata;
+    }
+
+    static traceTiles(x1: number, y1: number, x2: number, y2: number): { x: number, y: number }[] {
+
+        if (x1 < -1024 || x1 > 2048
+            || y1 < -1024 || y1 > 2048
+            || x2 < -1024 || x2 > 2048
+            || y2 < -1024 || y2 > 2048) {
+            return [];
+        }
+
+        if (x1 == x2 && y1 == y2) {
+
+            if ((x1 < 0 || x1 > 1023 || y1 < 0 || y1 > 1023)) {
+                return [];
+            }
+
+            return [{x: x1, y: y1}];
+        }
+
+        return this.tracePixels(x1 * 16, y1 * 16, x2 * 16, y2 * 16, true);
+    }
+
+    static tracePixels(x1: number, y1: number, x2: number, y2: number, limit: boolean = false): { x: number, y: number }[] {
+
+        let getDistance = (x1: number, y1: number, x2: number, y2: number): number => {
+            let a = x1 - x2;
+            let b = y1 - y2;
+            return Math.sqrt(a * a + b * b);
+        };
+
+        let distance = getDistance(x1, y1, x2, y2);
+        if (distance === 0) {
+            return [];
+        }
+
+        let lerpLength = distance * 2;
+
+        if(lerpLength === 0 || isNaN(lerpLength) || !isFinite(lerpLength)) {
+            return [];
+        }
+
+        let tiles: { x: number, y: number }[] = [];
+
+        for (let index = 0; index <= lerpLength; index++) {
+
+            let lerp = index / lerpLength;
+
+            if(isNaN(lerpLength) || !isFinite(lerpLength)) {
+                break;
+            }
+
+            let tile = {
+                x: Math.floor(Path.lerp(x1, x2, lerp) / 16),
+                y: Math.floor(Path.lerp(y1, y2, lerp) / 16)
+            };
+
+            if (limit && (tile.x < 0 || tile.x > 1023 || tile.y < 0 || tile.y > 1023)) {
+                continue;
+            }
+
+            let found = false;
+            for (let tIndex = 0; tIndex < tiles.length; tIndex++) {
+                let next = tiles[tIndex];
+                if (next.x === tile.x && next.y === tile.y) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                tiles.push(tile);
+            }
+        }
+
+        return tiles;
     }
 }
 
