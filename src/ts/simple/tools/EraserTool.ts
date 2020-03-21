@@ -1,16 +1,17 @@
 import { Session } from '../Session';
 import { MapMouseEvent } from '../../common/Renderer';
 import { LVLMap } from '../../io/LVL';
-import { Tool } from './Tool';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
+import { DrawTool } from './DrawTool';
+import { Selection } from '../ui/Selection';
 
 /**
  * The <i>EraserTool</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EraserTool extends Tool {
+export class EraserTool extends DrawTool {
 
     /**
      * Main constructor.
@@ -20,31 +21,7 @@ export class EraserTool extends Tool {
     }
 
     // @Override
-    protected onStart(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
-    }
-
-    // @Override
-    protected onDrag(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
-    }
-
-    // @Override
-    protected onStop(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
-    }
-
-    // @Override
-    protected onEnter(session: Session, event: MapMouseEvent): Edit[] {
-        return;
-    }
-
-    // @Override
-    protected onExit(session: Session, event: MapMouseEvent): Edit[] {
-        return;
-    }
-
-    private draw(session: Session, event: MapMouseEvent): Edit[] {
+    protected drawTile(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
 
         let tiles: { x: number, y: number }[];
 
@@ -96,5 +73,23 @@ export class EraserTool extends Tool {
         if (apply.length !== 0) {
             return [new EditTiles(0, apply)];
         }
+    }
+
+    // @Override
+    protected drawMapObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+        // TODO: Implement.
+        return null;
+    }
+
+    // @Override
+    protected drawScreenObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+        // TODO: Implement.
+        return null;
+    }
+
+    // @Override
+    protected drawRegion(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+        // TODO: Implement.
+        return null;
     }
 }

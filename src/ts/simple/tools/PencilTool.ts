@@ -1,12 +1,20 @@
 import { Session } from '../Session';
 import { MapMouseEvent } from '../../common/Renderer';
 import { LVLMap } from '../../io/LVL';
-import { Tool } from './Tool';
-import { SelectionType } from '../ui/Selection';
+import { Selection } from '../ui/Selection';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
+import { DrawTool } from './DrawTool';
+import { LVL } from '../../io/LVLUtils';
 
-export class PencilTool extends Tool {
+/**
+ * The <i>PencilTool</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class PencilTool extends DrawTool {
+
+    slots: boolean[][] = [];
 
     /**
      * Main constructor.
@@ -16,41 +24,43 @@ export class PencilTool extends Tool {
     }
 
     // @Override
-    protected onStart(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
-    }
-
-    // @Override
-    protected onDrag(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
-    }
-
-    // @Override
     protected onStop(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
+
+        let edits = super.onStop(session, event);
+        this.slots = [];
+        return edits;
     }
+
+    isSlotTaken(x1: number, y1: number, id: number): boolean {
+        let dimensions = LVL.TILE_DIMENSIONS[id];
+        let x2 = x1 + dimensions[0] - 1;
+        let y2 = y1 + dimensions[1] - 1;
+        for (let y = y1; y <= y2; y++) {
+            for (let x = x1; x <= x2; x++) {
+                if (this.slots[x] != null && this.slots[x][y]) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    setSlots(x1: number, y1: number, id: number): void {
+        let dimensions = LVL.TILE_DIMENSIONS[id];
+        let x2 = x1 + dimensions[0] - 1;
+        let y2 = y1 + dimensions[1] - 1;
+        for (let y = y1; y <= y2; y++) {
+            for (let x = x1; x <= x2; x++) {
+                let xa = this.slots[x];
+                if (xa == null) {
+                    xa = this.slots[x] = [];
+                }
+                xa[y] = true;
+            }
+        }
+    };
 
     // @Override
-    protected onEnter(session: Session, event: MapMouseEvent): Edit[] {
-        return;
-    }
-
-    // @Override
-    protected onExit(session: Session, event: MapMouseEvent): Edit[] {
-        return;
-    }
-
-    private draw(session: Session, event: MapMouseEvent): Edit[] {
-
-        let selectionGroup = session.selectionGroup;
-        let selection = selectionGroup.getSelection(event.button);
-        if (selection == null || event.data == null) {
-            return;
-        }
-
-        if (selection.type !== SelectionType.TILE) {
-            return;
-        }
+    protected drawTile(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
 
         let tiles: { x: number, y: number }[];
 
@@ -85,16 +95,21 @@ export class PencilTool extends Tool {
         for (let index = 0; index < tiles.length; index++) {
 
             let tile = tiles[index];
+            let x = tile.x;
+            let y = tile.y;
 
             // Make sure not to repeat the same tile being changed.
-            if (this.tileCache.isCached(tile.x, tile.y)) {
+            if (this.isSlotTaken(x, y, to)) {
                 continue;
             }
 
+            this.slots = [];
+            this.setSlots(tile.x, tile.y, to);
+
             apply.push({
-                x: tile.x,
-                y: tile.y,
-                from: this.tileCache.getTile(session.map, tile.x, tile.y),
+                x: x,
+                y: y,
+                from: this.tileCache.getTile(session.map, x, y),
                 to: to
             });
         }
@@ -102,5 +117,23 @@ export class PencilTool extends Tool {
         if (apply.length !== 0) {
             return [new EditTiles(0, apply)];
         }
+    }
+
+    // @Override
+    protected drawMapObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+        // TODO: Implement.
+        return null;
+    }
+
+    // @Override
+    protected drawScreenObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+        // TODO: Implement.
+        return null;
+    }
+
+    // @Override
+    protected drawRegion(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+        // TODO: Implement.
+        return null;
     }
 }

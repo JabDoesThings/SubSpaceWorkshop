@@ -3,6 +3,7 @@ import * as PIXI from "pixi.js";
 import { LVL } from './LVLUtils';
 import { ELVLCollection } from './ELVL';
 import { Path } from '../util/Path';
+import { EditTiles } from '../simple/edits/EditTiles';
 
 /**
  * The <i>LVLMap</i> class. TODO: Document.
@@ -84,29 +85,107 @@ export class LVLMap implements Dirtable {
      * @param x The 'x' coordinate of the tile to set.
      * @param y The 'y' coordinate of the tile to set.
      * @param value The tile-value to set.
+     * @param applyDimensions
      *
      * @return Returns 'true' if the 'x' and 'y' coordinates are within range and the tile is set.
      */
-    public setTile(x: number, y: number, value: number): boolean {
+    public setTile(x: number, y: number, value: number, applyDimensions: boolean = true): {x: number, y: number, from: number, to: number}[] {
 
         // Make sure that the tile ID is proper.
         LVL.validateTileId(value);
 
         LVL.validateCoordinates(x, y, 0, 0, 1023, 1023);
 
+        let changed: {x: number, y: number, from: number, to: number}[] = [];
+
+        if (applyDimensions) {
+
+            let minX = x;
+            let maxX = x;
+            let minY = y;
+            let maxY = y;
+
+            let processMinMax = (x: number, y: number): void => {
+                if (minX > x) {
+                    minX = x;
+                }
+                if (maxX < x) {
+                    maxX = x;
+                }
+                if (minY > y) {
+                    minY = y;
+                }
+                if (maxY < y) {
+                    maxY = y;
+                }
+            };
+
+            let contains = (tx: number, ty: number, x1: number, y1: number, x2: number, y2: number): boolean => {
+                return tx >= x1 && tx <= x2 && ty >= y1 && ty <= y2;
+            };
+
+            let getSourceTiles = (cx: number, cy: number, to: number): { x: number, y: number, from: number, to: number }[] => {
+
+                let sources: { x: number, y: number, from: number, to: number}[] = [];
+
+                // If the tile to check is already assigned, return this tile as the source.
+                if (this.tiles[cx][cy] !== 0) {
+                    sources.push({x: cx, y: cy, from: this.tiles[cx][cy], to: to});
+                }
+
+                // Go through all dimensions.
+                for (let y = cy - 5; y <= cy; y++) {
+                    for (let x = cx - 5; x <= cx; x++) {
+                        let id = this.tiles[x][y];
+                        if (id != 0) {
+                            let dimensions = LVL.TILE_DIMENSIONS[id];
+                            let x2 = x + dimensions[0] - 1;
+                            let y2 = y + dimensions[1] - 1;
+                            if (contains(cx, cy, x, y, x2, y2)) {
+                                sources.push({x: x, y: y, from: id, to: to});
+                            }
+                        }
+                    }
+                }
+
+                return sources;
+            };
+
+            let remove = (x1: number, y1: number, x2: number, y2: number) => {
+                for (let y = y1; y <= y2; y++) {
+                    for (let x = x1; x <= x2; x++) {
+                        let sources = getSourceTiles(x, y, 0);
+                        if (sources.length !== 0) {
+                            for (let index = 0; index < sources.length; index++) {
+                                let next = sources[index];
+                                this.tiles[next.x][next.y] = 0;
+                                processMinMax(next.x, next.y);
+                                changed.push(next);
+                            }
+                        }
+                    }
+                }
+            };
+
+            let dimensions = LVL.TILE_DIMENSIONS[value];
+            let x2 = x + dimensions[0] - 1;
+            let y2 = y + dimensions[1] - 1;
+            remove(x, y, x2, y2);
+
+            this.setAreaDirty(minX, minY, maxX, maxY);
+        }
+
         // Make sure the pre-set value isn't the same as the one to set.
         if (this.tiles[x][y] != value) {
+
+            changed.push({x: x, y: y, from: this.tiles[x][y], to: value});
 
             this.tiles[x][y] = value;
 
             this.setAreaDirty(x, y, x, y);
-
-            // Return true to note the value has been set successfully
-            return true;
         }
 
-        // Return false if the value is not set.
-        return false;
+        return changed;
     }
 
     /**
@@ -254,7 +333,7 @@ export class LVLMap implements Dirtable {
 
         let lerpLength = distance * 2;
 
-        if(lerpLength === 0 || isNaN(lerpLength) || !isFinite(lerpLength)) {
+        if (lerpLength === 0 || isNaN(lerpLength) || !isFinite(lerpLength)) {
             return [];
         }
 
@@ -264,7 +343,7 @@ export class LVLMap implements Dirtable {
 
             let lerp = index / lerpLength;
 
-            if(isNaN(lerpLength) || !isFinite(lerpLength)) {
+            if (isNaN(lerpLength) || !isFinite(lerpLength)) {
                 break;
             }
 

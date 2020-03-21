@@ -1,70 +1,38 @@
 import { Session } from '../Session';
 import { MapMouseEvent } from '../../common/Renderer';
 import { LVLMap } from '../../io/LVL';
-import { Tool } from './Tool';
-import { SelectionType } from '../ui/Selection';
+import { Selection } from '../ui/Selection';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
+import { DrawTool } from './DrawTool';
+import { LVL } from '../../io/LVLUtils';
 
-export class LineTool extends Tool {
+/**
+ * The <i>LineTool</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class LineTool extends DrawTool {
 
     /**
      * Main constructor.
      */
     constructor() {
-        super();
+        super(true);
     }
 
     // @Override
-    protected onStart(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
-    }
-
-    // @Override
-    protected onDrag(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
-    }
-
-    // @Override
-    protected onStop(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
-    }
-
-    // @Override
-    protected onEnter(session: Session, event: MapMouseEvent): Edit[] {
-        return;
-    }
-
-    // @Override
-    protected onExit(session: Session, event: MapMouseEvent): Edit[] {
-        return;
-    }
-
-    private draw(session: Session, event: MapMouseEvent): Edit[] {
-
-        let selectionGroup = session.selectionGroup;
-
-        let selection = selectionGroup.getSelection(event.button);
-        if (selection == null || event.data == null) {
-            return;
-        }
-
-        if (selection.type !== SelectionType.TILE) {
-            return;
-        }
-
-        // With the line tool, we only need the latest edits to push.
-        session.editManager.reset();
+    protected drawTile(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
 
         let tiles: { x: number, y: number }[];
 
         if (this.down != null) {
 
             tiles = LVLMap.tracePixels(
-                event.data.x,
-                event.data.y,
                 this.down.x,
-                this.down.y
+                this.down.y,
+                event.data.x,
+                event.data.y
             );
 
         } else {
@@ -86,9 +54,45 @@ export class LineTool extends Tool {
 
         let to = typeof selection.id === 'string' ? parseInt(selection.id) : selection.id;
 
+        let slots: boolean[][] = [];
+
+        let isSlotTaken = (x1: number, y1: number, id: number): boolean => {
+            let dimensions = LVL.TILE_DIMENSIONS[id];
+            let x2 = x1 + dimensions[0] - 1;
+            let y2 = y1 + dimensions[1] - 1;
+            for (let y = y1; y <= y2; y++) {
+                for (let x = x1; x <= x2; x++) {
+                    if (slots[x] != null && slots[x][y]) {
+                        return true;
+                    }
+                }
+            }
+        };
+
+        let setSlots = (x1: number, y1: number, id: number): void => {
+            let dimensions = LVL.TILE_DIMENSIONS[id];
+            let x2 = x1 + dimensions[0] - 1;
+            let y2 = y1 + dimensions[1] - 1;
+            for (let y = y1; y <= y2; y++) {
+                for (let x = x1; x <= x2; x++) {
+                    let xa = slots[x];
+                    if (xa == null) {
+                        xa = slots[x] = [];
+                    }
+                    xa[y] = true;
+                }
+            }
+        };
+
         for (let index = 0; index < tiles.length; index++) {
 
             let tile = tiles[index];
+
+            if (isSlotTaken(tile.x, tile.y, to)) {
+                continue;
+            }
+
+            setSlots(tile.x, tile.y, to);
 
             apply.push({
                 x: tile.x,
@@ -101,5 +105,23 @@ export class LineTool extends Tool {
         if (apply.length !== 0) {
             return [new EditTiles(0, apply)];
         }
+    }
+
+    // @Override
+    protected drawMapObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+        // TODO: Implement.
+        return null;
+    }
+
+    // @Override
+    protected drawScreenObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+        // TODO: Implement.
+        return null;
+    }
+
+    // @Override
+    protected drawRegion(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+        // TODO: Implement.
+        return null;
     }
 }

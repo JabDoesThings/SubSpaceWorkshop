@@ -80,9 +80,10 @@ export class EditManager {
 
     reset(): void {
 
-        for(let index = 0; index < this.editsToPush.length; index++) {
+        for (let index = this.editsToPush.length - 1; index >= 0; index--) {
+
             let next = this.editsToPush[index];
-            if(next == null) {
+            if (next == null) {
                 continue;
             }
 
@@ -106,8 +107,8 @@ export class EditManager {
         }
 
         this.index++;
-        let edits = this.edits[this.index];
 
+        let edits = this.edits[this.index];
         for (let index = 0; index < edits.length; index++) {
             try {
                 edits[index].do(this);
@@ -116,6 +117,8 @@ export class EditManager {
                 console.error(e);
             }
         }
+
+        this.session.editor.renderer.radar.setDirty(true);
     }
 
     /**
@@ -132,7 +135,7 @@ export class EditManager {
 
         let edits = this.edits[this.index];
 
-        for (let index = 0; index < edits.length; index++) {
+        for (let index = edits.length - 1; index >= 0; index--) {
             try {
                 edits[index].undo(this);
             } catch (e) {
@@ -142,6 +145,8 @@ export class EditManager {
         }
 
         this.index--;
+
+        this.session.editor.renderer.radar.setDirty(true);
     }
 
     /**

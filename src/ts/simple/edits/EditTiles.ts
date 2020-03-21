@@ -9,29 +9,46 @@ import { EditManager } from '../EditManager';
 export class EditTiles extends Edit {
 
     readonly tiles: { x: number, y: number, from: number, to: number }[];
+    tilesToUndo: { x: number, y: number, from: number, to: number }[];
+
+    private applyDimensions: boolean;
 
     /**
      * Main constructor.
      *
      * @param layer The layer that the edit is on.
      * @param tiles
+     * @param applyDimensions
      */
-    constructor(layer: number, tiles: { x: number, y: number, from: number, to: number }[]) {
+    constructor(
+        layer: number,
+        tiles: { x: number, y: number, from: number, to: number }[],
+        applyDimensions = true) {
+
         super(layer);
         this.tiles = tiles;
+        this.tilesToUndo = null;
+        this.applyDimensions = applyDimensions;
     }
 
     // @Override
     do(history: EditManager): void {
 
+        if (this.tilesToUndo != null) {
+            return;
+        }
+
         let map = history.session.map;
+
+        this.tilesToUndo = [];
 
         for (let index = 0; index < this.tiles.length; index++) {
 
             let next = this.tiles[index];
 
             try {
-                map.setTile(next.x, next.y, next.to);
+                this.tilesToUndo
+                    = this.tilesToUndo.concat(map.setTile(next.x, next.y, next.to, this.applyDimensions));
             } catch (e) {
 
                 let str = 'null';
@@ -51,14 +68,18 @@ export class EditTiles extends Edit {
     // @Override
     undo(history: EditManager): void {
 
+        if (this.tilesToUndo == null) {
+            return;
+        }
+
         let map = history.session.map;
 
-        for (let index = 0; index < this.tiles.length; index++) {
+        for (let index = this.tilesToUndo.length - 1; index >= 0; index--) {
 
-            let next = this.tiles[index];
+            let next = this.tilesToUndo[index];
 
             try {
-                map.setTile(next.x, next.y, next.from);
+                map.setTile(next.x, next.y, next.from, this.applyDimensions);
             } catch (e) {
 
                 let str = 'null';
@@ -73,5 +94,7 @@ export class EditTiles extends Edit {
                 console.error(e);
             }
         }
+
+        this.tilesToUndo = null;
     }
 }
