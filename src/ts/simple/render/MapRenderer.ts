@@ -142,23 +142,23 @@ export class MapRenderer extends Renderer {
         let toolSquare = new UITool('square', new UIIcon(['fas', 'fa-square']), new UITooltip('Square'));
         let toolCircle = new UITool('circle', new UIIcon(['fas', 'fa-circle']), new UITooltip('Circle'));
 
+        let toolSelect = new UITool('select', new UIIcon(['fas', 'fa-expand']), new UITooltip('Select'));
+
         this.toolbarLeft = new UIIconToolbar(ToolbarOrientation.LEFT);
         this.toolbarLeft.add(toolPencil);
         this.toolbarLeft.add(toolEraser);
         this.toolbarLeft.add(toolLine);
         this.toolbarLeft.add(toolSquare);
         this.toolbarLeft.add(toolCircle);
+        this.toolbarLeft.add(toolSelect);
         this.toolbarLeft.addEventListener((event: UIIconToolbarEvent) => {
-
             if (event.action !== IconToolbarAction.SET_ACTIVE) {
                 return;
             }
-
             let tool = event.tool;
             if(tool == null) {
                 return;
             }
-
             this.toolManager.setActive(tool.id);
             console.log("SET TOOL: " + tool.id);
         });

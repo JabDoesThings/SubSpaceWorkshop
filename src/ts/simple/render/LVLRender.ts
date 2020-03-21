@@ -1,5 +1,5 @@
-import { UpdatedObject } from '../../util/UpdatedObject';
 import * as PIXI from "pixi.js";
+import { UpdatedObject } from '../../util/UpdatedObject';
 import { MapRenderer } from './MapRenderer';
 import { LVLArea } from '../../io/LVL';
 
@@ -24,7 +24,8 @@ export class LVLChunk extends UpdatedObject {
 
     tileMap: any;
     tileMapAnim: any;
-    private view: MapRenderer;
+
+    private renderer: MapRenderer;
     private readonly x: number;
     private readonly y: number;
 
@@ -38,7 +39,7 @@ export class LVLChunk extends UpdatedObject {
 
         this.setRequireDirtyToUpdate(false);
 
-        this.view = view;
+        this.renderer = view;
         this.x = x;
         this.y = y;
         this.area = new LVLArea(x * 64, y * 64, ((x + 1) * 64) - 1, ((y + 1) * 64) - 1);
@@ -58,7 +59,7 @@ export class LVLChunk extends UpdatedObject {
 
         this.tilesAnim = [];
 
-        let session = this.view.session;
+        let session = this.renderer.session;
         if (session == null) {
             return;
         }
@@ -96,10 +97,10 @@ export class LVLChunk extends UpdatedObject {
     // @Override
     public isDirty(): boolean {
 
-        let session = this.view.session;
+        let session = this.renderer.session;
 
         return super.isDirty()
-            || this.view.camera.isDirty()
+            || this.renderer.camera.isDirty()
             || session != null && session.loaded && session.map.isDirty();
     }
 
@@ -110,14 +111,14 @@ export class LVLChunk extends UpdatedObject {
             return;
         }
 
-        let session = this.view.session;
+        let session = this.renderer.session;
         if (session == null) {
             return;
         }
 
         let map = session.map;
 
-        let camera = this.view.camera;
+        let camera = this.renderer.camera;
         let tiles = map.tiles;
 
         let tileset = map.tileset;
@@ -128,8 +129,8 @@ export class LVLChunk extends UpdatedObject {
             let scale = cpos.scale;
             let invScale = 1 / scale;
 
-            let sw = this.view.app.view.width * invScale;
-            let sh = this.view.app.view.height * invScale;
+            let sw = this.renderer.app.view.width * invScale;
+            let sh = this.renderer.app.view.height * invScale;
 
             let _64 = 64;
             let _16 = 16;
@@ -207,7 +208,7 @@ export class LVLChunk extends UpdatedObject {
 
     draw() {
 
-        let session = this.view.session;
+        let session = this.renderer.session;
         if (session == null) {
             return;
         }

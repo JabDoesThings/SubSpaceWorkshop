@@ -98,6 +98,11 @@ export class PencilTool extends DrawTool {
             let x = tile.x;
             let y = tile.y;
 
+            // Make sure the tile coordinates are valid.
+            if(x < 0 || x > 1023 || y < 0 || y > 1023) {
+                continue;
+            }
+
             // Make sure not to repeat the same tile being changed.
             if (this.isSlotTaken(x, y, to)) {
                 continue;

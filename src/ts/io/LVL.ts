@@ -136,6 +136,12 @@ export class LVLMap implements Dirtable {
                 // Go through all dimensions.
                 for (let y = cy - 5; y <= cy; y++) {
                     for (let x = cx - 5; x <= cx; x++) {
+
+                        // Make sure the tile coordinates are valid.
+                        if(x < 0 || x > 1023 || y < 0 || y > 1023) {
+                            continue;
+                        }
+
                         let id = this.tiles[x][y];
                         if (id != 0) {
                             let dimensions = LVL.TILE_DIMENSIONS[id];
@@ -154,6 +160,12 @@ export class LVLMap implements Dirtable {
             let remove = (x1: number, y1: number, x2: number, y2: number) => {
                 for (let y = y1; y <= y2; y++) {
                     for (let x = x1; x <= x2; x++) {
+
+                        // Make sure the tile coordinates are valid.
+                        if(x < 0 || x > 1023 || y < 0 || y > 1023) {
+                            continue;
+                        }
+
                         let sources = getSourceTiles(x, y, 0);
                         if (sources.length !== 0) {
                             for (let index = 0; index < sources.length; index++) {

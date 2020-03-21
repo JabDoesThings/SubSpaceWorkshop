@@ -39,7 +39,9 @@ export class LineTool extends DrawTool {
 
             let x = event.data.x;
             let y = event.data.y;
-            if (x < 0 || x > 1023 || y < 0 || y > 1023) {
+
+            // Make sure the tile coordinates are valid.
+            if(x < 0 || x > 1023 || y < 0 || y > 1023) {
                 return;
             }
 
@@ -84,22 +86,27 @@ export class LineTool extends DrawTool {
             }
         };
 
+        let map = session.map;
+
         for (let index = 0; index < tiles.length; index++) {
 
             let tile = tiles[index];
+            let x = tile.x;
+            let y = tile.y;
 
-            if (isSlotTaken(tile.x, tile.y, to)) {
+            if (x < 0 || x > 1023 || y < 0 || y > 1023) {
                 continue;
             }
 
-            setSlots(tile.x, tile.y, to);
+            if (isSlotTaken(x, y, to)) {
+                continue;
+            }
 
-            apply.push({
-                x: tile.x,
-                y: tile.y,
-                from: this.tileCache.getTile(session.map, tile.x, tile.y),
-                to: to
-            });
+            setSlots(x, y, to);
+
+            let from = this.tileCache.getTile(map, x, y);
+
+            apply.push({x: x, y: y, from: from, to: to});
         }
 
         if (apply.length !== 0) {
