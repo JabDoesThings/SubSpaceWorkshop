@@ -3,7 +3,7 @@ import * as PIXI from "pixi.js";
 import { LVL } from './LVLUtils';
 import { ELVLCollection } from './ELVL';
 import { Path } from '../util/Path';
-import { EditTiles } from '../simple/edits/EditTiles';
+import { MapSections } from '../util/map/MapSection';
 
 /**
  * The <i>LVLMap</i> class. TODO: Document.
@@ -13,8 +13,9 @@ import { EditTiles } from '../simple/edits/EditTiles';
 export class LVLMap implements Dirtable {
 
     tileset: LVLTileSet;
-
     metadata: ELVLCollection;
+
+    selections: MapSections;
 
     readonly tiles: number[][];
     dirtyAreas: LVLArea[];
@@ -32,6 +33,7 @@ export class LVLMap implements Dirtable {
         this.tileset = tileSet;
         this.metadata = metadata;
         this.dirtyAreas = [];
+        this.selections = new MapSections();
 
         if (tiles == null) {
 
@@ -89,14 +91,14 @@ export class LVLMap implements Dirtable {
      *
      * @return Returns 'true' if the 'x' and 'y' coordinates are within range and the tile is set.
      */
-    public setTile(x: number, y: number, value: number, applyDimensions: boolean = true): {x: number, y: number, from: number, to: number}[] {
+    public setTile(x: number, y: number, value: number, applyDimensions: boolean = true): { x: number, y: number, from: number, to: number }[] {
 
         // Make sure that the tile ID is proper.
         LVL.validateTileId(value);
 
         LVL.validateCoordinates(x, y, 0, 0, 1023, 1023);
 
-        let changed: {x: number, y: number, from: number, to: number}[] = [];
+        let changed: { x: number, y: number, from: number, to: number }[] = [];
 
         if (applyDimensions) {
 
@@ -126,7 +128,7 @@ export class LVLMap implements Dirtable {
 
             let getSourceTiles = (cx: number, cy: number, to: number): { x: number, y: number, from: number, to: number }[] => {
 
-                let sources: { x: number, y: number, from: number, to: number}[] = [];
+                let sources: { x: number, y: number, from: number, to: number }[] = [];
 
                 // If the tile to check is already assigned, return this tile as the source.
                 if (this.tiles[cx][cy] !== 0) {
@@ -138,7 +140,7 @@ export class LVLMap implements Dirtable {
                     for (let x = cx - 5; x <= cx; x++) {
 
                         // Make sure the tile coordinates are valid.
-                        if(x < 0 || x > 1023 || y < 0 || y > 1023) {
+                        if (x < 0 || x > 1023 || y < 0 || y > 1023) {
                             continue;
                         }
 
@@ -162,7 +164,7 @@ export class LVLMap implements Dirtable {
                     for (let x = x1; x <= x2; x++) {
 
                         // Make sure the tile coordinates are valid.
-                        if(x < 0 || x > 1023 || y < 0 || y > 1023) {
+                        if (x < 0 || x > 1023 || y < 0 || y > 1023) {
                             continue;
                         }
 

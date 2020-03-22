@@ -92,6 +92,7 @@ export class Session extends CustomEventListener<CustomEvent> {
 
         this.atlas.getTextureAtlas('tiles').setTexture(this.map.tileset.texture);
         this.lvzManager.load(this.lvzPaths);
+
         this.loaded = true;
 
         this.dispatch(<SessionEvent> {
@@ -171,6 +172,12 @@ export class Session extends CustomEventListener<CustomEvent> {
         this.selectionGroup.setDirty(false);
         this.lvzManager.onPostUpdate();
         this.atlas.setDirty(false);
+        this.editor.renderer.camera.setDirty(false);
+        this.map.setDirty(false);
+        this.map.selections.setDirty(false);
+        if (this.map.tileset != null) {
+            this.map.tileset.setDirty(false);
+        }
     }
 }
 

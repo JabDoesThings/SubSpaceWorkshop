@@ -1,13 +1,15 @@
+import * as PIXI from "pixi.js";
 import { LVLBorder, LVLChunk } from './render/LVLRender';
 import { LVZChunk } from './render/LVZChunk';
 import { ELVLRegionRender } from './render/ELVLRegionRender';
-import * as PIXI from "pixi.js";
 import { Background } from '../common/Background';
 import { CustomEvent } from './ui/CustomEventListener';
 import { SessionAtlasEvent, TextureAtlasAction, TextureAtlasEvent } from './render/SessionAtlas';
 import { Renderer } from '../common/Renderer';
 import { LVLArea } from '../io/LVL';
 import { Session } from './Session';
+import { SelectionRenderer } from './render/SelectionRenderer';
+import { MapSection } from '../util/map/MapSection';
 
 /**
  * The <i>SessionCache</i> class. TODO: Document.
@@ -30,6 +32,7 @@ export class SessionCache {
 
     callbacks: { [name: string]: ((texture: PIXI.Texture) => void)[] };
 
+    selectionRenderer: SelectionRenderer;
 
     /**
      * Main constructor.
@@ -77,6 +80,13 @@ export class SessionCache {
     }
 
     init(): void {
+
+        this.selectionRenderer = new SelectionRenderer(this.session);
+        setTimeout(() => {
+            let selections = this.session.map.selections;
+            selections.push(new MapSection(32, 32, 159, 95));
+            selections.push(new MapSection(64, 64, 96, 412, true));
+        }, 10000);
 
         let map = this.session.map;
         let renderer = this.session.editor.renderer;
@@ -170,6 +180,7 @@ export class SessionCache {
         // Gauges Layer
         // Chat Layer
         // Top-Most Layer
+
         // ##############
 
         this.session.lvzManager.setDirtyArea();
@@ -188,6 +199,8 @@ export class SessionCache {
         if (atlas.isDirty()) {
             this.draw();
         }
+
+        this.selectionRenderer.update();
     }
 
     destroy(): void {

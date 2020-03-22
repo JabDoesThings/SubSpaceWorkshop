@@ -119,32 +119,22 @@ export class LVLChunk extends UpdatedObject {
         let map = session.map;
 
         let camera = this.renderer.camera;
-        let tiles = map.tiles;
-
         let tileset = map.tileset;
         let atlas = session.atlas;
 
         if (camera.isDirty()) {
-            let cpos = camera.position;
-            let scale = cpos.scale;
+            let cameraPosition = camera.position;
+            let scale = cameraPosition.scale;
             let invScale = 1 / scale;
-
             let sw = this.renderer.app.view.width * invScale;
             let sh = this.renderer.app.view.height * invScale;
-
-            let _64 = 64;
-            let _16 = 16;
-
-            let tilemapX = Math.floor((-1 + ((this.x * _64) - (cpos.x * _16) + sw / 2)) - (this.x * _64));
-            let tilemapY = 1 + Math.floor(((this.y * _64) - (cpos.y * _16) + sh / 2) - (this.y * _64));
-
-            this.tileMap.x = this.tileMapAnim.x = tilemapX * scale;
-            this.tileMap.y = this.tileMapAnim.y = tilemapY * scale;
-            this.tileMap.scale.x = this.tileMap.scale.y = cpos.scale;
-            this.tileMapAnim.scale.x = this.tileMapAnim.scale.y = cpos.scale;
+            let x = Math.floor((-1 + ((this.x * 64) - (cameraPosition.x * 16) + sw / 2)) - (this.x * 64));
+            let y = 1 + Math.floor(((this.y * 64) - (cameraPosition.y * 16) + sh / 2) - (this.y * 64));
+            this.tileMap.x = this.tileMapAnim.x = x * scale;
+            this.tileMap.y = this.tileMapAnim.y = y * scale;
+            this.tileMap.scale.x = this.tileMap.scale.y = cameraPosition.scale;
+            this.tileMapAnim.scale.x = this.tileMapAnim.scale.y = cameraPosition.scale;
         }
-
-
 
         if (atlas.isDirty() || map.isDirty() && map.containsDirtyArea(this.area.x1, this.area.y1, this.area.x2, this.area.y2)) {
             this.draw();
@@ -219,7 +209,7 @@ export class LVLChunk extends UpdatedObject {
         let atlas = session.atlas;
 
         // console.log("Drawing MapChunk: " + this.area);
-        if(atlas.isDirty()) {
+        if (atlas.isDirty()) {
             this.tileMap.setBitmaps([
                 atlas.getTextureAtlas('tiles').texture,
                 atlas.getTextureAtlas('tile191').texture,
@@ -432,7 +422,7 @@ export class LVLBorder extends PIXI.Container {
 
         this.texture = map.tileset.borderTile;
 
-        if(this.texture == null) {
+        if (this.texture == null) {
             return;
         }
 

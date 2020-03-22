@@ -38,7 +38,6 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
 
     /** Updates all sprites registered in the atlas. */
     update(): void {
-
         for (let id in this.textures) {
             this.textures[id].update();
         }

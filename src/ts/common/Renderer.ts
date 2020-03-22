@@ -20,6 +20,9 @@ export abstract class Renderer extends UpdatedObject {
     static fragmentSrc = fs.readFileSync("assets/glsl/pixi_chroma.frag").toString();
     static chromaFilter = new Filter(undefined, Renderer.fragmentSrc, undefined);
 
+    static fragmentSrcMask = fs.readFileSync("assets/glsl/pixi_chroma_mask.frag").toString();
+    static chromaFilterMask = new Filter(undefined, Renderer.fragmentSrcMask, undefined);
+
     private readonly __toCanvasSprite: PIXI.Sprite = new PIXI.Sprite();
 
     app: PIXI.Application;
@@ -31,6 +34,8 @@ export abstract class Renderer extends UpdatedObject {
     protected constructor() {
 
         super();
+
+        this.setRequireDirtyToUpdate(false);
 
         this.camera = new Camera(this);
     }
@@ -48,8 +53,8 @@ export abstract class Renderer extends UpdatedObject {
         });
 
         let enableTicks = 90;
-        let enableLerp = 0;
-        this.app.stage.alpha = 0;
+        // let enableLerp = 0;
+        // this.app.stage.alpha = 0;
         this.camera.pathTo({x: 512, y: 512, scale: 1}, enableTicks, PathMode.EASE_OUT);
 
         let resize = () => {
@@ -82,10 +87,10 @@ export abstract class Renderer extends UpdatedObject {
                 lastHeight = height;
             }
 
-            if (enableLerp < enableTicks) {
-                enableLerp++;
-                this.app.stage.alpha = (enableLerp / enableTicks);
-            }
+            // if (enableLerp < enableTicks) {
+            //     enableLerp++;
+            //     this.app.stage.alpha = (enableLerp / enableTicks);
+            // }
 
             this.updateCamera(delta);
             this.onPreUpdate(delta);

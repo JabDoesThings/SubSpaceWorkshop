@@ -156,7 +156,7 @@ export class MapRenderer extends Renderer {
                 return;
             }
             let tool = event.tool;
-            if(tool == null) {
+            if (tool == null) {
                 return;
             }
             this.toolManager.setActive(tool.id);
@@ -352,18 +352,7 @@ export class MapRenderer extends Renderer {
         }
 
         this.radar.update();
-
-        if (map != null) {
-
-            map.setDirty(false);
-
-            if (map.tileset != null) {
-                map.tileset.setDirty(false);
-            }
-        }
-
         this.paletteTab.update();
-
         this.screen.update();
 
         return true;
@@ -394,11 +383,13 @@ export class MapRenderer extends Renderer {
             this.mapLayers.layers[index].removeChildren();
             if (index == 2) {
                 this.app.stage.addChild(this.grid);
+                this.app.stage.addChild(session.cache.selectionRenderer.graphicsFill);
             }
             this.app.stage.addChild(this.layers.layers[index]);
             this.app.stage.addChild(this.mapLayers.layers[index]);
             this.app.stage.addChild(this.screenLayers.layers[index]);
         }
+        this.app.stage.addChild(this.session.cache.selectionRenderer.graphics);
 
         if (this.session == null) {
             console.log("Active session: none.");
