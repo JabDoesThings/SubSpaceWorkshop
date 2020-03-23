@@ -1,6 +1,5 @@
 import * as PIXI from "pixi.js";
 import { Session } from '../Session';
-import { Renderer } from '../../common/Renderer';
 
 /**
  * The <i>SelectionRenderer</i> class. TODO: Document.
@@ -11,7 +10,9 @@ export class SelectionRenderer {
 
     session: Session;
     graphics: PIXI.Graphics;
-    graphicsFill: PIXI.Graphics;
+    fillSprite: PIXI.Sprite;
+    // fillContainer: PIXI.Container;
+    // graphicsFill: PIXI.Graphics;
 
     private readonly tops: RunLength[] = [];
     private readonly bottoms: RunLength[] = [];
@@ -26,9 +27,8 @@ export class SelectionRenderer {
         this.session = session;
 
         this.graphics = new PIXI.Graphics();
-        this.graphicsFill = new PIXI.Graphics();
-        this.graphicsFill.filters = [Renderer.chromaFilterMask];
-        this.graphicsFill.filterArea = session.editor.renderer.app.screen;
+        // this.graphicsFill = new PIXI.Graphics();
+        // this.fillContainer = new PIXI.Container();
     }
 
     update(): void {
@@ -51,9 +51,11 @@ export class SelectionRenderer {
             let sh = screen.height * invScale;
             let x = Math.floor((-1 + (-(cameraPosition.x * 16) + sw / 2)));
             let y = 1 + Math.floor((-(cameraPosition.y * 16) + sh / 2));
-            this.graphics.x = this.graphicsFill.x = x * scale;
-            this.graphics.y = this.graphicsFill.y = y * scale;
-            this.graphicsFill.scale.x = this.graphicsFill.scale.y = scale;
+            this.graphics.x /*= this.graphicsFill.x */= x * scale;
+            this.graphics.y /*= this.graphicsFill.y */= y * scale;
+            // this.fillContainer.x = x * scale;
+            // this.fillContainer.y = y * scale;
+            // this.fillContainer.scale.x = this.fillContainer.scale.y = scale;
         }
     }
 
@@ -62,8 +64,8 @@ export class SelectionRenderer {
         let g = this.graphics;
         g.clear();
 
-        let gf = this.graphicsFill;
-        gf.clear();
+        // let gf = this.graphicsFill;
+        // gf.clear();
 
         let map = this.session.map;
         let selections = map.selections;
@@ -73,6 +75,8 @@ export class SelectionRenderer {
 
         let range = map.selections.getBounds();
         let array = map.selections.getArray();
+
+        console.log(map.selections);
 
         let hasLeft = (x: number, y: number): boolean => {
             if (x == 0) {
@@ -234,31 +238,80 @@ export class SelectionRenderer {
             }
         }
 
-        console.log(this.bottoms);
-
-        minPX = (minPX << 4) + range.x1;
-        minPY = (minPY << 4) + range.y1;
-        maxPX = (maxPX << 4) + range.x1;
-        maxPY = (maxPY << 4) + range.y1;
-
-        for (let index = 0; index < selections.sections.length; index++) {
-
-            let next = selections.sections[index];
-            let x1 = (next.x1) << 4;
-            let y1 = (next.y1) << 4;
-            let x2 = (next.x2) << 4;
-            let y2 = (next.y2) << 4;
-
-            let color = next.invert ? 0x010101 : 0x0;
-            gf.beginFill(color);
-            gf.drawRect(
-                Math.max(x1, minPX),
-                Math.max(y1, minPY),
-                Math.min(x2 - x1 + 16, maxPX),
-                Math.min(y2 - y1 + 16, maxPY)
-            );
-            gf.endFill();
+        if (this.fillSprite != null) {
+            this.fillSprite.texture.destroy(true);
         }
+
+
+
+
+
+
+
+        // gf.clear();
+        // gf.lineStyle(1, 0xFF0000);
+        // gf.beginFill(0xFF0000);
+        // for (let y = minPY; y <= maxPY; y++) {
+        //     for (let x = minPX; x <= maxPX; x++) {
+        //         if (array[x][y]) {
+        //             gf.drawRect(x, y, 1, 1);
+        //         }
+        //     }
+        // }
+        // gf.endFill();
+        //
+        // let texture = this.session.editor.renderer.app.renderer.generateTexture(
+        //     gf,
+        //     PIXI.SCALE_MODES.NEAREST,
+        //     1,
+        //     new Rectangle(
+        //         minPX,
+        //         minPY,
+        //         (maxPX) - (minPX) + 1,
+        //         (maxPY) - (minPY) + 1
+        //     )
+        // );
+
+        // this.fillSprite = new PIXI.Sprite(texture);
+        // this.fillSprite.x = minPX * 16;
+        // this.fillSprite.y = minPY * 16;
+        // this.fillSprite.scale.x = this.fillSprite.scale.y = 16;
+
+        // this.fillContainer.removeChildren();
+        // this.fillContainer.addChild(this.fillSprite);
+        //
+        // console.log(this.fillSprite);
+
+
+
+
+
+
+
+
+        // minPX = (minPX << 4) + range.x1;
+        // minPY = (minPY << 4) + range.y1;
+        // maxPX = (maxPX << 4) + range.x1;
+        // maxPY = (maxPY << 4) + range.y1;
+        //
+        // for (let index = 0; index < selections.sections.length; index++) {
+        //
+        //     let next = selections.sections[index];
+        //     let x1 = (next.bounds.x1) << 4;
+        //     let y1 = (next.bounds.y1) << 4;
+        //     let x2 = (next.bounds.x2) << 4;
+        //     let y2 = (next.bounds.y2) << 4;
+        //
+        //     let color = next.invert ? 0x010101 : 0x0;
+        //     gf.beginFill(color);
+        //     gf.drawRect(
+        //         Math.max(x1, minPX),
+        //         Math.max(y1, minPY),
+        //         Math.min(x2 - x1 + 16, maxPX),
+        //         Math.min(y2 - y1 + 16, maxPY)
+        //     );
+        //     gf.endFill();
+        // }
     }
 
     draw(): void {

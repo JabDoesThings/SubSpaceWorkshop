@@ -66,7 +66,7 @@ export class SelectionTool extends Tool {
 
         return [
             new EditAddSelection(0, [
-                new MapSection(x1, y1, x2, y2)
+                MapSection.box(x1, y1, x2, y2)
             ])
         ];
     }

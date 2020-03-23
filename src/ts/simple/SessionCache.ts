@@ -9,7 +9,6 @@ import { Renderer } from '../common/Renderer';
 import { LVLArea } from '../io/LVL';
 import { Session } from './Session';
 import { SelectionRenderer } from './render/SelectionRenderer';
-import { MapSection } from '../util/map/MapSection';
 
 /**
  * The <i>SessionCache</i> class. TODO: Document.
@@ -82,11 +81,6 @@ export class SessionCache {
     init(): void {
 
         this.selectionRenderer = new SelectionRenderer(this.session);
-        setTimeout(() => {
-            let selections = this.session.map.selections;
-            selections.add(new MapSection(32, 32, 159, 95));
-            selections.add(new MapSection(64, 64, 96, 412, true));
-        }, 10000);
 
         let map = this.session.map;
         let renderer = this.session.editor.renderer;

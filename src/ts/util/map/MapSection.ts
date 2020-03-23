@@ -6,11 +6,45 @@ export class MapSections implements Dirtable {
 
     private dirty: boolean;
     private array: boolean[][];
-    private bounds: { x1: number; y1: number; x2: number; y2: number };
+    private bounds: Boundary;
+    private rectangles: Boundary[];
 
     constructor() {
         this.sections = [];
         this.dirty = true;
+    }
+
+    getRectangles(): Boundary[] {
+
+        if(this.rectangles != null) {
+            return this.rectangles;
+        }
+
+        if(this.isEmpty()) {
+            return;
+        }
+
+        this.rectangles = [];
+
+        let _array = this.getArray();
+        let width = _array.length;
+        let height = _array[0].length;
+
+        let array = new Array(width);
+        for(let x = 0; x < width; x++) {
+            array[x] = new Array(_array[0].length);
+            for(let y = 0; y < height; y++) {
+                array[x][y] = _array[x][y];
+            }
+        }
+
+        for(let x = 0; x < width; x++) {
+            for (let y = 0; y < height; y++) {
+                // run();
+            }
+        }
+
+        return;
     }
 
     getArray(): boolean[][] {
@@ -23,24 +57,28 @@ export class MapSections implements Dirtable {
             return null;
         }
 
-        let bounds = this.getBounds();
-
-        // Grab dimensions.
-        let width = (bounds.x2 - bounds.x1) + 1;
-        let height = (bounds.y2 - bounds.y1) + 1;
+        let ourBounds = this.getBounds();
+        let x1 = ourBounds.x1;
+        let y1 = ourBounds.y1;
+        let width = ourBounds.x2 - ourBounds.x1 + 1;
+        let height = ourBounds.y2 - ourBounds.y1 + 1;
 
         // Create the map.
         this.array = new Array(width);
-        for (let index = 0; index < width; index++) {
-            this.array[index] = new Array(height);
+        for (let x = 0; x < width; x++) {
+            this.array[x] = new Array(height);
+            for (let y = 0; y < height; y++) {
+                this.array[x][y] = false;
+            }
         }
 
         // Populate the map.
         for (let index = 0; index < this.sections.length; index++) {
             let next = this.sections[index];
-            for (let y = next.y1; y <= next.y2; y++) {
-                for (let x = next.x1; x <= next.x2; x++) {
-                    this.array[x - bounds.x1][y - bounds.y1] = !next.invert;
+            let nextBounds = next.bounds;
+            for (let y = nextBounds.y1; y <= nextBounds.y2; y++) {
+                for (let x = nextBounds.x1; x <= nextBounds.x2; x++) {
+                    this.array[x - x1][y - y1] = !next.invert;
                 }
             }
         }
@@ -48,7 +86,7 @@ export class MapSections implements Dirtable {
         return this.array;
     }
 
-    getBounds(): { x1: number, y1: number, x2: number, y2: number } {
+    getBounds(): Boundary {
 
         if (this.bounds != null) {
             return this.bounds;
@@ -58,7 +96,7 @@ export class MapSections implements Dirtable {
             return null;
         }
 
-        this.bounds = {x1: 1024, y1: 1024, x2: -1, y2: -1};
+        this.bounds = new Boundary(1024, 1024, -1, -1);
 
         let check = (x: number, y: number): void => {
             if (this.bounds.x1 > x) {
@@ -77,8 +115,12 @@ export class MapSections implements Dirtable {
 
         for (let index = 0; index < this.sections.length; index++) {
             let next = this.sections[index];
-            check(next.x1, next.y1);
-            check(next.x2, next.y2);
+            let x1 = next.x;
+            let y1 = next.y;
+            let x2 = x1 + next.width - 1;
+            let y2 = y1 + next.height - 1;
+            check(x1, y1);
+            check(x2, y2);
         }
 
         return this.bounds;
@@ -152,34 +194,65 @@ export class MapSections implements Dirtable {
 
 export class MapSection {
 
-    readonly x1: number;
-    readonly y1: number;
-    readonly x2: number;
-    readonly y2: number;
+    readonly bounds: Boundary;
+    readonly array: boolean[][];
     readonly invert: boolean;
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+
+    protected constructor(x: number, y: number, array: boolean[][], invert: boolean = false) {
+        this.x = x;
+        this.y = y;
+        this.array = array;
+        this.width = array.length;
+        this.height = array[0].length;
+        this.invert = invert;
+        this.bounds = new Boundary(x, y, x + this.width - 1, y + this.height - 1);
+    }
 
     /**
-     * Main constructor.
+     * Creates a boxed MapSection.
      *
      * @param x1 The 'X' coordinate. (Also the top-left 'X' coordinate)
      * @param y1 The 'Y' coordinate. (Also the top-left 'Y' coordinate)
      * @param x2 The bottom-right 'X' coordinate. (Optional)
      * @param y2 The bottom-right 'Y' coordinate. (Optional)
+     * @param invert
      */
-    constructor(x1: number, y1: number, x2: number = null, y2: number = null, invert: boolean = false) {
+    static box(x1: number, y1: number, x2: number = null, y2: number = null, invert: boolean = false): MapSection {
 
+        let xMin = Math.min(x1, x2);
+        let yMin = Math.min(y1, y2);
+        let xMax = Math.max(x1, x2);
+        let yMax = Math.max(y1, y2);
+        let width = xMax - xMin + 1;
+        let height = yMax - yMin + 1;
+
+        let array = new Array(width);
+        for (let x = 0; x < width; x++) {
+            array[x] = new Array(height);
+            for (let y = 0; y < height; y++) {
+                array[x][y] = true;
+            }
+        }
+
+        return new MapSection(xMin, yMin, array, invert);
+    }
+}
+
+export class Boundary {
+
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+
+    constructor(x1: number, y1: number, x2: number, y2: number) {
         this.x1 = x1;
         this.y1 = y1;
-
-        if (x2 == null) {
-            x2 = x1;
-        }
-        if (y2 == null) {
-            y2 = y1;
-        }
-
         this.x2 = x2;
         this.y2 = y2;
-        this.invert = invert;
     }
 }
