@@ -84,7 +84,7 @@ export class MapSections implements Dirtable {
         return this.bounds;
     }
 
-    push(section: MapSection): void {
+    add(section: MapSection): void {
 
         // Make sure the group doesn't already have the section.
         for (let index = 0; index < this.sections.length; index++) {
@@ -95,6 +95,30 @@ export class MapSections implements Dirtable {
 
         // Push the section.
         this.sections.push(section);
+        this.dirty = true;
+        this.bounds = null;
+        this.array = null;
+    }
+
+    remove(section: MapSection) {
+
+        let newArray = [];
+
+        for (let index = 0; index < this.sections.length; index++) {
+
+            let next = this.sections[index];
+            if (next === section) {
+                continue;
+            }
+
+            newArray.push(next);
+        }
+
+        this.sections.length = 0;
+        for (let index = 0; index < newArray.length; index++) {
+            this.sections.push(newArray[index]);
+        }
+
         this.dirty = true;
         this.bounds = null;
         this.array = null;

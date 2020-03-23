@@ -84,8 +84,8 @@ export class SessionCache {
         this.selectionRenderer = new SelectionRenderer(this.session);
         setTimeout(() => {
             let selections = this.session.map.selections;
-            selections.push(new MapSection(32, 32, 159, 95));
-            selections.push(new MapSection(64, 64, 96, 412, true));
+            selections.add(new MapSection(32, 32, 159, 95));
+            selections.add(new MapSection(64, 64, 96, 412, true));
         }, 10000);
 
         let map = this.session.map;
