@@ -422,16 +422,6 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
             return;
         }
 
-        // let activeTabPanel = this.getOpenTab();
-        // if (activeTabPanel != null) {
-        //     if (activeTabPanel.element.classList.contains('open')) {
-        //         activeTabPanel.element.classList.remove('open');
-        //     }
-        // }
-
-        // this.tabMenu.deselect();
-        // this.selectedTab = -1;
-
         if (this.element.classList.contains('open')) {
             this.element.classList.remove('open');
         }

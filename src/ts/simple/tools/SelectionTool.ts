@@ -15,6 +15,7 @@ export class SelectionTool extends Tool {
 
     invert: boolean;
     valid: boolean;
+    dragged: boolean;
 
     constructor() {
 
@@ -26,6 +27,7 @@ export class SelectionTool extends Tool {
 
         this.valid = false;
         this.invert = false;
+        this.dragged = false;
     }
 
     // @Override
@@ -57,6 +59,7 @@ export class SelectionTool extends Tool {
             return;
         }
 
+        this.dragged = true;
         return this.select(session, event);
     }
 
@@ -67,9 +70,14 @@ export class SelectionTool extends Tool {
             return;
         }
 
-        let edits = this.select(session, event);
+        let edits: Edit[] = null;
+        if (this.dragged) {
+            edits = this.select(session, event);
+        }
+
         this.invert = false;
         this.valid = false;
+        this.dragged = false;
         return edits;
     }
 
