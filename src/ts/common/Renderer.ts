@@ -64,6 +64,7 @@ export abstract class Renderer extends UpdatedObject {
             let height = container.clientHeight;
             this.app.renderer.resize(width, height);
             this.setDirty(true);
+            this.camera.setDirty(true);
 
             let $leftTabMenu = $('#editor-left-tab-menu');
             $leftTabMenu.css({top: (window.innerHeight - 49) + 'px'});

@@ -15,6 +15,8 @@ export abstract class Tool {
     protected last: { x: number, y: number, tileX: number, tileY: number };
     protected down: { x: number, y: number, tileX: number, tileY: number };
 
+    isSelector: boolean = false;
+
     /**
      * Main constructor.
      */

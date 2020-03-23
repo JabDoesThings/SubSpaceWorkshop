@@ -6,19 +6,21 @@
 export class KeyListener {
 
     public readonly value: string;
-    public press: () => void;
-    public held: () => void;
-    public release: () => void;
-    public unsubscribe: () => void;
-    public isDown: boolean;
-    public isUp: boolean;
+    private readonly downListener: any;
+    private readonly upListener: any;
+
+    press: () => void;
+    held: () => void;
+    release: () => void;
+    isDown: boolean;
+    isUp: boolean;
 
     private downHandler: (event: KeyboardEvent) => void;
     private upHandler: (event: KeyboardEvent) => void;
 
     constructor(value: string, press?: () => void, held?: () => void, release?: () => void) {
 
-        this.value = value;
+        this.value = value.toLowerCase();
         this.press = press;
         this.held = held;
         this.release = release;
@@ -27,8 +29,8 @@ export class KeyListener {
 
         //The `downHandler`
         this.downHandler = event => {
-            // console.log("key: " + event.key);
-            if (event.key == this.value) {
+            let key = event.key.toLowerCase();
+            if (key == this.value) {
                 if (this.isUp) {
                     if (this.press) {
                         this.press();
@@ -46,8 +48,8 @@ export class KeyListener {
 
         //The `upHandler`
         this.upHandler = event => {
-
-            if (event.key == this.value) {
+            let key = event.key.toLowerCase();
+            if (key == this.value) {
                 if (this.isDown && this.release) {
                     this.release();
                 }
@@ -58,16 +60,21 @@ export class KeyListener {
         };
 
         // Attach event listeners
-        const downListener = this.downHandler.bind(value);
-        const upListener = this.upHandler.bind(value);
+        this.downListener = this.downHandler.bind(value);
+        this.upListener = this.upHandler.bind(value);
 
-        window.addEventListener("keydown", downListener, false);
-        window.addEventListener("keyup", upListener, false);
+        window.addEventListener("keydown", this.downListener, false);
+        window.addEventListener("keyup", this.upListener, false);
 
         // Detach event listeners
         this.unsubscribe = () => {
-            window.removeEventListener("keydown", downListener);
-            window.removeEventListener("keyup", upListener);
+            window.removeEventListener("keydown", this.downListener);
+            window.removeEventListener("keyup", this.upListener);
         };
+    }
+
+    unsubscribe(): void {
+        window.removeEventListener("keydown", this.downListener);
+        window.removeEventListener("keyup", this.upListener);
     }
 }

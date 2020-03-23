@@ -44,7 +44,7 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
      * @param tabOrientation
      * @param width
      */
-    constructor(id: string, tabMenuId: string, orientation: PanelOrientation = PanelOrientation.LEFT, tabOrientation: TabOrientation = TabOrientation.LEFT, width: number = 320) {
+    constructor(id: string, tabMenuId: string, orientation: PanelOrientation = PanelOrientation.LEFT, tabOrientation: TabOrientation = TabOrientation.LEFT, width: number = 320, half: boolean = false, halfPosition: string = null) {
 
         super();
 
@@ -69,6 +69,12 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
         }
 
         this.element.classList.add('ui-panel', orientation);
+        if (half) {
+            this.element.classList.add('half');
+        }
+        if (halfPosition != null) {
+            this.element.classList.add(halfPosition);
+        }
         this.element.appendChild(this.overflowContainer);
         this.element.appendChild(this.tabMenu.element);
         this.element.style.width = '0';
@@ -377,6 +383,60 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
         }
 
         return null;
+    }
+
+    isOpen(): boolean {
+        return this.element.classList.contains('open');
+    }
+
+    open(): void {
+
+        if (this.isOpen()) {
+            return;
+        }
+
+        let activeTabPanel = this.getOpenTab();
+        if (activeTabPanel != null) {
+            if (!activeTabPanel.element.classList.contains('open')) {
+                activeTabPanel.element.classList.add('open');
+            }
+        }
+
+        if (this.selectedTab == -1 && this.panels.length !== 0) {
+            let panel = this.panels[0];
+            this.select(this.panels[0]);
+            this.tabMenu.select(panel.tab);
+
+        }
+
+        if (!this.element.classList.contains('open')) {
+            this.element.classList.add('open');
+        }
+
+        this.element.style.width = this.width + 'px';
+    }
+
+    close(): void {
+
+        if (!this.isOpen()) {
+            return;
+        }
+
+        // let activeTabPanel = this.getOpenTab();
+        // if (activeTabPanel != null) {
+        //     if (activeTabPanel.element.classList.contains('open')) {
+        //         activeTabPanel.element.classList.remove('open');
+        //     }
+        // }
+
+        // this.tabMenu.deselect();
+        // this.selectedTab = -1;
+
+        if (this.element.classList.contains('open')) {
+            this.element.classList.remove('open');
+        }
+
+        this.element.style.width = '0';
     }
 }
 

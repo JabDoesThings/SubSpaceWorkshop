@@ -65,6 +65,20 @@ $panelWidth: 320px;
 
 }
 
+.ui-panel.half {
+  height: 50%;
+}
+
+.ui-panel.top-half {
+  top: 1px;
+  bottom: unset;
+}
+
+.ui-panel.bottom-half {
+  top: unset;
+  bottom: 1px;
+}
+
 .ui-panel {
   z-index: 2;
   display: inline-block;

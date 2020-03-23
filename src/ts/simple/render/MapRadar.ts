@@ -1,5 +1,6 @@
 import { MapRenderer } from './MapRenderer';
 import { Radar } from '../../common/Radar';
+import { SimpleEditor } from '../SimpleEditor';
 
 /**
  * The <i>MapRadar</i> class. TODO: Document.
@@ -67,6 +68,21 @@ export class MapRadar extends Radar {
                 }
             }
         }
+    }
+
+    // @Override
+    isAltPressed(): boolean {
+
+        // @ts-ignore
+        let editor: SimpleEditor = global.editor;
+
+        // Make sure that selection tools do not get interrupted by the alt function of the radar.
+        let activeTool = editor.renderer.toolManager.getActive();
+        if (activeTool != null && activeTool.isSelector) {
+            return false;
+        }
+
+        return editor.isAltPressed();
     }
 }
 

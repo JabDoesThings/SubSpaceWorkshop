@@ -17,6 +17,10 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
     tabMenu: UITabMenu;
     activeSession: number;
 
+    private _shiftListener: KeyListener;
+    private _controlListener: KeyListener;
+    private _altListener: KeyListener;
+
     /**
      * Main constructor.
      *
@@ -31,6 +35,10 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
         global.editor = this;
 
         this.sessions = [];
+
+        this._altListener = new KeyListener('alt');
+        this._controlListener = new KeyListener('control');
+        this._shiftListener = new KeyListener('shift');
 
         this.tabMenu = new UITabMenu();
         for (let index = 0; index < sessions.length; index++) {
@@ -243,6 +251,18 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
             forced: true,
             sessions: [this.sessions[index]]
         });
+    }
+
+    isShiftPressed(): boolean {
+        return this._shiftListener.isDown;
+    }
+
+    isControlPressed(): boolean {
+        return this._controlListener.isDown;
+    }
+
+    isAltPressed(): boolean {
+        return this._altListener.isDown;
     }
 }
 

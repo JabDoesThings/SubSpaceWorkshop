@@ -16,7 +16,7 @@ import {
     UIIconToolbar,
     UIIconToolbarEvent,
     UIPanel,
-    UIPanelSection,
+    UIPanelSection, UIPanelTab,
     UITool,
     UITooltip
 } from '../ui/UI';
@@ -42,9 +42,11 @@ export class MapRenderer extends Renderer {
     tab: HTMLDivElement;
     toolbarLeft: UIIconToolbar;
     leftPanel: UIPanel;
-    rightPanel: UIPanel;
+    topRightPanel: UIPanel;
+    bottomRightPanel: UIPanel;
     mapObjectSection: UIMapObjectSection;
     paletteTab: PalettePanel;
+    layersTab: UIPanelTab;
 
     screen: ScreenManager;
     toolManager: ToolManager;
@@ -64,12 +66,21 @@ export class MapRenderer extends Renderer {
         this.screen = new ScreenManager(this);
 
         let leftOpen = false;
-        let rightOpen = false;
+        let rightOpen = true;
         let width = 320;
 
         let viewport = <HTMLDivElement> document.getElementsByClassName('viewport').item(0);
 
         let updateViewport = (): void => {
+
+            if(rightOpen) {
+                this.topRightPanel.open();
+                this.bottomRightPanel.open();
+            } else {
+                this.topRightPanel.close();
+                this.bottomRightPanel.close();
+            }
+
             if (leftOpen && rightOpen) {
                 viewport.style.left = (4 + width) + 'px';
                 viewport.style.width = 'calc(100% - ' + (width * 2) + 'px)';
@@ -89,23 +100,39 @@ export class MapRenderer extends Renderer {
             'left-panel',
             'editor-left-tab-menu',
             PanelOrientation.LEFT,
-            TabOrientation.LEFT, width
+            TabOrientation.LEFT,
+            width
         );
 
         this.leftPanel.createPanel('tab-1-panel-tab', 'Tab 1');
         this.leftPanel.createPanel('tab-2-panel-tab', 'Tab 2');
 
-        this.rightPanel = new UIPanel(
-            'right-panel',
-            'editor-right-tab-menu',
+        this.topRightPanel = new UIPanel(
+            'top-right-panel',
+            'editor-top-right-tab-menu',
             PanelOrientation.RIGHT,
-            TabOrientation.RIGHT, width
+            TabOrientation.RIGHT,
+            width,
+            true,
+            'top-half'
+        );
+
+        this.bottomRightPanel = new UIPanel(
+            'bottom-right-panel',
+            'editor-bottom-right-tab-menu',
+            PanelOrientation.RIGHT,
+            TabOrientation.RIGHT,
+            width,
+            true,
+            'bottom-half'
         );
 
         this.paletteTab = new PalettePanel(this);
-        this.rightPanel.add(this.paletteTab, 'Palette');
+        this.layersTab = new UIPanelTab('layers');
+        this.topRightPanel.add(this.paletteTab, 'Palette');
+        this.bottomRightPanel.add(this.layersTab, 'Layers');
 
-        let objectsTab = this.rightPanel.createPanel('objects', 'Objects');
+        let objectsTab = this.topRightPanel.createPanel('objects', 'Objects');
 
         this.mapObjectSection = new UIMapObjectSection('map-objects', 'Map Objects');
 
@@ -113,7 +140,8 @@ export class MapRenderer extends Renderer {
 
         let container = <HTMLDivElement> document.getElementById('viewport-container');
         container.appendChild(this.leftPanel.element);
-        container.appendChild(this.rightPanel.element);
+        container.appendChild(this.topRightPanel.element);
+        container.appendChild(this.bottomRightPanel.element);
 
         this.leftPanel.addEventListener((event) => {
             if (event.action == TabPanelAction.DESELECT) {
@@ -124,7 +152,16 @@ export class MapRenderer extends Renderer {
             updateViewport();
         });
 
-        this.rightPanel.addEventListener((event) => {
+        this.topRightPanel.addEventListener((event) => {
+            if (event.action == TabPanelAction.DESELECT) {
+                rightOpen = false;
+            } else if (event.action == TabPanelAction.SELECT) {
+                rightOpen = true;
+            }
+            updateViewport();
+        });
+
+        this.bottomRightPanel.addEventListener((event) => {
             if (event.action == TabPanelAction.DESELECT) {
                 rightOpen = false;
             } else if (event.action == TabPanelAction.SELECT) {
@@ -134,14 +171,15 @@ export class MapRenderer extends Renderer {
         });
 
         this.paletteTab.openAllSections();
-        this.rightPanel.select(this.paletteTab);
+        this.layersTab.openAllSections();
+        this.topRightPanel.select(this.paletteTab);
+        this.bottomRightPanel.select(this.layersTab);
 
         let toolPencil = new UITool('pencil', new UIIcon(['fas', 'fa-pencil-alt']), new UITooltip('Pencil'));
         let toolEraser = new UITool('eraser', new UIIcon(['fas', 'fa-eraser']), new UITooltip('Eraser'));
         let toolLine = new UITool('line', new UIIcon(['fas', 'fa-slash']), new UITooltip('Line'));
         let toolSquare = new UITool('square', new UIIcon(['fas', 'fa-square']), new UITooltip('Square'));
         let toolCircle = new UITool('circle', new UIIcon(['fas', 'fa-circle']), new UITooltip('Circle'));
-
         let toolSelect = new UITool('select', new UIIcon(['fas', 'fa-expand']), new UITooltip('Select'));
 
         this.toolbarLeft = new UIIconToolbar(ToolbarOrientation.LEFT);
@@ -156,7 +194,7 @@ export class MapRenderer extends Renderer {
                 return;
             }
             let tool = event.tool;
-            if(tool == null) {
+            if (tool == null) {
                 return;
             }
             this.toolManager.setActive(tool.id);
@@ -298,7 +336,6 @@ export class MapRenderer extends Renderer {
 
         this.session.onUpdate();
 
-        let map = this.session.map;
         let cache = this.session.cache;
         let background = cache._background;
         let border = cache._border;
@@ -383,13 +420,12 @@ export class MapRenderer extends Renderer {
             this.mapLayers.layers[index].removeChildren();
             if (index == 2) {
                 this.app.stage.addChild(this.grid);
-                // this.app.stage.addChild(session.cache.selectionRenderer.fillContainer);
             }
             this.app.stage.addChild(this.layers.layers[index]);
             this.app.stage.addChild(this.mapLayers.layers[index]);
             this.app.stage.addChild(this.screenLayers.layers[index]);
         }
-            this.app.stage.addChild(this.session.cache.selectionRenderer.graphics);
+        this.app.stage.addChild(this.session.cache.selectionRenderer.graphics);
 
         if (this.session == null) {
             console.log("Active session: none.");
@@ -404,6 +440,8 @@ export class MapRenderer extends Renderer {
         this.radar.draw().then(() => {
             this.radar.apply();
         });
+
+        this.camera.setDirty(true);
     }
 }
 

@@ -1,50 +1,27 @@
 import { Dirtable } from '../Dirtable';
 
+/**
+ * The <i>MapSections</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class MapSections implements Dirtable {
 
-    readonly sections: MapSection[];
+    sections: MapSection[];
 
     private dirty: boolean;
     private array: boolean[][];
     private bounds: Boundary;
     private rectangles: Boundary[];
 
+    /**
+     * Main constructor.
+     */
     constructor() {
+
         this.sections = [];
+
         this.dirty = true;
-    }
-
-    getRectangles(): Boundary[] {
-
-        if(this.rectangles != null) {
-            return this.rectangles;
-        }
-
-        if(this.isEmpty()) {
-            return;
-        }
-
-        this.rectangles = [];
-
-        let _array = this.getArray();
-        let width = _array.length;
-        let height = _array[0].length;
-
-        let array = new Array(width);
-        for(let x = 0; x < width; x++) {
-            array[x] = new Array(_array[0].length);
-            for(let y = 0; y < height; y++) {
-                array[x][y] = _array[x][y];
-            }
-        }
-
-        for(let x = 0; x < width; x++) {
-            for (let y = 0; y < height; y++) {
-                // run();
-            }
-        }
-
-        return;
     }
 
     getArray(): boolean[][] {
@@ -142,6 +119,12 @@ export class MapSections implements Dirtable {
         this.array = null;
     }
 
+    addAll(sections: MapSection[]) {
+        for(let index = 0; index < sections.length; index++) {
+            this.sections.push(sections[index]);
+        }
+    }
+
     remove(section: MapSection) {
 
         let newArray = [];
@@ -166,11 +149,20 @@ export class MapSections implements Dirtable {
         this.array = null;
     }
 
-    clearSelections(): void {
-        this.sections.length = 0;
+    clear(): MapSection[] {
+
+        // Copy the existing array to return.
+        let toReturn: MapSection[] = [];
+        for (let index = 0; index < this.sections.length; index++) {
+            toReturn.push(this.sections[index]);
+        }
+
+        this.sections = [];
         this.dirty = true;
         this.bounds = null;
         this.array = null;
+
+        return toReturn;
     }
 
     size(): number {
@@ -192,6 +184,11 @@ export class MapSections implements Dirtable {
     }
 }
 
+/**
+ * The <i>MapSection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class MapSection {
 
     readonly bounds: Boundary;
@@ -202,6 +199,14 @@ export class MapSection {
     readonly width: number;
     readonly height: number;
 
+    /**
+     * Main constructor.
+     *
+     * @param x
+     * @param y
+     * @param array
+     * @param invert
+     */
     protected constructor(x: number, y: number, array: boolean[][], invert: boolean = false) {
         this.x = x;
         this.y = y;
@@ -242,6 +247,11 @@ export class MapSection {
     }
 }
 
+/**
+ * The <i>Boundary</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class Boundary {
 
     x1: number;
@@ -249,6 +259,14 @@ export class Boundary {
     x2: number;
     y2: number;
 
+    /**
+     * Main constructor.
+     *
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
     constructor(x1: number, y1: number, x2: number, y2: number) {
         this.x1 = x1;
         this.y1 = y1;

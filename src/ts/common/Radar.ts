@@ -107,7 +107,7 @@ export class Radar implements Dirtable {
 
     update(): void {
 
-        let alt = this.view.camera.isKeyDown("alt");
+        let alt = this.isAltPressed();
 
         let largeSize = Math.min(this.largeSize, this.view.app.screen.height - 24);
 
@@ -155,5 +155,9 @@ export class Radar implements Dirtable {
     }
 
     async draw() {
+    }
+
+    isAltPressed(): boolean {
+        return false;
     }
 }
