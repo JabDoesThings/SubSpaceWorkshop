@@ -1,4 +1,6 @@
 import { Dirtable } from '../Dirtable';
+import { MapArea } from './MapArea';
+import { CoordinateType } from './CoordinateType';
 
 /**
  * The <i>MapSections</i> class. TODO: Document.
@@ -11,8 +13,7 @@ export class MapSections implements Dirtable {
 
     private dirty: boolean;
     private array: boolean[][];
-    private bounds: Boundary;
-    private rectangles: Boundary[];
+    private bounds: MapArea;
 
     /**
      * Main constructor.
@@ -63,7 +64,7 @@ export class MapSections implements Dirtable {
         return this.array;
     }
 
-    getBounds(): Boundary {
+    getBounds(): MapArea {
 
         if (this.bounds != null) {
             return this.bounds;
@@ -73,20 +74,20 @@ export class MapSections implements Dirtable {
             return null;
         }
 
-        this.bounds = new Boundary(1024, 1024, -1, -1);
+        let bounds = {x1: 1024, y1: 1024, x2: -1, y2: -1};
 
         let check = (x: number, y: number): void => {
-            if (this.bounds.x1 > x) {
-                this.bounds.x1 = x;
+            if (bounds.x1 > x) {
+                bounds.x1 = x;
             }
-            if (this.bounds.x2 < x) {
-                this.bounds.x2 = x;
+            if (bounds.x2 < x) {
+                bounds.x2 = x;
             }
-            if (this.bounds.y1 > y) {
-                this.bounds.y1 = y;
+            if (bounds.y1 > y) {
+                bounds.y1 = y;
             }
-            if (this.bounds.y2 < y) {
-                this.bounds.y2 = y;
+            if (bounds.y2 < y) {
+                bounds.y2 = y;
             }
         };
 
@@ -100,6 +101,7 @@ export class MapSections implements Dirtable {
             check(x2, y2);
         }
 
+        this.bounds = new MapArea(CoordinateType.TILE, bounds.x1, bounds.y1, bounds.x2, bounds.y2);
         return this.bounds;
     }
 
@@ -191,7 +193,7 @@ export class MapSections implements Dirtable {
  */
 export class MapSection {
 
-    readonly bounds: Boundary;
+    readonly bounds: MapArea;
     readonly array: boolean[][];
     readonly invert: boolean;
     readonly x: number;
@@ -214,7 +216,7 @@ export class MapSection {
         this.width = array.length;
         this.height = array[0].length;
         this.invert = invert;
-        this.bounds = new Boundary(x, y, x + this.width - 1, y + this.height - 1);
+        this.bounds = new MapArea(CoordinateType.TILE, x, y, x + this.width - 1, y + this.height - 1);
     }
 
     /**
@@ -247,30 +249,3 @@ export class MapSection {
     }
 }
 
-/**
- * The <i>Boundary</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class Boundary {
-
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-
-    /**
-     * Main constructor.
-     *
-     * @param x1
-     * @param y1
-     * @param x2
-     * @param y2
-     */
-    constructor(x1: number, y1: number, x2: number, y2: number) {
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
-    }
-}
