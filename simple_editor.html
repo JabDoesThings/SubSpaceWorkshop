@@ -37,6 +37,37 @@
     <link rel="stylesheet" href="node_modules/highlight.js/styles/dracula.css"/>
 </head>
 <body>
+
+<div class="ui-menubar">
+    <div class="ui-menu">
+        <label class="title">File</label>
+        <div class="menu-contents">
+            <div menu-id="new" class="menu-option"><label>New</label></div>
+            <div menu-id="open" class="menu-option"><label>Open</label></div>
+            <div menu-id="save" class="menu-option"><label>Save</label></div>
+            <div menu-id="save-as" class="menu-option"><label>Save as</label></div>
+            <div class="spacer"></div>
+            <div menu-id="exit" class="menu-option"><label>Exit</label></div>
+        </div>
+    </div>
+    <div class="ui-menu">
+        <label class="title">Edit</label>
+        <div class="menu-contents">
+        </div>
+    </div>
+    <div class="ui-menu">
+        <label class="title">View</label>
+        <div class="menu-contents">
+        </div>
+    </div>
+    <div class="ui-menu">
+        <label class="title">Help</label>
+        <div class="menu-contents">
+            <div menu-id="about" class="menu-option"><label>About</label></div>
+        </div>
+    </div>
+</div>
+
 <div class="editor_frame dark">
     <div id="viewport-frame" class="viewport-frame right-panel-open">
         <div id="editor-tab-menu" class="ui-tab-menu"></div>

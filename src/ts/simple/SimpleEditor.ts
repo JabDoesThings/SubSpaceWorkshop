@@ -21,6 +21,8 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
     private _controlListener: KeyListener;
     private _altListener: KeyListener;
 
+    menuManager: MenuManager;
+
     /**
      * Main constructor.
      *
@@ -35,6 +37,8 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
         global.editor = this;
 
         this.sessions = [];
+
+        this.menuManager = new MenuManager(this);
 
         this._altListener = new KeyListener('alt');
         this._controlListener = new KeyListener('control');
@@ -86,8 +90,30 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
             link.click();
         });
 
-        this.add(sessions);
+        this.menuManager.addEventListener((event) => {
 
+            console.log('menu-id: ' + event.menuId);
+
+            if (event.menuId === 'new') {
+
+                let session = new Session('untitled');
+                session.editor = this;
+                session.tab = this.tabMenu.createTab(session._name, session._name);
+
+                const _i = this.sessions.length;
+                session.tab.addEventListener((event: UITabEvent) => {
+                    if (event.action == TabAction.SELECT) {
+                        this.setActive(_i);
+                    }
+                });
+
+                this.add([session]);
+                this.setActive(this.sessions.length - 1);
+            }
+
+        });
+
+        this.add(sessions);
         this.setActive(this.sessions.length - 1);
     }
 
@@ -264,6 +290,47 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
     isAltPressed(): boolean {
         return this._altListener.isDown;
     }
+}
+
+export class MenuManager extends CustomEventListener<MenuEvent> {
+
+    editor: SimpleEditor;
+
+    constructor(editor: SimpleEditor) {
+
+        super();
+
+        this.editor = editor;
+
+        $(document).on('click', '.ui-menu', function (event) {
+            if (this.classList.contains('open')) {
+                this.classList.remove('open');
+            } else {
+                let menu = this.parentElement;
+                for (let index = 0; index < menu.childElementCount; index++) {
+                    let next = menu.children.item(index);
+                    next.classList.remove('open');
+                }
+
+                this.classList.add('open');
+            }
+        });
+
+        let ctx = this;
+        $(document).on('click', '.ui-menu .menu-option', function (event) {
+            let menuOption = <HTMLDivElement> this;
+            ctx.dispatch(<MenuEvent> {
+                eventType: 'MenuEvent',
+                menuId: menuOption.getAttribute('menu-id'),
+                forced: false
+            });
+        });
+    }
+
+}
+
+export interface MenuEvent extends CustomEvent {
+    menuId: string
 }
 
 /**

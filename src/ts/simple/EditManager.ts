@@ -46,7 +46,6 @@ export class EditManager {
         for (let index = 0; index < edits.length; index++) {
 
             let next = edits[index];
-
             if (next != null) {
                 this.editsToPush.push(next);
                 next.do(this);

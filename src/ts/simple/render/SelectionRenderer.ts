@@ -10,7 +10,6 @@ export class SelectionRenderer {
 
     session: Session;
     graphics: PIXI.Graphics;
-    fillSprite: PIXI.Sprite;
 
     private readonly tops: RunLength[] = [];
     private readonly bottoms: RunLength[] = [];
@@ -49,12 +48,16 @@ export class SelectionRenderer {
             this.graphics.x = x * scale;
             this.graphics.y = y * scale;
         }
+
+        selections.setDirty(false);
     }
 
     build(): void {
 
-        let g = this.graphics;
-        g.clear();
+        this.tops.length = 0;
+        this.bottoms.length = 0;
+        this.lefts.length = 0;
+        this.rights.length = 0;
 
         let map = this.session.map;
         let selections = map.selections;
@@ -92,11 +95,6 @@ export class SelectionRenderer {
             }
             return array[x][y + 1];
         };
-
-        this.tops.length = 0;
-        this.bottoms.length = 0;
-        this.lefts.length = 0;
-        this.rights.length = 0;
 
         let topCurrent: RunLength = null;
         let bottomCurrent: RunLength = null;
@@ -223,10 +221,6 @@ export class SelectionRenderer {
                 this.rights.push(rightCurrent);
                 rightCurrent = null;
             }
-        }
-
-        if (this.fillSprite != null) {
-            this.fillSprite.texture.destroy(true);
         }
     }
 

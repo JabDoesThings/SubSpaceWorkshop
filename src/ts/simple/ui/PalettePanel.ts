@@ -86,6 +86,10 @@ export class PalettePanel extends UIPanelTab {
     update(): void {
 
         let session = this.renderer.session;
+        if(session == null) {
+            return;
+        }
+
         let atlas = session.atlas;
 
         let shouldDraw = this.dirty || atlas.isDirty() || session !== this.lastSession;

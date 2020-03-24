@@ -73,7 +73,7 @@ export class MapRenderer extends Renderer {
 
         let updateViewport = (): void => {
 
-            if(rightOpen) {
+            if (rightOpen) {
                 this.topRightPanel.open();
                 this.bottomRightPanel.open();
             } else {
@@ -404,22 +404,24 @@ export class MapRenderer extends Renderer {
     setSession(session: Session) {
 
         this.session = session;
-        if (!this.session.cache.initialized) {
+        if (this.session != null && !this.session.cache.initialized) {
             this.session.cache.init();
         }
 
         this.app.stage.removeChildren();
-        for (let index = 0; index < 8; index++) {
-            this.layers.layers[index].removeChildren();
-            this.mapLayers.layers[index].removeChildren();
-            if (index == 2) {
-                this.app.stage.addChild(this.grid);
+        if (this.session != null) {
+            for (let index = 0; index < 8; index++) {
+                this.layers.layers[index].removeChildren();
+                this.mapLayers.layers[index].removeChildren();
+                if (index == 2) {
+                    this.app.stage.addChild(this.grid);
+                }
+                this.app.stage.addChild(this.layers.layers[index]);
+                this.app.stage.addChild(this.mapLayers.layers[index]);
+                this.app.stage.addChild(this.screenLayers.layers[index]);
             }
-            this.app.stage.addChild(this.layers.layers[index]);
-            this.app.stage.addChild(this.mapLayers.layers[index]);
-            this.app.stage.addChild(this.screenLayers.layers[index]);
+            this.app.stage.addChild(this.session.cache.selectionRenderer.graphics);
         }
-        this.app.stage.addChild(this.session.cache.selectionRenderer.graphics);
 
         if (this.session == null) {
             console.log("Active session: none.");
@@ -431,6 +433,7 @@ export class MapRenderer extends Renderer {
         this.screen.draw();
         this.paletteTab.draw();
         this.paletteTab.update();
+        this.radar.setVisible(this.session != null);
         this.radar.draw().then(() => {
             this.radar.apply();
         });

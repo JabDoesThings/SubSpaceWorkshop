@@ -21,6 +21,7 @@ export class Radar implements Dirtable {
     lock: boolean;
     private large: boolean;
     private dirty: boolean;
+    private visible: boolean;
 
     constructor(view: Renderer) {
 
@@ -129,9 +130,9 @@ export class Radar implements Dirtable {
             this.apply();
         }
 
-        if(this.isDirty()) {
-            this.draw().finally(()=> {
-               this.apply();
+        if (this.isDirty()) {
+            this.draw().finally(() => {
+                this.apply();
             });
             this.setDirty(false);
         }
@@ -159,5 +160,22 @@ export class Radar implements Dirtable {
 
     isAltPressed(): boolean {
         return false;
+    }
+
+    isVisible(): boolean {
+        return this.visible;
+    }
+
+    setVisible(flag: boolean) {
+        if (this.visible === flag) {
+            return;
+        }
+
+        this.visible = flag;
+        if (flag) {
+            this.canvas.parentElement.style.display = 'block';
+        } else {
+            this.canvas.parentElement.style.display = 'none';
+        }
     }
 }

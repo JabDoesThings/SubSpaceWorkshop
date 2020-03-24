@@ -33,15 +33,20 @@ export class Session extends CustomEventListener<CustomEvent> {
     /**
      * Main constructor.
      *
+     * @param name
      * @param lvlPath The path of the map to load.
      * @param lvzPaths The path of the LVZ files to load.
      */
-    constructor(lvlPath: string, lvzPaths: string[] = []) {
+    constructor(name: string, lvlPath: string = null, lvzPaths: string[] = []) {
 
         super();
 
-        let split = lvlPath.split("/");
-        this._name = split[split.length - 1].split('.')[0];
+        this._name = name;
+
+        // if(lvlPath != null) {
+        //     let split = lvlPath.split("/");
+        //     this._name = split[split.length - 1].split('.')[0];
+        // }
 
         this.editManager = new EditManager(this);
         this.lvzManager = new LVZManager(this);
@@ -88,7 +93,11 @@ export class Session extends CustomEventListener<CustomEvent> {
             return true;
         }
 
-        this.map = LVL.read(this.lvlPath);
+        if(this.lvlPath != null) {
+            this.map = LVL.read(this.lvlPath);
+        } else {
+            this.map = new LVLMap('untitled', null, LVL.DEFAULT_TILESET);
+        }
 
         this.atlas.getTextureAtlas('tiles').setTexture(this.map.tileset.texture);
         this.lvzManager.load(this.lvzPaths);
