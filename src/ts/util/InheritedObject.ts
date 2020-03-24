@@ -1,23 +1,18 @@
 import { Inheritable } from './Inheritable';
-import { UpdatedObject } from './UpdatedObject';
 
 /**
  * The <i>InheritedObject</i> class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class InheritedObject extends UpdatedObject implements Inheritable {
+export abstract class InheritedObject<I extends InheritedObject<I>> implements Inheritable {
 
-    private children: Inheritable[];
+    private children: I[];
 
-    private parent: Inheritable;
+    private parent: I;
 
-    protected constructor(name: string, id: string = null) {
-
-        super(name, id);
-
+    protected constructor() {
         this.children = [];
-
     }
 
     /////////////////
@@ -30,17 +25,17 @@ export abstract class InheritedObject extends UpdatedObject implements Inheritab
     }
 
     // @Override
-    public isParent(object: Inheritable): boolean {
+    public isParent(object: I): boolean {
         return this.parent != null && this.parent === object;
     }
 
     // @Override
-    public getParent(): Inheritable {
+    public getParent(): I {
         return this.parent;
     }
 
     // @Override
-    public setParent(object: Inheritable): void {
+    public setParent(object: I): void {
 
         if (this.parent != null) {
 
@@ -56,8 +51,8 @@ export abstract class InheritedObject extends UpdatedObject implements Inheritab
             }
 
             // Perform a secondary check to prevent infinite recursion.
-            if (this.parent.isChild(this)) {
-                this.parent.removeChild(this);
+            if (this.parent.isChild(<any> this)) {
+                this.parent.removeChild(<any> this);
             }
         }
 
@@ -74,7 +69,7 @@ export abstract class InheritedObject extends UpdatedObject implements Inheritab
     }
 
     // @Override
-    public isChild(object: Inheritable): boolean {
+    public isChild(object: I): boolean {
 
         // Make sure the object given is not null.
         if (object == null) {
@@ -103,7 +98,7 @@ export abstract class InheritedObject extends UpdatedObject implements Inheritab
     }
 
     // @Override
-    public addChild(object: Inheritable): void {
+    public addChild(object: I): void {
 
         // Make sure the object given is not null.
         if (object == null) {
@@ -122,8 +117,8 @@ export abstract class InheritedObject extends UpdatedObject implements Inheritab
         }
 
         // Perform a secondary check to prevent infinite recursion.
-        if (!object.isParent(this)) {
-            object.setParent(this);
+        if (!object.isParent(<any> this)) {
+            object.setParent(<any> this);
         }
 
         // Add the child as the next index in the array.
@@ -132,7 +127,7 @@ export abstract class InheritedObject extends UpdatedObject implements Inheritab
     }
 
     // @Override
-    public removeChild(object: Inheritable): void {
+    public removeChild(object: I): void {
 
         // Make sure the object given is not null.
         if (object == null) {
@@ -151,12 +146,12 @@ export abstract class InheritedObject extends UpdatedObject implements Inheritab
         }
 
         // Perform a secondary check to prevent infinite recursion.
-        if (object.isParent(this)) {
+        if (object.isParent(<any> this)) {
             object.setParent(null);
         }
 
         // Create the new array to replace the children array.
-        let newChildren: Inheritable[] = [];
+        let newChildren: I[] = [];
 
         // Go through each child and check for a match.
         for (let key in this.children) {
@@ -178,7 +173,7 @@ export abstract class InheritedObject extends UpdatedObject implements Inheritab
     }
 
     // @Override
-    public getChildren(): Inheritable[] {
+    public getChildren(): I[] {
         return this.children;
     }
 }

@@ -112,3 +112,10 @@
   width: 192px;
   height: 378px;
 }
+
+#bottom-right-panel {
+
+  .ui-panel-tab {
+    background-color: $color2;
+  }
+}

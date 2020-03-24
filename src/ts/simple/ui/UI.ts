@@ -590,11 +590,11 @@ export class UIPanelSection {
             if (!this.element.classList.contains('open')) {
                 this.element.classList.add('open');
             }
-            this.header.arrowLabel.innerHTML = '▼';
+            if (this.header.arrowLabel.innerHTML !== '▼') {
+                this.header.arrowLabel.innerHTML = '▼';
+            }
 
-            // if (!this.content.element.style.maxHeight) {
             this.content.element.style.maxHeight = (this.content.element.scrollHeight) + "px";
-            // }
             this.opening = null;
         };
 
@@ -625,7 +625,10 @@ export class UIPanelSection {
                 this.content.element.style.maxHeight = null;
             }
 
-            this.header.arrowLabel.innerHTML = '►';
+            if (this.header.arrowLabel.innerHTML !== '►') {
+                this.header.arrowLabel.innerHTML = '►';
+            }
+
             this.closing = null;
         };
 

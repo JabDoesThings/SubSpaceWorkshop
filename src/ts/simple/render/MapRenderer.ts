@@ -16,7 +16,7 @@ import {
     UIIconToolbar,
     UIIconToolbarEvent,
     UIPanel,
-    UIPanelSection, UIPanelTab,
+    UIPanelSection,
     UITool,
     UITooltip
 } from '../ui/UI';
@@ -24,6 +24,7 @@ import { CustomEvent, CustomEventListener } from '../ui/CustomEventListener';
 import { MapSprite } from './MapSprite';
 import * as PIXI from "pixi.js";
 import { ToolManager } from '../ToolManager';
+import { LayersPanel } from '../ui/LayersPanel';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -44,9 +45,8 @@ export class MapRenderer extends Renderer {
     leftPanel: UIPanel;
     topRightPanel: UIPanel;
     bottomRightPanel: UIPanel;
-    mapObjectSection: UIMapObjectSection;
     paletteTab: PalettePanel;
-    layersTab: UIPanelTab;
+    layersTab: LayersPanel;
 
     screen: ScreenManager;
     toolManager: ToolManager;
@@ -128,15 +128,9 @@ export class MapRenderer extends Renderer {
         );
 
         this.paletteTab = new PalettePanel(this);
-        this.layersTab = new UIPanelTab('layers');
+        this.layersTab = new LayersPanel(this);
         this.topRightPanel.add(this.paletteTab, 'Palette');
         this.bottomRightPanel.add(this.layersTab, 'Layers');
-
-        let objectsTab = this.topRightPanel.createPanel('objects', 'Objects');
-
-        this.mapObjectSection = new UIMapObjectSection('map-objects', 'Map Objects');
-
-        objectsTab.add(this.mapObjectSection);
 
         let container = <HTMLDivElement> document.getElementById('viewport-container');
         container.appendChild(this.leftPanel.element);

@@ -287,7 +287,7 @@ $panelWidth: 320px;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      text-shadow: 2px 1px rgb(0,0,0);
+      text-shadow: 2px 1px rgb(0, 0, 0);
       color: $color8;
       transition: color 200ms;
     }
@@ -302,7 +302,7 @@ $panelWidth: 320px;
     &:hover {
       background-color: $color3;
       border-color: $color8;
-      box-shadow: inset 0 0 2px 2px rgba(0,0,0,0.5);
+      box-shadow: inset 0 0 2px 2px rgba(0, 0, 0, 0.5);
       transition: background-color 0s, border-color 0s, box-shadow 0s;
 
       .fas {
@@ -313,13 +313,13 @@ $panelWidth: 320px;
   }
 
   .tool.selected {
-    box-shadow: inset 0 0 2px 2px rgba(0,0,0,0.5);
+    box-shadow: inset 0 0 2px 2px rgba(0, 0, 0, 0.5);
     background-color: $color4;
     border-color: $color8;
 
     .fas {
       color: $color9;
-      text-shadow: 2px 1px rgb(0,0,0);
+      text-shadow: 2px 1px rgb(0, 0, 0);
     }
   }
 
@@ -395,3 +395,123 @@ $tooltip_border_color: $color8;
     }
   }
 }
+
+.ui-layer-container {
+  position: relative;
+  padding: 7px;
+
+  .ui-layer-spacer {
+    display: block;
+    width: calc(100% - 2px);
+    height: 1px;
+
+    background-color: $color2;
+  }
+
+  .ui-layer {
+    display: block;
+    width: calc(100% - 2px);
+    height: 24px;
+
+    background-color: $color4;
+    border: 1px solid $color4;
+    border-bottom-color: $color2;
+
+    line-height: 26px;
+
+    transition: border-color 300ms;
+
+    &:hover {
+
+      background-color: $color5;
+      border-color: $color4;
+
+      .title {
+        color: $color7;
+      }
+
+      transition: unset;
+    }
+
+    .visibility-icon {
+      position: relative;
+      display: inline-block;
+      left: 0;
+      top: 0;
+      width: 24px;
+      height: 24px;
+
+      overflow-x: hidden;
+      cursor: pointer;
+
+      i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        color: $color8;
+        pointer-events: none;
+        user-select: none;
+        font-size: 15px;
+
+        transition: opacity 100ms;
+      }
+    }
+
+    .grip-icon {
+      float: right;
+      position: relative;
+      top: 0;
+      right: 0;
+      width: 24px;
+      height: 24px;
+
+      cursor: n-resize;
+
+      i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        pointer-events: none;
+        user-select: none;
+        font-size: 12px;
+
+        color: $color8;
+        transition: color 100ms;
+      }
+    }
+
+    .title {
+      position: relative;
+      top: -7px;
+      margin-left: 2px;
+
+      color: $color8;
+      font-size: 12px;
+      font-weight: bold;
+
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .children {
+      display: block;
+      position: relative;
+      width: 100%;
+    }
+  }
+
+  .ui-layer.selected {
+    background-color: $color5;
+    border-color: $color4;
+
+    .title {
+      color: $color9;
+    }
+  }
+}
+
+

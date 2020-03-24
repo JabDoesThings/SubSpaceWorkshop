@@ -21,7 +21,7 @@ export class PalettePanel extends UIPanelTab {
 
     selectorStandardTile: TileSection;
     selectorSpecialTile: ItemSelector;
-    selectorMapImage: ItemSelector;
+    // selectorMapImage: ItemSelector;
 
     private lastSession: Session;
     private sectionStandardTile: UIPanelSection;
@@ -72,13 +72,13 @@ export class PalettePanel extends UIPanelTab {
             }
         });
 
-        this.selectorMapImage = new ItemSelector(this, this.sectionMapImage.content.contents);
-        this.selectorMapImage.init(width);
-        this.selectorMapImage.addEventListener((event: ItemSelectorEvent) => {
-            if (event.action === ItemSelectorAction.POST_DRAW && this.sectionMapImage.isOpen()) {
-                this.sectionMapImage.open();
-            }
-        });
+        // this.selectorMapImage = new ItemSelector(this, this.sectionMapImage.content.contents);
+        // this.selectorMapImage.init(width);
+        // this.selectorMapImage.addEventListener((event: ItemSelectorEvent) => {
+        //     if (event.action === ItemSelectorAction.POST_DRAW && this.sectionMapImage.isOpen()) {
+        //         this.sectionMapImage.open();
+        //     }
+        // });
 
         this.dirty = true;
     }
@@ -90,14 +90,14 @@ export class PalettePanel extends UIPanelTab {
 
         let shouldDraw = this.dirty || atlas.isDirty() || session !== this.lastSession;
 
-        if (!shouldDraw) {
-            for (let key in this.selectorMapImage.items) {
-                if (this.selectorMapImage.items[key].isDirty()) {
-                    shouldDraw = true;
-                    break;
-                }
-            }
-        }
+        // if (!shouldDraw) {
+        // for (let key in this.selectorMapImage.items) {
+        //     if (this.selectorMapImage.items[key].isDirty()) {
+        //         shouldDraw = true;
+        //         break;
+        //     }
+        // }
+        // }
 
         if (shouldDraw) {
 
@@ -106,12 +106,12 @@ export class PalettePanel extends UIPanelTab {
             this.selectorSpecialTile.draw();
 
             this.createLVZAssets(session);
-            this.selectorMapImage.draw();
+            // this.selectorMapImage.draw();
             this.sectionMapImage.open();
 
-            for (let key in this.selectorMapImage.items) {
-                this.selectorMapImage.items[key].setDirty(false);
-            }
+            // for (let key in this.selectorMapImage.items) {
+            //     this.selectorMapImage.items[key].setDirty(false);
+            // }
 
             if (!this.contentFrameResize) {
                 this.contentFrameResize = true;
@@ -164,74 +164,72 @@ export class PalettePanel extends UIPanelTab {
 
     createLVZAssets(session: Session): void {
 
-        this.selectorMapImage.clear();
+        // this.selectorMapImage.clear();
 
-        // return;
-
-        let packages = session.lvzManager.packages;
-        if (packages == null || packages.length == 0) {
-            return;
-        }
-
-        let add = (id: string, sprite: MapSprite, selector: ItemSelector): void => {
-
-            let item = new SpriteItem(selector, SelectionType.IMAGE, id, sprite);
-            selector.add(item);
-            let callbacks = session.cache.callbacks[id];
-            if (callbacks == null) {
-                callbacks = session.cache.callbacks[id] = [];
-            }
-            callbacks.push(() => {
-                this.selectorMapImage.setDirty(true);
-            });
-        };
-
-        let isRestricted = (name: string): boolean => {
-            name = name.split('.')[0].toLowerCase();
-
-            for (let index = 0; index < LVZManager.LVZ_EXEMPT_IMAGES.length; index++) {
-                if (LVZManager.LVZ_EXEMPT_IMAGES[index] === name) {
-                    return true;
-                }
-            }
-
-            return false;
-        };
-
-        for (let key in packages) {
-
-            let pkg = packages[key];
-
-            if (pkg.images.length === 0) {
-                continue;
-            }
-
-            for (let index = 0; index < pkg.images.length; index++) {
-
-                let fileName = pkg.images[index].fileName;
-
-                if (isRestricted(fileName)) {
-                    continue;
-                }
-
-                let id = pkg.name.toLowerCase() + ">>>" + index;
-                let sprite: MapSprite = session.atlas.getSpriteById(id);
-
-                if (sprite == null) {
-                    continue;
-                }
-
-                add(id, sprite, this.selectorMapImage);
-            }
-        }
-
+        // let packages = session.lvzManager.packages;
+        // if (packages == null || packages.length == 0) {
+        //     return;
+        // }
+        //
+        // let add = (id: string, sprite: MapSprite, selector: ItemSelector): void => {
+        //
+        //     let item = new SpriteItem(selector, SelectionType.IMAGE, id, sprite);
+        //     selector.add(item);
+        //     let callbacks = session.cache.callbacks[id];
+        //     if (callbacks == null) {
+        //         callbacks = session.cache.callbacks[id] = [];
+        //     }
+        //     callbacks.push(() => {
+        //         this.selectorMapImage.setDirty(true);
+        //     });
+        // };
+        //
+        // let isRestricted = (name: string): boolean => {
+        //     name = name.split('.')[0].toLowerCase();
+        //
+        //     for (let index = 0; index < LVZManager.LVZ_EXEMPT_IMAGES.length; index++) {
+        //         if (LVZManager.LVZ_EXEMPT_IMAGES[index] === name) {
+        //             return true;
+        //         }
+        //     }
+        //
+        //     return false;
+        // };
+        //
+        // for (let key in packages) {
+        //
+        //     let pkg = packages[key];
+        //
+        //     if (pkg.images.length === 0) {
+        //         continue;
+        //     }
+        //
+        //     for (let index = 0; index < pkg.images.length; index++) {
+        //
+        //         let fileName = pkg.images[index].fileName;
+        //
+        //         if (isRestricted(fileName)) {
+        //             continue;
+        //         }
+        //
+        //         let id = pkg.name.toLowerCase() + ">>>" + index;
+        //         let sprite: MapSprite = session.atlas.getSpriteById(id);
+        //
+        //         if (sprite == null) {
+        //             continue;
+        //         }
+        //
+        //         add(id, sprite, this.selectorMapImage);
+        //     }
+        // }
+        //
         this.dirty = false;
     }
 
     draw(): void {
         this.selectorStandardTile.draw();
         this.selectorSpecialTile.draw();
-        this.selectorMapImage.draw();
+        // this.selectorMapImage.draw();
     }
 }
 
