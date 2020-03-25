@@ -1,10 +1,11 @@
 import { Session } from '../Session';
 import { MapMouseEvent } from '../../common/Renderer';
-import { LVLMap } from '../../io/LVL';
 import { Tool } from './Tool';
 import { SelectionType } from '../ui/Selection';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
+import { TileLayer } from '../layers/TileLayer';
+import { TileData } from '../../util/map/TileData';
 
 export class SquareTool extends Tool {
 
@@ -42,6 +43,11 @@ export class SquareTool extends Tool {
 
     private draw(session: Session, event: MapMouseEvent): Edit[] {
 
+        let activeLayer = session.layers.getActive();
+        if(activeLayer == null || !(activeLayer instanceof TileLayer)) {
+            return;
+        }
+
         let selectionGroup = session.selectionGroup;
 
         let selection = selectionGroup.getSelection(event.button);
@@ -60,7 +66,7 @@ export class SquareTool extends Tool {
 
         if (this.down != null) {
 
-            tiles = LVLMap.tracePixels(
+            tiles = TileData.tracePixels(
                 event.data.x,
                 event.data.y,
                 this.down.x,
@@ -93,13 +99,13 @@ export class SquareTool extends Tool {
             apply.push({
                 x: tile.x,
                 y: tile.y,
-                from: this.tileCache.getTile(session.map, tile.x, tile.y),
+                from: this.tileCache.getTile(activeLayer.tiles, tile.x, tile.y),
                 to: to
             });
         }
 
         if (apply.length !== 0) {
-            return [new EditTiles(0, apply)];
+            return [new EditTiles(activeLayer, apply)];
         }
     }
 }

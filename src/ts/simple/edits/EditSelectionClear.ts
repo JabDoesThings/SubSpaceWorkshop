@@ -1,25 +1,23 @@
 import { Edit } from './Edit';
 import { EditManager } from '../EditManager';
-import { MapSection, MapSections } from '../../util/map/MapSection';
+import { MapSection } from '../../util/map/MapSection';
 
 /**
- * The <i>EditClearSelections</i> class. TODO: Document.
+ * The <i>EditSelectionClear</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EditClearSelections extends Edit {
+export class EditSelectionClear extends Edit {
 
     private selections: MapSection[];
     private done: boolean;
 
     /**
      * Main constructor.
-     *
-     * @param layer
      */
-    constructor(layer: number) {
+    constructor() {
 
-        super(layer);
+        super();
 
         this.selections = null;
         this.done = false;
@@ -32,7 +30,7 @@ export class EditClearSelections extends Edit {
             throw new Error("The selection is already removed.");
         }
 
-        this.selections = history.session.map.selections.clear();
+        this.selections = history.session.selections.clear();
 
         this.done = true;
     }
@@ -44,7 +42,7 @@ export class EditClearSelections extends Edit {
             throw new Error("The selection is not removed.");
         }
 
-        history.session.map.selections.addAll(this.selections);
+        history.session.selections.addAll(this.selections);
 
         this.selections = null;
         this.done = false;

@@ -1,18 +1,19 @@
 import { Edit } from './Edit';
 import { EditManager } from '../EditManager';
-import { MapSection, MapSections } from '../../util/map/MapSection';
+import { MapSection } from '../../util/map/MapSection';
 
-export class EditAddSelection extends Edit {
+export class EditSelectionAdd extends Edit {
 
     private readonly selections: MapSection[];
 
     private done: boolean;
 
-    constructor(layer: number, selections: MapSection[]) {
+    constructor(selections: MapSection[]) {
 
-        super(layer);
+        super();
 
         this.selections = selections;
+
         this.done = false;
     }
 
@@ -23,7 +24,7 @@ export class EditAddSelection extends Edit {
         }
 
         for (let index = 0; index < this.selections.length; index++) {
-            history.session.map.selections.add(this.selections[index]);
+            history.session.selections.add(this.selections[index]);
         }
 
         this.done = true;
@@ -36,7 +37,7 @@ export class EditAddSelection extends Edit {
         }
 
         for (let index = this.selections.length - 1; index >= 0; index--) {
-            history.session.map.selections.remove(this.selections[index]);
+            history.session.selections.remove(this.selections[index]);
         }
 
         this.done = false;

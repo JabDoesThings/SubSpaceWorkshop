@@ -1,10 +1,11 @@
 import { Session } from '../Session';
 import { MapMouseEvent } from '../../common/Renderer';
-import { LVLMap } from '../../io/LVL';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 import { DrawTool } from './DrawTool';
 import { Selection } from '../ui/Selection';
+import { TileData } from '../../util/map/TileData';
+import { TileLayer } from '../layers/TileLayer';
 
 /**
  * The <i>EraserTool</i> class. TODO: Document.
@@ -23,11 +24,16 @@ export class EraserTool extends DrawTool {
     // @Override
     protected drawTile(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
 
+        let activeLayer = session.layers.getActive();
+        if(activeLayer == null || !(activeLayer instanceof TileLayer)) {
+            return;
+        }
+
         let tiles: { x: number, y: number }[];
 
         if (this.last != null) {
 
-            tiles = LVLMap.traceTiles(
+            tiles = TileData.traceTiles(
                 event.data.tileX,
                 event.data.tileY,
                 this.last.tileX,
@@ -65,13 +71,13 @@ export class EraserTool extends DrawTool {
             apply.push({
                 x: tile.x,
                 y: tile.y,
-                from: this.tileCache.getTile(session.map, tile.x, tile.y),
+                from: this.tileCache.getTile(activeLayer.tiles, tile.x, tile.y),
                 to: to
             });
         }
 
         if (apply.length !== 0) {
-            return [new EditTiles(0, apply)];
+            return [new EditTiles(activeLayer, apply)];
         }
     }
 

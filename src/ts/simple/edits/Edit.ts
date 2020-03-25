@@ -7,15 +7,12 @@ import { EditManager } from '../EditManager';
  */
 export abstract class Edit {
 
-    protected layer: number;
 
     /**
      * Main constructor.
      *
-     * @param layer The layer that the edit is on.
      */
-    protected constructor(layer: number) {
-        this.layer = layer;
+    protected constructor() {
     }
 
     /**

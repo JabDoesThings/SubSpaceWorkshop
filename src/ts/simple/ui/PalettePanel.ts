@@ -9,6 +9,7 @@ import { CustomEvent } from './CustomEventListener';
 import { EditorAction, EditorSessionEvent } from '../SimpleEditor';
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
+import { LVLTileSet } from '../../io/LVL';
 
 /**
  * The <i>PalettePanel</i> class. TODO: Document.
@@ -86,7 +87,7 @@ export class PalettePanel extends UIPanelTab {
     update(): void {
 
         let session = this.renderer.session;
-        if(session == null) {
+        if (session == null) {
             return;
         }
 
@@ -327,6 +328,8 @@ export class TileSection {
         });
     }
 
+    last: LVLTileSet;
+
     update(): void {
 
         let session = this.panel.renderer.session;
@@ -335,15 +338,11 @@ export class TileSection {
             return;
         }
 
-        let map = session.map;
-        if (map == null) {
-            return;
-        }
-
-        let tileset = map.tileset;
-        if ((tileset != null && tileset.isDirty())
+        let tileset = session.tileset;
+        if (this.last !== tileset || (tileset != null && tileset.isDirty())
             || (this.panel.renderer.session != null && this.panel.renderer.session.selectionGroup.isDirty())) {
             this.draw();
+            this.last = tileset;
         }
     }
 
@@ -356,12 +355,7 @@ export class TileSection {
             return;
         }
 
-        let map = session.map;
-        if (map == null) {
-            return;
-        }
-
-        let tileset = map.tileset;
+        let tileset = session.tileset;
         if (tileset != null) {
 
             let tex = tileset.texture;

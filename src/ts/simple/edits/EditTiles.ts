@@ -1,5 +1,6 @@
 import { Edit } from './Edit';
 import { EditManager } from '../EditManager';
+import { TileLayer } from '../layers/TileLayer';
 
 /**
  * The <i>EditTiles</i> class. TODO: Document.
@@ -8,10 +9,11 @@ import { EditManager } from '../EditManager';
  */
 export class EditTiles extends Edit {
 
-    readonly tiles: { x: number, y: number, from: number, to: number }[];
-    tilesToUndo: { x: number, y: number, from: number, to: number }[];
+    readonly tiles: TileEdit[];
+    tilesToUndo: TileEdit[];
 
-    private applyDimensions: boolean;
+    private readonly applyDimensions: boolean;
+    private readonly layer: TileLayer;
 
     /**
      * Main constructor.
@@ -21,11 +23,13 @@ export class EditTiles extends Edit {
      * @param applyDimensions
      */
     constructor(
-        layer: number,
-        tiles: { x: number, y: number, from: number, to: number }[],
+        layer: TileLayer,
+        tiles: TileEdit[],
         applyDimensions = true) {
 
-        super(layer);
+        super();
+
+        this.layer = layer;
         this.tiles = tiles;
         this.tilesToUndo = null;
         this.applyDimensions = applyDimensions;
@@ -38,8 +42,6 @@ export class EditTiles extends Edit {
             return;
         }
 
-        let map = history.session.map;
-
         this.tilesToUndo = [];
 
         for (let index = 0; index < this.tiles.length; index++) {
@@ -47,8 +49,9 @@ export class EditTiles extends Edit {
             let next = this.tiles[index];
 
             try {
-                this.tilesToUndo
-                    = this.tilesToUndo.concat(map.setTile(next.x, next.y, next.to, this.applyDimensions));
+
+                let originalTiles = this.layer.tiles.set(next.x, next.y, next.to, this.applyDimensions);
+                this.tilesToUndo = this.tilesToUndo.concat(originalTiles);
             } catch (e) {
 
                 let str = 'null';
@@ -72,29 +75,57 @@ export class EditTiles extends Edit {
             return;
         }
 
-        let map = history.session.map;
+        let tiles = this.layer.tiles;
 
         for (let index = this.tilesToUndo.length - 1; index >= 0; index--) {
 
             let next = this.tilesToUndo[index];
 
             try {
-                map.setTile(next.x, next.y, next.from, this.applyDimensions);
+                tiles.set(next.x, next.y, next.from, this.applyDimensions);
             } catch (e) {
 
-                let str = 'null';
-                if (next != null) {
-                    str = '{x: ' + next.x
-                        + ', y: ' + next.y
-                        + ', from: ' + next.from
-                        + ', to: ' + next.to + '}';
-                }
-
+                let str = next != null ? next.toString() : 'null';
                 console.error('Failed to UNDO tile: ' + str);
                 console.error(e);
             }
         }
 
         this.tilesToUndo = null;
+    }
+
+
+}
+
+/**
+ * The <i>TileEdit</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class TileEdit {
+
+    readonly x: number;
+    readonly y: number;
+    readonly from: number;
+    readonly to: number;
+
+    /**
+     * Main constructor.
+     *
+     * @param x The 'X' coordinate of the tile to edit.
+     * @param y The 'Y' coordinate of the tile to edit.
+     * @param from The original ID of the tile.
+     * @param to The ID to set for the tile.
+     */
+    constructor(x: number, y: number, from: number, to: number) {
+        this.x = x;
+        this.y = y;
+        this.from = from;
+        this.to = to;
+    }
+
+    // @Override
+    toString(): string {
+        return '{x: ' + this.x + ', y: ' + this.y + ', from: ' + this.from + ', to: ' + this.to + '}';
     }
 }

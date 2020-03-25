@@ -4,6 +4,8 @@ import { Session } from './Session';
 import { TabAction, UITabEvent, UITabMenu } from './ui/UI';
 import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 import * as PIXI from "pixi.js";
+import { TileLayer } from './layers/TileLayer';
+import { LVL } from '../io/LVLUtils';
 
 /**
  * The <i>SimpleEditor</i> class. TODO: Document.
@@ -48,7 +50,6 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
         for (let index = 0; index < sessions.length; index++) {
 
             let next = sessions[index];
-            next.editor = this;
             next.tab = this.tabMenu.createTab(next._name, next._name);
 
             const _i = index;
@@ -59,7 +60,7 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
             });
         }
 
-        this.renderer = new MapRenderer();
+        this.renderer = new MapRenderer(this);
 
         let vc = <HTMLDivElement> document.getElementById("viewport-container");
         vc.appendChild(this.tabMenu.element);
@@ -96,8 +97,7 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
 
             if (event.menuId === 'new') {
 
-                let session = new Session('untitled');
-                session.editor = this;
+                let session = new Session(this.renderer, 'untitled');
                 session.tab = this.tabMenu.createTab(session._name, session._name);
 
                 const _i = this.sessions.length;
@@ -106,6 +106,14 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
                         this.setActive(_i);
                     }
                 });
+
+                let map = LVL.read('assets/lvl/zone66.lvl');
+                session.setTileset(map.tileset);
+                session.atlas.getTextureAtlas('tiles').setTexture(map.tileset.texture);
+
+                let baseLayer = new TileLayer(session.layers, null, 'Base Layer', map.tiles);
+                baseLayer.tiles.set(1, 1, 170);
+                session.layers.add(baseLayer);
 
                 this.add([session]);
                 this.setActive(this.sessions.length - 1);
@@ -182,9 +190,9 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
 
             let next = sessions[index];
 
-            if (unload && next.unload()) {
-                continue;
-            }
+            // if (unload && next.unload()) {
+            //     continue;
+            // }
 
             toRemove.push(next);
         }
@@ -263,10 +271,10 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
             this.renderer.setSession(null);
         } else {
             let session = this.sessions[this.activeSession];
-            if (!session.loaded) {
-                session.tab.select();
-                session.load();
-            }
+            // if (!session.loaded) {
+            //     session.tab.select();
+            //     session.load();
+            // }
             this.renderer.setSession(session);
         }
 

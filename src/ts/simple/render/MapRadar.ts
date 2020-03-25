@@ -20,7 +20,6 @@ export class MapRadar extends Radar {
         if (session == null) {
             return;
         }
-        let map = session.map;
 
         let ctx = this.drawCanvas.getContext('2d');
 
@@ -28,17 +27,13 @@ export class MapRadar extends Radar {
         ctx.fillStyle = '#010201';
         ctx.fillRect(0, 0, 1024, 1024);
 
-        if (map == null) {
-            return;
-        }
-
-        let tileset = map.tileset;
+        let tileset = session.tileset;
+        let layers = session.layers;
 
         for (let y = 0; y < 1024; y++) {
             for (let x = 0; x < 1024; x++) {
-                let tileId = map.getTile(x, y);
-                if (tileId != 0) {
-
+                let tileId = layers.getTile(x, y);
+                if (tileId > 0) {
                     if (tileId <= 190) {
                         if (tileset != null) {
                             ctx.fillStyle = tileset.tileColor[tileId];

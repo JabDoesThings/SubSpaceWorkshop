@@ -98,6 +98,8 @@ export abstract class Renderer extends UpdatedObject {
             this.update(delta);
             this.onPostUpdate(delta);
 
+            this.camera.setDirty(false);
+
             if (this.stats != null) {
                 this.stats.end();
             }

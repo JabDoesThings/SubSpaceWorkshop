@@ -1,4 +1,4 @@
-import { LVLMap } from '../../io/LVL';
+import { TileData } from './TileData';
 
 /**
  * The <i>TileCache</i> class handles storage of cached Tile IDs for the map when processing
@@ -18,20 +18,20 @@ export class TileCache {
     }
 
     /**
-     * @param map The map to read if the tile's ID isn't cached.
+     * @param tiles The map to read if the tile's ID isn't cached.
      * @param x The 'Y' coordinate of the tile.
      * @param y The 'X' coordinate of the tile.
      *
      * @return Returns the tile ID of the map. If the tile exists in the cache,
      *   then this value is returned.
      */
-    getTile(map: LVLMap, x: number, y: number): number {
+    getTile(tiles: TileData, x: number, y: number): number {
 
         if (this.isCached(x, y)) {
             return this.getCachedTile(x, y);
         }
 
-        let tileId = map.getTile(x, y);
+        let tileId = tiles.get(x, y);
         this.setCached(x, y, tileId);
         return tileId;
     }

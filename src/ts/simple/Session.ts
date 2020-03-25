@@ -1,14 +1,17 @@
 import { DEFAULT_ATLAS } from '../main';
-import { LVLMap } from '../io/LVL';
-import { LVL } from '../io/LVLUtils';
 import { SimpleEditor } from './SimpleEditor';
 import { Selection, SelectionGroup, SelectionSlot, SelectionType } from './ui/Selection';
 import { UITab } from './ui/UI';
 import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
-import { LVZManager } from './LVZManager';
 import { SessionAtlas } from './render/SessionAtlas';
 import { EditManager } from './EditManager';
-import { SessionCache } from './SessionCache';
+import { LayerManager } from './layers/LayerManager';
+import { MapSections } from '../util/map/MapSection';
+import { LVLTileSet } from '../io/LVL';
+import { LVL } from '../io/LVLUtils';
+import { Background } from '../common/Background';
+import { SelectionRenderer } from './render/SelectionRenderer';
+import { MapRenderer } from './render/MapRenderer';
 
 /**
  * The <i>Session</i> class. TODO: Document.
@@ -19,174 +22,87 @@ export class Session extends CustomEventListener<CustomEvent> {
 
     editor: SimpleEditor;
     editManager: EditManager;
-    lvzManager: LVZManager;
     selectionGroup: SelectionGroup;
-    cache: SessionCache;
-    tab: UITab;
-    map: LVLMap;
+    layers: LayerManager;
+    selections: MapSections;
     atlas: SessionAtlas;
-    lvzPaths: string[];
-    lvlPath: string;
+    tileset: LVLTileSet;
+    tab: UITab;
     _name: string;
-    loaded: boolean;
+
+    background: Background;
+    selectionRenderer: SelectionRenderer;
+
+    renderer: MapRenderer;
 
     /**
      * Main constructor.
      *
+     * @param renderer
      * @param name
-     * @param lvlPath The path of the map to load.
-     * @param lvzPaths The path of the LVZ files to load.
      */
-    constructor(name: string, lvlPath: string = null, lvzPaths: string[] = []) {
+    constructor(renderer: MapRenderer, name: string) {
 
         super();
 
+        this.renderer = renderer;
+        this.editor = this.renderer.editor;
         this._name = name;
-
-        // if(lvlPath != null) {
-        //     let split = lvlPath.split("/");
-        //     this._name = split[split.length - 1].split('.')[0];
-        // }
-
-        this.editManager = new EditManager(this);
-        this.lvzManager = new LVZManager(this);
-
-        this.lvlPath = lvlPath;
-        this.lvzPaths = lvzPaths;
-
-        this.selectionGroup = new SelectionGroup();
-        this.selectionGroup.setSelection(SelectionSlot.PRIMARY, new Selection(SelectionType.TILE, 1));
-        this.selectionGroup.setSelection(SelectionSlot.SECONDARY, new Selection(SelectionType.TILE, 2));
+        this.tileset = LVL.DEFAULT_TILESET.clone();
 
         this.atlas = DEFAULT_ATLAS.clone();
+        this.atlas.getTextureAtlas('tiles').setTexture(this.tileset.texture);
         this.atlas.addEventListener((event) => {
             this.dispatch(event);
         });
 
-        this.cache = new SessionCache(this);
-    }
+        this.layers = new LayerManager(this);
+        this.editManager = new EditManager(this);
 
-    /**
-     * Loads map data and LVZ packages in the Session.
-     *
-     * @param override If true, the session will load. (Even if already loaded)
-     *
-     * @return Returns true if the action is cancelled.
-     */
-    load(override: boolean = false): boolean {
+        this.selections = new MapSections();
+        this.background = new Background(this, renderer, 0);
+        this.selectionRenderer = new SelectionRenderer(this);
 
-        // Make sure that the Session is only loading data when it has to.
-        if (!override && this.loaded) {
-            return true;
-        }
-
-        if (this.loaded) {
-            this.unload(true);
-        }
-
-        if (this.dispatch(<SessionEvent> {
-            eventType: 'SessionEvent',
-            session: this,
-            action: SessionAction.PRE_LOAD,
-            forced: override
-        })) {
-            return true;
-        }
-
-        if(this.lvlPath != null) {
-            this.map = LVL.read(this.lvlPath);
-        } else {
-            this.map = new LVLMap('untitled', null, LVL.DEFAULT_TILESET);
-        }
-
-        this.atlas.getTextureAtlas('tiles').setTexture(this.map.tileset.texture);
-        this.lvzManager.load(this.lvzPaths);
-
-        this.loaded = true;
-
-        this.dispatch(<SessionEvent> {
-            eventType: 'SessionEvent',
-            session: this,
-            action: SessionAction.POST_LOAD,
-            forced: true
-        });
-    }
-
-    /**
-     * Unloads map data and LVZ packages in the Session.
-     *
-     * @param override If true, the session will unload. (Even if already loaded)
-     *
-     * @return Returns true if the action is cancelled.
-     */
-    unload(override: boolean = false): boolean {
-
-        // Make sure that the Session is only unloading data when it has to.
-        if (!override && !this.loaded) {
-            return true;
-        }
-
-        if (this.dispatch(<SessionEvent> {
-            eventType: 'SessionEvent',
-            session: this,
-            action: SessionAction.PRE_UNLOAD,
-            forced: override
-        })) {
-            return true;
-        }
-
-        let tileset = this.map.tileset;
-        if (tileset != null && tileset !== LVL.DEFAULT_TILESET) {
-            tileset.texture.destroy(true);
-        }
-
-        this.lvzManager.unload();
-        this.loaded = false;
-
-        this.dispatch(<SessionEvent> {
-            eventType: 'SessionEvent',
-            session: this,
-            action: SessionAction.POST_UNLOAD,
-            forced: true
-        });
-        return false;
+        this.selectionGroup = new SelectionGroup();
+        this.selectionGroup.setSelection(SelectionSlot.PRIMARY, new Selection(SelectionType.TILE, 1));
+        this.selectionGroup.setSelection(SelectionSlot.SECONDARY, new Selection(SelectionType.TILE, 2));
     }
 
     onPreUpdate(): void {
-
-        if (this.lvzManager.dirty) {
-            for (let y = 0; y < 16; y++) {
-                for (let x = 0; x < 16; x++) {
-                    let chunk = this.cache.lvzChunks[x][y];
-                    if (this.lvzManager.isDirty(
-                        x * 1024,
-                        y * 1024,
-                        (x + 1) * 1024,
-                        (y + 1) * 1024
-                    )) {
-                        chunk.build(this, this.editor.renderer.mapLayers);
-                    }
-                }
-            }
-        }
-
-        this.cache.onPreUpdate();
+        this.layers.preUpdate();
     }
 
-    onUpdate(): void {
+    onUpdate(delta: number): void {
+        this.layers.update(delta);
+        this.background.update();
         this.atlas.update();
+        this.selectionRenderer.update();
     }
 
     onPostUpdate(): void {
+        this.layers.postUpdate();
+        this.tileset.setDirty(false);
+        this.background.setDirty(false);
         this.selectionGroup.setDirty(false);
-        this.lvzManager.onPostUpdate();
         this.atlas.setDirty(false);
-        this.editor.renderer.camera.setDirty(false);
-        this.map.setDirty(false);
-        this.map.selections.setDirty(false);
-        if (this.map.tileset != null) {
-            this.map.tileset.setDirty(false);
+        this.selections.setDirty(false);
+    }
+
+    onActivate(): void {
+        this.layers.onActivate(this.renderer);
+        this.renderer.mapLayers.layers[1].addChild(this.background);
+        this.renderer.mapLayers.layers[7].addChild(this.selectionRenderer.graphics);
+    }
+
+    setTileset(tileset: LVLTileSet) {
+
+        if (tileset === this.tileset) {
+            return;
         }
+
+        this.tileset = tileset;
+        tileset.setDirty(true);
+        this.atlas.getTextureAtlas('tiles').setTexture(tileset.texture);
     }
 }
 
@@ -196,20 +112,5 @@ export class Session extends CustomEventListener<CustomEvent> {
  * @author Jab
  */
 export interface SessionEvent extends CustomEvent {
-    session: Session,
-    action: SessionAction
-}
-
-/**
- * The <i>SessionAction</i> enum. TODO: Document.
- *
- * @author Jab
- */
-export enum SessionAction {
-    PRE_LOAD = 'pre-load',
-    POST_LOAD = 'post-load',
-    PRE_SAVE = 'pre-save',
-    POST_SAVE = 'post-save',
-    PRE_UNLOAD = 'pre-unload',
-    POST_UNLOAD = 'post-unload'
+    session: Session
 }

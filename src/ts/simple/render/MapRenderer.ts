@@ -5,7 +5,7 @@ import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Rendere
 import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
 import { Session } from '../Session';
-import { CompiledLVZMapObject, CompiledLVZScreenObject, LVZPackage, LVZXType, LVZYType } from '../../io/LVZ';
+import { CompiledLVZMapObject, CompiledLVZScreenObject, LVZPackage } from '../../io/LVZ';
 import {
     IconToolbarAction,
     PanelOrientation,
@@ -25,6 +25,7 @@ import { MapSprite } from './MapSprite';
 import * as PIXI from "pixi.js";
 import { ToolManager } from '../ToolManager';
 import { LayersPanel } from '../ui/LayersPanel';
+import { SimpleEditor } from '../SimpleEditor';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -50,14 +51,16 @@ export class MapRenderer extends Renderer {
 
     screen: ScreenManager;
     toolManager: ToolManager;
+    editor: SimpleEditor;
 
     /**
      * Main constructor.
      */
-    public constructor() {
+    public constructor(editor: SimpleEditor) {
 
         super();
 
+        this.editor = editor;
         this.radar = new MapRadar(this);
 
         this.layers = new LayerCluster();
@@ -328,15 +331,9 @@ export class MapRenderer extends Renderer {
             return;
         }
 
-        this.session.onUpdate();
+        this.session.onUpdate(delta);
 
-        let cache = this.session.cache;
-        let background = cache._background;
-        let border = cache._border;
-
-        let chunks = cache.chunks;
-        let lvzChunks = cache.lvzChunks;
-        let regions = cache.regions;
+        let background = this.session.background;
 
         if (this.camera.isDirty()) {
 
@@ -344,41 +341,8 @@ export class MapRenderer extends Renderer {
                 background.update();
             }
 
-            border.update();
-
             if (this.grid.visible) {
                 this.grid.draw();
-            }
-
-            let cpos = this.camera.position;
-            let cx = cpos.x * 16;
-            let cy = cpos.y * 16;
-            let scale = cpos.scale;
-            let invScale = 1 / scale;
-            let sw = this.app.view.width * invScale;
-            let sh = this.app.view.height * invScale;
-            let x = (Math.floor((-1 + (-cx + sw / 2)))) * scale;
-            let y = (1 + Math.floor((-cy + sh / 2))) * scale;
-
-            for (let index = 0; index < 8; index++) {
-                let next = this.mapLayers.layers[index];
-                next.x = x;
-                next.y = y;
-                next.scale.x = scale;
-                next.scale.y = scale;
-            }
-        }
-
-        for (let x = 0; x < 16; x++) {
-            for (let y = 0; y < 16; y++) {
-                chunks[x][y].onUpdate(delta);
-                lvzChunks[x][y].onUpdate();
-            }
-        }
-
-        if (regions.length != 0) {
-            for (let index = 0; index < regions.length; index++) {
-                regions[index].update();
             }
         }
 
@@ -398,15 +362,12 @@ export class MapRenderer extends Renderer {
 
     // @Override
     public isDirty(): boolean {
-        return super.isDirty() || this.camera.isDirty() || this.session.map.isDirty();
+        return super.isDirty() || this.camera.isDirty() || this.session.layers.isDirty();
     }
 
     setSession(session: Session) {
 
         this.session = session;
-        if (this.session != null && !this.session.cache.initialized) {
-            this.session.cache.init();
-        }
 
         this.app.stage.removeChildren();
         if (this.session != null) {
@@ -420,13 +381,16 @@ export class MapRenderer extends Renderer {
                 this.app.stage.addChild(this.mapLayers.layers[index]);
                 this.app.stage.addChild(this.screenLayers.layers[index]);
             }
-            this.app.stage.addChild(this.session.cache.selectionRenderer.graphics);
         }
 
         if (this.session == null) {
             console.log("Active session: none.");
         } else {
-            session.cache.set();
+            this.layers.clear();
+            this.mapLayers.clear();
+            this.screenLayers.clear();
+            this.layersTab.clear();
+            session.onActivate();
             console.log("Active session: " + this.session._name);
         }
 
@@ -639,78 +603,78 @@ export class ScreenManager {
     draw(): void {
 
         let screen = this.renderer.app.screen;
-        let center = {x: screen.width / 2, y: screen.height / 2};
-
-        let calculate = (x: number, y: number, xType: LVZXType, yType: LVZYType): { x: number, y: number } => {
-
-            let result = {x: x, y: y};
-
-            if (xType === LVZXType.SCREEN_CENTER) {
-                result.x = x + center.x;
-            } else if (xType === LVZXType.SCREEN_RIGHT) {
-                result.x = x + screen.width;
-            }
-
-            if (yType === LVZYType.SCREEN_CENTER) {
-                result.y = y + center.y;
-            } else if (yType === LVZYType.SCREEN_BOTTOM) {
-                result.y = y + screen.height;
-            }
-
-            // TODO: Implement all coordinates.
-
-            return result;
-        };
-
-        let cluster = this.renderer.screenLayers;
-        cluster.clear();
-
-        let session = this.renderer.session;
-        if (session == null) {
-            return;
-        }
-
-        let atlas = session.atlas;
-
-        let screenObjects = session.lvzManager.getScreenObjects();
-        if (screenObjects.length === 0) {
-            return;
-        }
-
-        for (let index = 0; index < screenObjects.length; index++) {
-
-            let object = screenObjects[index];
-            let pkg = object.pkg;
-            let image = pkg.images[screenObjects[index].image];
-            let packageName = screenObjects[index].pkg.name;
-
-            let coordinates = calculate(object.x, object.y, object.xType, object.yType);
-
-            let sprite = atlas.getSpriteById(packageName + '>>>' + object.image);
-            if (sprite == null) {
-                continue;
-            }
-
-            let _sprite = new PIXI.Sprite();
-            _sprite.x = coordinates.x;
-            _sprite.y = coordinates.y;
-
-            let profile = <LVZScreenEntry> {
-                sprite: sprite,
-                _sprite: _sprite,
-                object: object
-            };
-
-            ScreenManager.drawEntry(profile);
-
-            cluster.layers[object.layer].addChild(_sprite);
-
-            if ((image.xFrames > 1 || image.yFrames > 1) && image.animationTime !== 0) {
-                this.animatedObjects.push(profile);
-            } else {
-                // this.objects.push(profile);
-            }
-        }
+        // let center = {x: screen.width / 2, y: screen.height / 2};
+        //
+        // let calculate = (x: number, y: number, xType: LVZXType, yType: LVZYType): { x: number, y: number } => {
+        //
+        //     let result = {x: x, y: y};
+        //
+        //     if (xType === LVZXType.SCREEN_CENTER) {
+        //         result.x = x + center.x;
+        //     } else if (xType === LVZXType.SCREEN_RIGHT) {
+        //         result.x = x + screen.width;
+        //     }
+        //
+        //     if (yType === LVZYType.SCREEN_CENTER) {
+        //         result.y = y + center.y;
+        //     } else if (yType === LVZYType.SCREEN_BOTTOM) {
+        //         result.y = y + screen.height;
+        //     }
+        //
+        //     // TODO: Implement all coordinates.
+        //
+        //     return result;
+        // };
+        //
+        // let cluster = this.renderer.screenLayers;
+        // cluster.clear();
+        //
+        // let session = this.renderer.session;
+        // if (session == null) {
+        //     return;
+        // }
+        //
+        // let atlas = session.atlas;
+        //
+        // let screenObjects = session.lvzManager.getScreenObjects();
+        // if (screenObjects.length === 0) {
+        //     return;
+        // }
+        //
+        // for (let index = 0; index < screenObjects.length; index++) {
+        //
+        //     let object = screenObjects[index];
+        //     let pkg = object.pkg;
+        //     let image = pkg.images[screenObjects[index].image];
+        //     let packageName = screenObjects[index].pkg.name;
+        //
+        //     let coordinates = calculate(object.x, object.y, object.xType, object.yType);
+        //
+        //     let sprite = atlas.getSpriteById(packageName + '>>>' + object.image);
+        //     if (sprite == null) {
+        //         continue;
+        //     }
+        //
+        //     let _sprite = new PIXI.Sprite();
+        //     _sprite.x = coordinates.x;
+        //     _sprite.y = coordinates.y;
+        //
+        //     let profile = <LVZScreenEntry> {
+        //         sprite: sprite,
+        //         _sprite: _sprite,
+        //         object: object
+        //     };
+        //
+        //     ScreenManager.drawEntry(profile);
+        //
+        //     cluster.layers[object.layer].addChild(_sprite);
+        //
+        //     if ((image.xFrames > 1 || image.yFrames > 1) && image.animationTime !== 0) {
+        //         this.animatedObjects.push(profile);
+        //     } else {
+        //         // this.objects.push(profile);
+        //     }
+        // }
 
         this.previousScreen.x = screen.x;
         this.previousScreen.y = screen.y;

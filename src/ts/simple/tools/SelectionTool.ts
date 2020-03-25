@@ -3,8 +3,8 @@ import { Session } from '../Session';
 import { MapMouseEvent, MapMouseEventType } from '../../common/Renderer';
 import { Edit } from '../edits/Edit';
 import { MapSection } from '../../util/map/MapSection';
-import { EditAddSelection } from '../edits/EditAddSelection';
-import { EditClearSelections } from '../edits/EditClearSelections';
+import { EditSelectionAdd } from '../edits/EditSelectionAdd';
+import { EditSelectionClear } from '../edits/EditSelectionClear';
 
 /**
  * The <i>SelectionTool</i> class. TODO: Document.
@@ -44,7 +44,7 @@ export class SelectionTool extends Tool {
 
             // Remove all selections.
             let history = session.editManager;
-            history.append([new EditClearSelections(0)]);
+            history.append([new EditSelectionClear()]);
             history.push();
 
             console.log('Cleared Selection.');
@@ -136,7 +136,7 @@ export class SelectionTool extends Tool {
         session.editManager.reset();
 
         return [
-            new EditAddSelection(0, [
+            new EditSelectionAdd([
                 MapSection.box(x1, y1, x2, y2, this.invert)
             ])
         ];

@@ -22,7 +22,7 @@ export class EditMapObjectTransform extends EditMapObject {
      * @param object
      * @param transform
      */
-    constructor(layer: number, lvzPackage: LVZPackage, object: CompiledLVZMapObject, transform: LVZMapObjectProperties) {
+    constructor(layer: string, lvzPackage: LVZPackage, object: CompiledLVZMapObject, transform: LVZMapObjectProperties) {
 
         super(layer, lvzPackage, object);
 

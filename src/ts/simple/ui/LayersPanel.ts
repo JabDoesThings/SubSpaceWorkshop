@@ -36,20 +36,25 @@ export class LayersPanel extends UIPanelTab {
 
         this.layers = [];
 
-        let layer = new UILayer(this, 'Test Layer');
-        let layer2 = new UILayer(this, 'Test Layer 2');
-        let layer3 = new UILayer(this, 'Test Layer 3');
-        layer.addChild(layer2);
-        layer2.addChild(layer3);
-        this.addLayer(layer);
-        let baseLayer = new UILayer(this, 'Base Layer');
-        this.addLayer(baseLayer);
-
-        baseLayer.setSelected(true);
+        // let layer = new UILayer(this, 'Test Layer');
+        // let layer2 = new UILayer(this, 'Test Layer 2');
+        // let layer3 = new UILayer(this, 'Test Layer 3');
+        // layer.addChild(layer2);
+        // layer2.addChild(layer3);
+        // this.addLayer(layer);
+        // let baseLayer = new UILayer('Base Layer');
+        // baseLayer.panel = this;
+        // this.addLayer(baseLayer);
+        // baseLayer.setSelected(true);
     }
 
     addLayer(layer: UILayer) {
         this.layers.push(layer);
+        this.updateElements();
+    }
+
+    clear(): void {
+        this.layers.length = 0;
         this.updateElements();
     }
 
@@ -109,14 +114,12 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
     private visible: boolean;
     private dirty: boolean;
 
-    private panel: LayersPanel;
+    panel: LayersPanel;
     private selected: boolean;
 
-    constructor(panel: LayersPanel, name: string) {
+    constructor(name: string) {
 
         super();
-
-        this.panel = panel;
 
         this.visibilityIcon = document.createElement('i');
         this.visibilityIcon.classList.add('fas', 'fa-eye');
@@ -154,25 +157,31 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
 
         this.selected = false;
 
-        this.setVisible(false);
+        this.setVisible(true);
     }
 
     // @Override
     addChild(object: UILayer): void {
         super.addChild(object);
-        this.panel.updateElements();
+        if(this.panel != null) {
+            this.panel.updateElements();
+        }
     }
 
     // @Override
     removeChild(object: UILayer): void {
         super.removeChild(object);
-        this.panel.updateElements();
+        if(this.panel != null) {
+            this.panel.updateElements();
+        }
     }
 
     // @Override
     setParent(object: UILayer): void {
         super.setParent(object);
-        this.panel.updateElements();
+        if(this.panel != null) {
+            this.panel.updateElements();
+        }
     }
 
     isVisible(): boolean {

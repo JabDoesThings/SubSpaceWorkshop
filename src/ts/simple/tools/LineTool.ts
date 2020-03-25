@@ -1,11 +1,12 @@
 import { Session } from '../Session';
 import { MapMouseEvent } from '../../common/Renderer';
-import { LVLMap } from '../../io/LVL';
 import { Selection } from '../ui/Selection';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 import { DrawTool } from './DrawTool';
 import { LVL } from '../../io/LVLUtils';
+import { TileLayer } from '../layers/TileLayer';
+import { TileData } from '../../util/map/TileData';
 
 /**
  * The <i>LineTool</i> class. TODO: Document.
@@ -24,11 +25,16 @@ export class LineTool extends DrawTool {
     // @Override
     protected drawTile(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
 
+        let activeLayer = session.layers.getActive();
+        if(activeLayer == null || !(activeLayer instanceof TileLayer)) {
+            return;
+        }
+
         let tiles: { x: number, y: number }[];
 
         if (this.down != null) {
 
-            tiles = LVLMap.tracePixels(
+            tiles = TileData.tracePixels(
                 this.down.x,
                 this.down.y,
                 event.data.x,
@@ -86,8 +92,6 @@ export class LineTool extends DrawTool {
             }
         };
 
-        let map = session.map;
-
         for (let index = 0; index < tiles.length; index++) {
 
             let tile = tiles[index];
@@ -104,13 +108,13 @@ export class LineTool extends DrawTool {
 
             setSlots(x, y, to);
 
-            let from = this.tileCache.getTile(map, x, y);
+            let from = this.tileCache.getTile(activeLayer.tiles, x, y);
 
             apply.push({x: x, y: y, from: from, to: to});
         }
 
         if (apply.length !== 0) {
-            return [new EditTiles(0, apply)];
+            return [new EditTiles(activeLayer, apply)];
         }
     }
 

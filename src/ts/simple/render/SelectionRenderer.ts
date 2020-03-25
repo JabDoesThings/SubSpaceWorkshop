@@ -29,8 +29,7 @@ export class SelectionRenderer {
     update(): void {
 
         let camera = this.session.editor.renderer.camera;
-        let map = this.session.map;
-        let selections = map.selections;
+        let selections = this.session.selections;
         if (selections.isDirty()) {
             this.build();
         }
@@ -59,14 +58,13 @@ export class SelectionRenderer {
         this.lefts.length = 0;
         this.rights.length = 0;
 
-        let map = this.session.map;
-        let selections = map.selections;
+        let selections = this.session.selections;
         if (selections.isEmpty()) {
             return;
         }
 
-        let range = map.selections.getBounds();
-        let array = map.selections.getArray();
+        let range = selections.getBounds();
+        let array = selections.getArray();
 
         let hasLeft = (x: number, y: number): boolean => {
             if (x == 0) {

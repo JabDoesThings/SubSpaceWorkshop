@@ -10,6 +10,7 @@ export abstract class EditMapObject extends Edit {
 
     readonly lvzPackage: LVZPackage;
     readonly object: CompiledLVZMapObject;
+    private readonly layer: string;
 
     /**
      * Main constructor.
@@ -18,10 +19,11 @@ export abstract class EditMapObject extends Edit {
      * @param lvzPackage
      * @param object
      */
-    protected constructor(layer: number, lvzPackage: LVZPackage, object: CompiledLVZMapObject) {
+    protected constructor(layer: string, lvzPackage: LVZPackage, object: CompiledLVZMapObject) {
 
-        super(layer);
+        super();
 
+        this.layer = layer;
         this.lvzPackage = lvzPackage;
         this.object = object;
     }

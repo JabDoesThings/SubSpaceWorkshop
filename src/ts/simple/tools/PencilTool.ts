@@ -1,11 +1,12 @@
 import { Session } from '../Session';
 import { MapMouseEvent } from '../../common/Renderer';
-import { LVLMap } from '../../io/LVL';
 import { Selection } from '../ui/Selection';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 import { DrawTool } from './DrawTool';
 import { LVL } from '../../io/LVLUtils';
+import { TileLayer } from '../layers/TileLayer';
+import { TileData } from '../../util/map/TileData';
 
 /**
  * The <i>PencilTool</i> class. TODO: Document.
@@ -62,11 +63,16 @@ export class PencilTool extends DrawTool {
     // @Override
     protected drawTile(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
 
+        let activeLayer = session.layers.getActive();
+        if(activeLayer == null || !(activeLayer instanceof TileLayer)) {
+            return;
+        }
+
         let tiles: { x: number, y: number }[];
 
         if (this.last != null) {
 
-            tiles = LVLMap.traceTiles(
+            tiles = TileData.traceTiles(
                 event.data.tileX,
                 event.data.tileY,
                 this.last.tileX,
@@ -114,13 +120,13 @@ export class PencilTool extends DrawTool {
             apply.push({
                 x: x,
                 y: y,
-                from: this.tileCache.getTile(session.map, x, y),
+                from: this.tileCache.getTile(activeLayer.tiles, x, y),
                 to: to
             });
         }
 
         if (apply.length !== 0) {
-            return [new EditTiles(0, apply)];
+            return [new EditTiles(activeLayer, apply)];
         }
     }
 

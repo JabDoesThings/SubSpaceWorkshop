@@ -16,7 +16,7 @@ export class EditMapObjectAdd extends EditMapObject {
      * @param lvzPackage
      * @param object
      */
-    constructor(layer: number, lvzPackage: LVZPackage, object: CompiledLVZMapObject) {
+    constructor(layer: string, lvzPackage: LVZPackage, object: CompiledLVZMapObject) {
         super(layer, lvzPackage, object);
     }
 

@@ -6,6 +6,7 @@ import * as PIXI from "pixi.js";
 import { ELVLCollection } from './ELVL';
 import { ELVL } from './ELVLUtils';
 import SCALE_MODES = PIXI.SCALE_MODES;
+import { TileData } from '../util/map/TileData';
 
 /**
  * The <i>LVL</i> class. TODO: Document.
@@ -66,7 +67,7 @@ export class LVL {
         let split = path.split("/");
         let name = split[split.length - 1].split('.')[0];
 
-        return new LVLMap(name, tiles, tileSet, elvlData);
+        return new LVLMap(name, new TileData(tiles), tileSet, elvlData);
     }
 
     static write(map: LVLMap, path: string) {
@@ -383,7 +384,7 @@ export class LVL {
 
     private static toTileBuffer(map: LVLMap): Buffer {
 
-        let tiles = map.tiles;
+        let tiles = map.tiles.getTiles(false);
         let tilesToWrite: { id: number, x: number, y: number }[] = [];
         for (let x = 0; x < 1024; x++) {
             for (let y = 0; y < 1024; y++) {
