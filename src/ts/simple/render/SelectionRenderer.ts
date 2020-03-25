@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { Session } from '../Session';
+import { Project } from '../Project';
 
 /**
  * The <i>SelectionRenderer</i> class. TODO: Document.
@@ -8,7 +8,7 @@ import { Session } from '../Session';
  */
 export class SelectionRenderer {
 
-    session: Session;
+    project: Project;
     graphics: PIXI.Graphics;
 
     private readonly tops: RunLength[] = [];
@@ -19,17 +19,17 @@ export class SelectionRenderer {
     /**
      * Main constructor.
      */
-    constructor(session: Session) {
+    constructor(project: Project) {
 
-        this.session = session;
+        this.project = project;
 
         this.graphics = new PIXI.Graphics();
     }
 
     update(): void {
 
-        let camera = this.session.editor.renderer.camera;
-        let selections = this.session.selections;
+        let camera = this.project.editor.renderer.camera;
+        let selections = this.project.selections;
         if (selections.isDirty()) {
             this.build();
         }
@@ -39,7 +39,7 @@ export class SelectionRenderer {
             let cameraPosition = camera.position;
             let scale = cameraPosition.scale;
             let invScale = 1 / scale;
-            let screen = this.session.editor.renderer.app.screen;
+            let screen = this.project.editor.renderer.app.screen;
             let sw = screen.width * invScale;
             let sh = screen.height * invScale;
             let x = Math.floor((-1 + (-(cameraPosition.x * 16) + sw / 2)));
@@ -58,7 +58,7 @@ export class SelectionRenderer {
         this.lefts.length = 0;
         this.rights.length = 0;
 
-        let selections = this.session.selections;
+        let selections = this.project.selections;
         if (selections.isEmpty()) {
             return;
         }
@@ -224,7 +224,7 @@ export class SelectionRenderer {
 
     draw(): void {
 
-        let tileLength = 16 * this.session.editor.renderer.camera.position.scale;
+        let tileLength = 16 * this.project.editor.renderer.camera.position.scale;
 
         let g = this.graphics;
         g.clear();

@@ -1,6 +1,6 @@
 import { MapRenderer } from './render/MapRenderer';
 import { PencilTool } from './tools/PencilTool';
-import { Session } from './Session';
+import { Project } from './Project';
 import { MapMouseEvent, MapMouseEventType } from '../common/Renderer';
 import { Tool } from './tools/Tool';
 import { Edit } from './edits/Edit';
@@ -33,7 +33,7 @@ export class ToolManager {
         this.tools['select'] = new SelectionTool();
 
         let downTool: Tool;
-        let downSession: Session;
+        let downProject: Project;
 
         this.renderer.events.addMouseListener((event: MapMouseEvent) => {
 
@@ -43,50 +43,50 @@ export class ToolManager {
 
             switch (event.type) {
                 case MapMouseEventType.DOWN:
-                    downSession = renderer.session;
+                    downProject = renderer.project;
                     downTool = this.getActive();
-                    if (downSession == null || downTool == null) {
+                    if (downProject == null || downTool == null) {
                         return;
                     }
-                    edits = downTool.start(downSession, event);
+                    edits = downTool.start(downProject, event);
                     break;
                 case MapMouseEventType.UP:
-                    if (downSession == null || downTool == null) {
+                    if (downProject == null || downTool == null) {
                         return;
                     }
-                    edits = downTool.stop(downSession, event);
+                    edits = downTool.stop(downProject, event);
                     push = reset = true;
                     break;
                 case MapMouseEventType.DRAG:
-                    if (downSession == null || downTool == null) {
+                    if (downProject == null || downTool == null) {
                         return;
                     }
-                    edits = downTool.drag(downSession, event);
+                    edits = downTool.drag(downProject, event);
                     break;
                 case MapMouseEventType.ENTER:
-                    if (downSession == null || downTool == null) {
+                    if (downProject == null || downTool == null) {
                         return;
                     }
-                    edits = downTool.enter(downSession, event);
+                    edits = downTool.enter(downProject, event);
                     break;
                 case MapMouseEventType.EXIT:
-                    if (downSession == null || downTool == null) {
+                    if (downProject == null || downTool == null) {
                         return;
                     }
-                    edits = downTool.exit(downSession, event);
+                    edits = downTool.exit(downProject, event);
                     break;
             }
 
             if (edits != null && edits.length !== 0) {
-                downSession.editManager.append(edits);
+                downProject.editManager.append(edits);
             }
             if (push) {
-                downSession.editManager.push();
-                downSession.editor.renderer.radar.setDirty(true);
+                downProject.editManager.push();
+                downProject.editor.renderer.radar.setDirty(true);
             }
             if (reset) {
                 downTool = null;
-                downSession = null;
+                downProject = null;
             }
         });
     }

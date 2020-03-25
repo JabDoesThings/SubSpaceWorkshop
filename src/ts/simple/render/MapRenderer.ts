@@ -4,7 +4,7 @@ import { PalettePanel } from '../ui/PalettePanel';
 import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Renderer';
 import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
-import { Session } from '../Session';
+import { Project } from '../Project';
 import { CompiledLVZMapObject, CompiledLVZScreenObject, LVZPackage } from '../../io/LVZ';
 import {
     IconToolbarAction,
@@ -25,7 +25,7 @@ import { MapSprite } from './MapSprite';
 import * as PIXI from "pixi.js";
 import { ToolManager } from '../ToolManager';
 import { LayersPanel } from '../ui/LayersPanel';
-import { SimpleEditor } from '../SimpleEditor';
+import { Editor } from '../Editor';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -39,7 +39,7 @@ export class MapRenderer extends Renderer {
     readonly screenLayers: LayerCluster;
 
     grid: MapGrid;
-    session: Session;
+    project: Project;
     radar: Radar;
     tab: HTMLDivElement;
     toolbarLeft: UIIconToolbar;
@@ -51,12 +51,12 @@ export class MapRenderer extends Renderer {
 
     screen: ScreenManager;
     toolManager: ToolManager;
-    editor: SimpleEditor;
+    editor: Editor;
 
     /**
      * Main constructor.
      */
-    public constructor(editor: SimpleEditor) {
+    public constructor(editor: Editor) {
 
         super();
 
@@ -319,21 +319,21 @@ export class MapRenderer extends Renderer {
 
     // @Override
     protected onPreUpdate(delta: number): void {
-        if (this.session != null) {
-            this.session.onPreUpdate();
+        if (this.project != null) {
+            this.project.preUpdate();
         }
     }
 
     // @Override
     public onUpdate(delta: number): boolean {
 
-        if (this.session == null) {
+        if (this.project == null) {
             return;
         }
 
-        this.session.onUpdate(delta);
+        this.project.update(delta);
 
-        let background = this.session.background;
+        let background = this.project.background;
 
         if (this.camera.isDirty()) {
 
@@ -355,22 +355,22 @@ export class MapRenderer extends Renderer {
 
     // @Override
     onPostUpdate(delta: number): void {
-        if (this.session != null) {
-            this.session.onPostUpdate();
+        if (this.project != null) {
+            this.project.postUpdate();
         }
     }
 
     // @Override
     public isDirty(): boolean {
-        return super.isDirty() || this.camera.isDirty() || this.session.layers.isDirty();
+        return super.isDirty() || this.camera.isDirty() || this.project.layers.isDirty();
     }
 
-    setSession(session: Session) {
+    setProject(project: Project) {
 
-        this.session = session;
+        this.project = project;
 
         this.app.stage.removeChildren();
-        if (this.session != null) {
+        if (this.project != null) {
             for (let index = 0; index < 8; index++) {
                 this.layers.layers[index].removeChildren();
                 this.mapLayers.layers[index].removeChildren();
@@ -383,21 +383,21 @@ export class MapRenderer extends Renderer {
             }
         }
 
-        if (this.session == null) {
-            console.log("Active session: none.");
+        if (this.project == null) {
+            console.log("Active project: none.");
         } else {
             this.layers.clear();
             this.mapLayers.clear();
             this.screenLayers.clear();
             this.layersTab.clear();
-            session.onActivate();
-            console.log("Active session: " + this.session._name);
+            project.activate();
+            console.log("Active project: " + this.project._name);
         }
 
         this.screen.draw();
         this.paletteTab.draw();
         this.paletteTab.update();
-        this.radar.setVisible(this.session != null);
+        this.radar.setVisible(this.project != null);
         this.radar.draw().then(() => {
             this.radar.apply();
         });

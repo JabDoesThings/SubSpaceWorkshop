@@ -1,5 +1,5 @@
 import { Layer } from './Layer';
-import { Session } from '../Session';
+import { Project } from '../Project';
 import { MapRenderer } from '../render/MapRenderer';
 
 /**
@@ -10,25 +10,25 @@ import { MapRenderer } from '../render/MapRenderer';
 export class LayerManager {
 
     readonly layers: Layer[];
-    readonly session: Session;
+    readonly project: Project;
 
     active: Layer;
 
     /**
      * Main constructor.
      *
-     * @param session
+     * @param project
      */
-    constructor(session: Session) {
+    constructor(project: Project) {
 
-        this.session = session;
+        this.project = project;
 
         this.layers = [];
         this.active = null;
     }
 
     /**
-     * Adds a layer to the session.
+     * Adds a layer to the project.
      * .
      * @param layer The layer to add.
      * @param setActive
@@ -43,7 +43,7 @@ export class LayerManager {
     }
 
     /**
-     * Removes a layer from the session.
+     * Removes a layer from the project.
      *
      * @param layer The layer to remove.
      */
@@ -79,7 +79,7 @@ export class LayerManager {
     }
 
     /**
-     * Clears all layers from the session.
+     * Clears all layers from the project.
      */
     clear(overrideLocked: boolean): Layer[] {
 
@@ -111,7 +111,7 @@ export class LayerManager {
     /**
      * @param layer The layer to test.
      * @param deepSearch Set this to true to scan child layers.
-     * @return Returns true if the layer is in the session.
+     * @return Returns true if the layer is in the project.
      */
     contains(layer: Layer, deepSearch: boolean = false): boolean {
 
@@ -142,7 +142,7 @@ export class LayerManager {
     }
 
     /**
-     * @return Returns the active layer in the session. If no session is active,
+     * @return Returns the active layer in the project. If no layer is active,
      *   null is returned.
      */
     getActive(): Layer {

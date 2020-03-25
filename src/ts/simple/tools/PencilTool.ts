@@ -1,4 +1,4 @@
-import { Session } from '../Session';
+import { Project } from '../Project';
 import { MapMouseEvent } from '../../common/Renderer';
 import { Selection } from '../ui/Selection';
 import { Edit } from '../edits/Edit';
@@ -25,9 +25,9 @@ export class PencilTool extends DrawTool {
     }
 
     // @Override
-    protected onStop(session: Session, event: MapMouseEvent): Edit[] {
+    protected onStop(project: Project, event: MapMouseEvent): Edit[] {
 
-        let edits = super.onStop(session, event);
+        let edits = super.onStop(project, event);
         this.slots = [];
         return edits;
     }
@@ -61,9 +61,9 @@ export class PencilTool extends DrawTool {
     };
 
     // @Override
-    protected drawTile(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+    protected drawTile(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
 
-        let activeLayer = session.layers.getActive();
+        let activeLayer = project.layers.getActive();
         if(activeLayer == null || !(activeLayer instanceof TileLayer)) {
             return;
         }
@@ -131,19 +131,19 @@ export class PencilTool extends DrawTool {
     }
 
     // @Override
-    protected drawMapObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+    protected drawMapObject(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
         // TODO: Implement.
         return null;
     }
 
     // @Override
-    protected drawScreenObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+    protected drawScreenObject(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
         // TODO: Implement.
         return null;
     }
 
     // @Override
-    protected drawRegion(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+    protected drawRegion(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
         // TODO: Implement.
         return null;
     }

@@ -1,5 +1,5 @@
 import { LVZDisplayMode, LVZRenderLayer } from '../io/LVZ';
-import { Session } from './Session';
+import { Project } from './Project';
 import { Edit } from './edits/Edit';
 
 /**
@@ -11,7 +11,7 @@ export class EditManager {
 
     static readonly EDITOR_HISTORY_LIMIT = 32;
 
-    readonly session: Session;
+    readonly project: Project;
 
     edits: Edit[][];
     editsToPush: Edit[];
@@ -21,11 +21,11 @@ export class EditManager {
     /**
      * Main constructor.
      *
-     * @param session The session instance.
+     * @param project The project instance.
      */
-    constructor(session: Session) {
+    constructor(project: Project) {
 
-        this.session = session;
+        this.project = project;
 
         this.edits = [];
         this.editsToPush = [];
@@ -93,7 +93,7 @@ export class EditManager {
     }
 
     /**
-     * Redoes the history of the session.
+     * Redoes the history of the project.
      *
      * @throws Error Thrown if the history is already at the latest edit.<br/>
      * <b>NOTE</b>: Use {@link EditHistory#canRedo() canRedo()} to check if redo is possible.
@@ -102,7 +102,7 @@ export class EditManager {
 
         // Make sure that the edit history isn't set at the latest edit.
         if (this.index >= this.edits.length - 1) {
-            throw new Error("Cannot redo. The session's edit history is already at the most recent edit.");
+            throw new Error("Cannot redo. The project's edit history is already at the most recent edit.");
         }
 
         this.index++;
@@ -117,11 +117,11 @@ export class EditManager {
             }
         }
 
-        this.session.editor.renderer.radar.setDirty(true);
+        this.project.editor.renderer.radar.setDirty(true);
     }
 
     /**
-     * Undoes the history of the session.
+     * Undoes the history of the project.
      *
      * @throws Error Thrown if the history is already at the earliest edit.<br/>
      * <b>NOTE</b>: Use {@link EditHistory#canUndo() canUndo()} to check if undo is possible.
@@ -129,7 +129,7 @@ export class EditManager {
     undo(): void {
 
         if (this.index < 0) {
-            throw new Error("Cannot undo. The session's edit history is already reached.");
+            throw new Error("Cannot undo. The project's edit history is already reached.");
         }
 
         let edits = this.edits[this.index];
@@ -145,7 +145,7 @@ export class EditManager {
 
         this.index--;
 
-        this.session.editor.renderer.radar.setDirty(true);
+        this.project.editor.renderer.radar.setDirty(true);
     }
 
     /**

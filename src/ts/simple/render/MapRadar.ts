@@ -1,6 +1,6 @@
 import { MapRenderer } from './MapRenderer';
 import { Radar } from '../../common/Radar';
-import { SimpleEditor } from '../SimpleEditor';
+import { Editor } from '../Editor';
 
 /**
  * The <i>MapRadar</i> class. TODO: Document.
@@ -16,8 +16,8 @@ export class MapRadar extends Radar {
     // @Override
     async draw() {
 
-        let session = (<MapRenderer> this.view).session;
-        if (session == null) {
+        let project = (<MapRenderer> this.view).project;
+        if (project == null) {
             return;
         }
 
@@ -27,8 +27,8 @@ export class MapRadar extends Radar {
         ctx.fillStyle = '#010201';
         ctx.fillRect(0, 0, 1024, 1024);
 
-        let tileset = session.tileset;
-        let layers = session.layers;
+        let tileset = project.tileset;
+        let layers = project.layers;
 
         for (let y = 0; y < 1024; y++) {
             for (let x = 0; x < 1024; x++) {
@@ -69,7 +69,7 @@ export class MapRadar extends Radar {
     isAltPressed(): boolean {
 
         // @ts-ignore
-        let editor: SimpleEditor = global.editor;
+        let editor: Editor = global.editor;
 
         // Make sure that selection tools do not get interrupted by the alt function of the radar.
         let activeTool = editor.renderer.toolManager.getActive();

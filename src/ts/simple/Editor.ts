@@ -1,6 +1,6 @@
 import { MapRenderer } from './render/MapRenderer';
 import { KeyListener } from '../util/KeyListener';
-import { Session } from './Session';
+import { Project } from './Project';
 import { TabAction, UITabEvent, UITabMenu } from './ui/UI';
 import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 import * as PIXI from "pixi.js";
@@ -8,16 +8,16 @@ import { TileLayer } from './layers/TileLayer';
 import { LVL } from '../io/LVLUtils';
 
 /**
- * The <i>SimpleEditor</i> class. TODO: Document.
+ * The <i>Editor</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class SimpleEditor extends CustomEventListener<EditorEvent> {
+export class Editor extends CustomEventListener<EditorEvent> {
 
-    sessions: Session[];
+    projects: Project[];
     renderer: MapRenderer;
     tabMenu: UITabMenu;
-    activeSession: number;
+    active: number;
 
     private _shiftListener: KeyListener;
     private _controlListener: KeyListener;
@@ -28,17 +28,17 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
     /**
      * Main constructor.
      *
-     * @param sessions The Sessions to initially load.<br/>
-     *     <b>NOTE</b>: The last Session will be set active.
+     * @param projects The projects to initially load.<br/>
+     *     <b>NOTE</b>: The last project will be set active.
      */
-    constructor(...sessions: Session[]) {
+    constructor(...projects: Project[]) {
 
         super();
 
         // @ts-ignore
         global.editor = this;
 
-        this.sessions = [];
+        this.projects = [];
 
         this.menuManager = new MenuManager(this);
 
@@ -47,9 +47,9 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
         this._shiftListener = new KeyListener('shift');
 
         this.tabMenu = new UITabMenu();
-        for (let index = 0; index < sessions.length; index++) {
+        for (let index = 0; index < projects.length; index++) {
 
-            let next = sessions[index];
+            let next = projects[index];
             next.tab = this.tabMenu.createTab(next._name, next._name);
 
             const _i = index;
@@ -97,98 +97,99 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
 
             if (event.menuId === 'new') {
 
-                let session = new Session(this.renderer, 'untitled');
-                session.tab = this.tabMenu.createTab(session._name, session._name);
+                let project = new Project(this.renderer, 'untitled');
+                project.tab = this.tabMenu.createTab(project._name, project._name);
 
-                const _i = this.sessions.length;
-                session.tab.addEventListener((event: UITabEvent) => {
+                const _i = this.projects.length;
+                project.tab.addEventListener((event: UITabEvent) => {
                     if (event.action == TabAction.SELECT) {
                         this.setActive(_i);
                     }
                 });
 
                 let map = LVL.read('assets/lvl/zone66.lvl');
-                session.setTileset(map.tileset);
-                session.atlas.getTextureAtlas('tiles').setTexture(map.tileset.texture);
+                project.setTileset(map.tileset);
+                project.atlas.getTextureAtlas('tiles').setTexture(map.tileset.texture);
 
-                let baseLayer = new TileLayer(session.layers, null, 'Base Layer', map.tiles);
+                let baseLayer = new TileLayer(project.layers, null, 'Base Layer', map.tiles);
                 baseLayer.tiles.set(1, 1, 170);
-                session.layers.add(baseLayer);
+                project.layers.add(baseLayer);
 
-                this.add([session]);
-                this.setActive(this.sessions.length - 1);
+                this.add([project]);
+                this.setActive(this.projects.length - 1);
+                this.renderer.paletteTab.draw();
             }
 
         });
 
-        this.add(sessions);
-        this.setActive(this.sessions.length - 1);
+        this.add(projects);
+        this.setActive(this.projects.length - 1);
     }
 
     /**
-     * Adds sessions to the editor.
+     * Adds projects to the editor.
      *
-     * @param sessions
+     * @param projects
      *
      * @return Returns true if the action is cancelled.
      */
-    add(sessions: Session[]): boolean {
+    add(projects: Project[]): boolean {
 
-        if (this.dispatch(<EditorSessionEvent> {
-            eventType: "EditorSessionEvent",
+        if (this.dispatch(<EditorProjectEvent> {
+            eventType: "EditorProjectEvent",
             editor: this,
-            action: EditorAction.SESSION_ADD,
-            sessions: sessions,
+            action: EditorAction.PROJECT_ADD,
+            projects: projects,
             forced: false
         })) {
             return true;
         }
 
-        for (let index = 0; index < sessions.length; index++) {
-            let next = sessions[index];
-            this.sessions.push(next);
+        for (let index = 0; index < projects.length; index++) {
+            let next = projects[index];
+            this.projects.push(next);
         }
 
-        this.dispatch(<EditorSessionEvent> {
-            eventType: "EditorSessionEvent",
+        this.dispatch(<EditorProjectEvent> {
+            eventType: "EditorProjectEvent",
             editor: this,
-            action: EditorAction.SESSION_ADDED,
-            sessions: sessions,
+            action: EditorAction.PROJECT_ADDED,
+            projects: projects,
             forced: true
         });
     }
 
     /**
-     * Removes sessions from the editor.
+     * Removes projects from the editor.
      *
-     * @param sessions
+     * @param projects
      * @param unload
      *
      * @return Returns true if the action is cancelled.
      */
-    remove(sessions: Session[], unload: boolean = true): boolean {
+    remove(projects: Project[], unload: boolean = true): boolean {
 
-        if (this.sessions.length === 0) {
+        if (this.projects.length === 0) {
             return false;
         }
 
-        if (this.dispatch(<EditorSessionEvent> {
-            eventType: "EditorSessionEvent",
+        if (this.dispatch(<EditorProjectEvent> {
+            eventType: "EditorProjectEvent",
             editor: this,
-            action: EditorAction.SESSION_REMOVE,
-            sessions: sessions,
+            action: EditorAction.PROJECT_REMOVE,
+            projects: projects,
             forced: false
         })) {
             return true;
         }
 
-        let active = this.sessions[this.activeSession];
+        let active = this.projects[this.active];
 
-        let toRemove: Session[] = [];
+        let toRemove: Project[] = [];
 
-        for (let index = 0; index < sessions.length; index++) {
+        for (let index = 0; index < projects.length; index++) {
 
-            let next = sessions[index];
+            let next = projects[index];
 
             // if (unload && next.unload()) {
             //     continue;
@@ -201,47 +202,47 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
             return false;
         }
 
-        let contains = (session: Session): boolean => {
+        let contains = (project: Project): boolean => {
             for (let index = 0; index < toRemove.length; index++) {
-                if (toRemove[index] === session) {
+                if (toRemove[index] === project) {
                     return true;
                 }
             }
             return false;
         };
 
-        let newArray: Session[] = [];
+        let newArray: Project[] = [];
 
-        for (let index = 0; index < this.sessions.length; index++) {
-            let next = this.sessions[index];
+        for (let index = 0; index < this.projects.length; index++) {
+            let next = this.projects[index];
             if (contains(next)) {
                 continue;
             }
             newArray.push(next);
         }
 
-        this.sessions = newArray;
+        this.projects = newArray;
 
-        // Make sure to adjust the active index to the session that was active before the removal.
+        // Make sure to adjust the active index to the project that was active before the removal.
         let foundActive = false;
-        for (let index = 0; index < this.sessions.length; index++) {
-            if (this.sessions[index] === active) {
-                this.activeSession = index;
+        for (let index = 0; index < this.projects.length; index++) {
+            if (this.projects[index] === active) {
+                this.active = index;
                 foundActive = true;
                 break;
             }
         }
 
-        // If the session is removed, set the last session active.
+        // If the project is removed, set the last project active.
         if (!foundActive) {
-            this.setActive(this.sessions.length - 1);
+            this.setActive(this.projects.length - 1);
         }
 
-        this.dispatch(<EditorSessionEvent> {
-            eventType: "EditorSessionEvent",
+        this.dispatch(<EditorProjectEvent> {
+            eventType: "EditorProjectEvent",
             editor: this,
-            action: EditorAction.SESSION_REMOVED,
-            sessions: sessions,
+            action: EditorAction.PROJECT_REMOVED,
+            projects: projects,
             forced: true
         });
     }
@@ -254,36 +255,33 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
      */
     setActive(index: number): boolean {
 
-        if (this.dispatch(<EditorSessionEvent> {
-            eventType: "EditorSessionEvent",
+        if (this.dispatch(<EditorProjectEvent> {
+            eventType: "EditorProjectEvent",
             editor: this,
-            action: EditorAction.SESSION_ACTIVATE,
+            action: EditorAction.PROJECT_ACTIVATE,
             forced: false,
-            sessions: [this.sessions[index]]
+            projects: [this.projects[index]]
         })) {
             return true;
         }
 
-        this.activeSession = index;
+        this.active = index;
 
         if (index == -1) {
             this.tabMenu.deselect();
-            this.renderer.setSession(null);
+            this.renderer.setProject(null);
         } else {
-            let session = this.sessions[this.activeSession];
-            // if (!session.loaded) {
-            //     session.tab.select();
-            //     session.load();
-            // }
-            this.renderer.setSession(session);
+            let project = this.projects[this.active];
+
+            this.renderer.setProject(project);
         }
 
-        this.dispatch(<EditorSessionEvent> {
-            eventType: "EditorSessionEvent",
+        this.dispatch(<EditorProjectEvent> {
+            eventType: "EditorProjectEvent",
             editor: this,
-            action: EditorAction.SESSION_ACTIVATED,
+            action: EditorAction.PROJECT_ACTIVATED,
             forced: true,
-            sessions: [this.sessions[index]]
+            projects: [this.projects[index]]
         });
     }
 
@@ -302,9 +300,9 @@ export class SimpleEditor extends CustomEventListener<EditorEvent> {
 
 export class MenuManager extends CustomEventListener<MenuEvent> {
 
-    editor: SimpleEditor;
+    editor: Editor;
 
-    constructor(editor: SimpleEditor) {
+    constructor(editor: Editor) {
 
         super();
 
@@ -347,17 +345,17 @@ export interface MenuEvent extends CustomEvent {
  * @author Jab
  */
 export interface EditorEvent extends CustomEvent {
-    editor: SimpleEditor,
+    editor: Editor,
     action: EditorAction
 }
 
 /**
- * The <i>EditorSessionEvent</i> interface. TODO: Document.
+ * The <i>EditorProjectEvent</i> interface. TODO: Document.
  *
  * @author Jab
  */
-export interface EditorSessionEvent extends EditorEvent {
-    sessions: Session[]
+export interface EditorProjectEvent extends EditorEvent {
+    projects: Project[]
 }
 
 /**
@@ -366,12 +364,12 @@ export interface EditorSessionEvent extends EditorEvent {
  * @author Jab
  */
 export enum EditorAction {
-    SESSION_ACTIVATE = 'session-activate',
-    SESSION_ACTIVATED = 'session-activated',
-    SESSION_ADD = 'session-add',
-    SESSION_ADDED = 'session-added',
-    SESSION_REMOVE = 'session-remove',
-    SESSION_REMOVED = 'session-removed'
+    PROJECT_ACTIVATE = 'project-activate',
+    PROJECT_ACTIVATED = 'project-activated',
+    PROJECT_ADD = 'project-add',
+    PROJECT_ADDED = 'project-added',
+    PROJECT_REMOVE = 'project-remove',
+    PROJECT_REMOVED = 'project-removed'
 }
 
 

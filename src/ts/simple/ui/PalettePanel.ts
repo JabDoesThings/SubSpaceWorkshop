@@ -1,12 +1,11 @@
 import { MapRenderer } from '../render/MapRenderer';
 import { MapSprite } from '../render/MapSprite';
-import { Session } from '../Session';
+import { Project } from '../Project';
 import { ItemSelector, ItemSelectorAction, ItemSelectorEvent, SpriteItem } from './ItemSelector';
 import { Selection, SelectionSlot, SelectionType } from './Selection';
 import { UIPanelSection, UIPanelTab } from './UI';
-import { LVZManager } from '../LVZManager';
 import { CustomEvent } from './CustomEventListener';
-import { EditorAction, EditorSessionEvent } from '../SimpleEditor';
+import { EditorAction, EditorProjectEvent } from '../Editor';
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
 import { LVLTileSet } from '../../io/LVL';
@@ -24,7 +23,7 @@ export class PalettePanel extends UIPanelTab {
     selectorSpecialTile: ItemSelector;
     // selectorMapImage: ItemSelector;
 
-    private lastSession: Session;
+    private lastProject: Project;
     private sectionStandardTile: UIPanelSection;
     private sectionSpecialTile: UIPanelSection;
     private sectionMapImage: UIPanelSection;
@@ -32,7 +31,7 @@ export class PalettePanel extends UIPanelTab {
 
     private dirty: boolean;
 
-    sessionListener: (event: CustomEvent) => void | boolean;
+    projectListener: (event: CustomEvent) => void | boolean;
 
     /**
      * Main constructor.
@@ -45,10 +44,10 @@ export class PalettePanel extends UIPanelTab {
 
         this.renderer = renderer;
 
-        this.sessionListener = (event: CustomEvent): void => {
-            if (event.eventType == 'EditorSessionEvent') {
-                let editorEvent = <EditorSessionEvent> event;
-                if (editorEvent.action == EditorAction.SESSION_ACTIVATED) {
+        this.projectListener = (event: CustomEvent): void => {
+            if (event.eventType == 'EditorProjectEvent') {
+                let editorEvent = <EditorProjectEvent> event;
+                if (editorEvent.action == EditorAction.PROJECT_ACTIVATED) {
 
                 }
             }
@@ -86,14 +85,14 @@ export class PalettePanel extends UIPanelTab {
 
     update(): void {
 
-        let session = this.renderer.session;
-        if (session == null) {
+        let project = this.renderer.project;
+        if (project == null) {
             return;
         }
 
-        let atlas = session.atlas;
+        let atlas = project.atlas;
 
-        let shouldDraw = this.dirty || atlas.isDirty() || session !== this.lastSession;
+        let shouldDraw = this.dirty || atlas.isDirty() || project !== this.lastProject;
 
         // if (!shouldDraw) {
         // for (let key in this.selectorMapImage.items) {
@@ -106,11 +105,11 @@ export class PalettePanel extends UIPanelTab {
 
         if (shouldDraw) {
 
-            this.createTileSprites(session);
+            this.createTileSprites(project);
             this.selectorStandardTile.draw();
             this.selectorSpecialTile.draw();
 
-            this.createLVZAssets(session);
+            this.createLVZAssets(project);
             // this.selectorMapImage.draw();
             this.sectionMapImage.open();
 
@@ -135,10 +134,10 @@ export class PalettePanel extends UIPanelTab {
 
         this.selectorStandardTile.update();
 
-        this.lastSession = session;
+        this.lastProject = project;
     }
 
-    createTileSprites(session: Session): void {
+    createTileSprites(project: Project): void {
 
         this.selectorSpecialTile.clear();
 
@@ -150,7 +149,7 @@ export class PalettePanel extends UIPanelTab {
             selector.add(item);
         };
 
-        let atlas = session.atlas;
+        let atlas = project.atlas;
         add('191', atlas.getTextureAtlas('tile191').getSpriteById('tile191'), this.selectorSpecialTile);
         add('192', atlas.getTextureAtlas('tile').getSpriteById('tile'), this.selectorSpecialTile);
         add('216', atlas.getTextureAtlas('over1').getSpriteById('over1'), this.selectorSpecialTile);
@@ -167,7 +166,7 @@ export class PalettePanel extends UIPanelTab {
         add('255', atlas.getTextureAtlas('prizes').getSpriteById('prizes'), this.selectorSpecialTile);
     }
 
-    createLVZAssets(session: Session): void {
+    createLVZAssets(project: Project): void {
 
         // this.selectorMapImage.clear();
 
@@ -296,7 +295,7 @@ export class TileSection {
                 } else if (button == 2) {
                     slot = SelectionSlot.SECONDARY;
                 }
-                this.panel.renderer.session.selectionGroup.setSelection(slot, selection);
+                this.panel.renderer.project.selectionGroup.setSelection(slot, selection);
             }
         };
 
@@ -332,15 +331,14 @@ export class TileSection {
 
     update(): void {
 
-        let session = this.panel.renderer.session;
-
-        if (session == null) {
+        let project = this.panel.renderer.project;
+        if (project == null) {
             return;
         }
 
-        let tileset = session.tileset;
+        let tileset = project.tileset;
         if (this.last !== tileset || (tileset != null && tileset.isDirty())
-            || (this.panel.renderer.session != null && this.panel.renderer.session.selectionGroup.isDirty())) {
+            || (this.panel.renderer.project != null && this.panel.renderer.project.selectionGroup.isDirty())) {
             this.draw();
             this.last = tileset;
         }
@@ -350,12 +348,12 @@ export class TileSection {
 
         let ctx = this.canvas.getContext('2d');
 
-        let session = this.panel.renderer.session;
-        if (session == null) {
+        let project = this.panel.renderer.project;
+        if (project == null) {
             return;
         }
 
-        let tileset = session.tileset;
+        let tileset = project.tileset;
         if (tileset != null) {
 
             let tex = tileset.texture;
@@ -363,16 +361,16 @@ export class TileSection {
                 tex.addListener('loaded', () => {
                     ctx.fillStyle = 'black';
                     ctx.fillRect(0, 0, 304, 160);
-                    ctx.drawImage(session.editor.renderer.toCanvas(tileset.texture), 0, 0);
+                    ctx.drawImage(project.editor.renderer.toCanvas(tileset.texture), 0, 0);
                 });
             } else {
                 ctx.fillStyle = 'black';
                 ctx.fillRect(0, 0, 304, 160);
-                ctx.drawImage(session.editor.renderer.toCanvas(tileset.texture), 0, 0);
+                ctx.drawImage(project.editor.renderer.toCanvas(tileset.texture), 0, 0);
             }
         }
 
-        let selectionGroup = this.panel.renderer.session.selectionGroup;
+        let selectionGroup = this.panel.renderer.project.selectionGroup;
         let primary = selectionGroup.getSelection(SelectionSlot.PRIMARY);
         let secondary = selectionGroup.getSelection(SelectionSlot.SECONDARY);
 

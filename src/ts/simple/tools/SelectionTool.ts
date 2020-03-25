@@ -1,5 +1,5 @@
 import { Tool } from './Tool';
-import { Session } from '../Session';
+import { Project } from '../Project';
 import { MapMouseEvent, MapMouseEventType } from '../../common/Renderer';
 import { Edit } from '../edits/Edit';
 import { MapSection } from '../../util/map/MapSection';
@@ -31,7 +31,7 @@ export class SelectionTool extends Tool {
     }
 
     // @Override
-    protected onStart(session: Session, event: MapMouseEvent): Edit[] {
+    protected onStart(project: Project, event: MapMouseEvent): Edit[] {
 
         if (event.button !== 0) {
             return;
@@ -39,11 +39,11 @@ export class SelectionTool extends Tool {
 
         this.valid = true;
 
-        let editor = session.editor;
+        let editor = project.editor;
         if (!editor.isControlPressed() && !editor.isAltPressed()) {
 
             // Remove all selections.
-            let history = session.editManager;
+            let history = project.editManager;
             history.append([new EditSelectionClear()]);
             history.push();
 
@@ -56,18 +56,18 @@ export class SelectionTool extends Tool {
     }
 
     // @Override
-    protected onDrag(session: Session, event: MapMouseEvent): Edit[] {
+    protected onDrag(project: Project, event: MapMouseEvent): Edit[] {
 
         if (!this.valid) {
             return;
         }
 
         this.dragged = true;
-        return this.select(session, event);
+        return this.select(project, event);
     }
 
     // @Override
-    protected onStop(session: Session, event: MapMouseEvent): Edit[] {
+    protected onStop(project: Project, event: MapMouseEvent): Edit[] {
 
         if (!this.valid) {
             return;
@@ -75,7 +75,7 @@ export class SelectionTool extends Tool {
 
         let edits: Edit[] = null;
         if (this.dragged) {
-            edits = this.select(session, event);
+            edits = this.select(project, event);
         }
 
         this.invert = false;
@@ -85,16 +85,16 @@ export class SelectionTool extends Tool {
     }
 
     // @Override
-    protected onEnter(session: Session, event: MapMouseEvent): Edit[] {
+    protected onEnter(project: Project, event: MapMouseEvent): Edit[] {
         return null;
     }
 
     // @Override
-    protected onExit(session: Session, event: MapMouseEvent): Edit[] {
+    protected onExit(project: Project, event: MapMouseEvent): Edit[] {
         return null;
     }
 
-    private select(session: Session, event: MapMouseEvent): Edit[] {
+    private select(project: Project, event: MapMouseEvent): Edit[] {
 
         if (event.data == null) {
             return;
@@ -133,7 +133,7 @@ export class SelectionTool extends Tool {
             y2 = 1023;
         }
 
-        session.editManager.reset();
+        project.editManager.reset();
 
         return [
             new EditSelectionAdd([

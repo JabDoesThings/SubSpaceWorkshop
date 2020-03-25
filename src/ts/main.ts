@@ -1,28 +1,9 @@
-import { SimpleEditor } from './simple/SimpleEditor';
-import { Session } from './simple/Session';
+import { Editor } from './simple/Editor';
 import * as PIXI from "pixi.js";
-import { SessionAtlas, TextureAtlas } from './simple/render/SessionAtlas';
+import { ProjectAtlas, TextureAtlas } from './simple/render/ProjectAtlas';
 import { MapSprite } from './simple/render/MapSprite';
 
-export let DEFAULT_ATLAS = new SessionAtlas();
-
-function debugLVL() {
-    new SimpleEditor(
-        // new Session('assets/lvl/hz.lvl'),
-        // new Session('assets/lvl/zone66.lvl'),
-        // new Session('assets/lvl/burstwars.lvl'),
-        // new Session("assets/lvl/thefield.lvl", ['assets/lvz/thefield.lvz'])
-
-        // new Session(
-        //     "assets/lvl/crosshunt.lvl",
-        //     [
-        //         'assets/lvz/#SpaceBG2.lvz',
-        //         'assets/lvz/@crosshunt.lvz',
-        //         'assets/lvz/&AstSet_1.lvz'
-        //     ]
-        // )
-    );
-}
+export let DEFAULT_ATLAS = new ProjectAtlas();
 
 // Entry Point from HTML.
 export let start = function () {
@@ -169,7 +150,7 @@ export let start = function () {
 
         setTimeout(() => {
             console.log("### START ###");
-            debugLVL();
+            new Editor();
         }, 10);
     });
 

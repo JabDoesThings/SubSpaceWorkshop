@@ -1,6 +1,6 @@
 import { TileData } from '../../util/map/TileData';
 import { UpdatedObject } from '../../util/UpdatedObject';
-import { Session } from '../Session';
+import { Project } from '../Project';
 import { MapArea } from '../../util/map/MapArea';
 import { CoordinateType } from '../../util/map/CoordinateType';
 
@@ -8,7 +8,7 @@ export class TileDataChunk extends UpdatedObject {
 
     public static readonly LENGTH = 64;
 
-    private readonly session: Session;
+    private readonly project: Project;
     private readonly tiles: TileData;
     private readonly x: number;
     private readonly y: number;
@@ -18,11 +18,11 @@ export class TileDataChunk extends UpdatedObject {
     tileMapAnim: any;
     private tilesAnim: LVLChunkEntry[];
 
-    constructor(session: Session, tiles: TileData, x: number, y: number) {
+    constructor(project: Project, tiles: TileData, x: number, y: number) {
 
         super();
 
-        this.session = session;
+        this.project = project;
 
         this.tiles = tiles;
 
@@ -53,7 +53,7 @@ export class TileDataChunk extends UpdatedObject {
 
         this.tilesAnim = [];
 
-        let atlas = this.session.atlas;
+        let atlas = this.project.atlas;
 
         // @ts-ignore
         this.tileMap = new PIXI.tilemap.CompositeRectTileLayer(0, [
@@ -95,9 +95,9 @@ export class TileDataChunk extends UpdatedObject {
             return;
         }
 
-        let renderer = this.session.editor.renderer;
+        let renderer = this.project.editor.renderer;
         let camera = renderer.camera;
-        let tileset = this.session.tileset;
+        let tileset = this.project.tileset;
 
         if (camera.isDirty()) {
             let cameraPosition = camera.position;
@@ -119,7 +119,7 @@ export class TileDataChunk extends UpdatedObject {
         let x2 = this.bounds.x2;
         let y2 = this.bounds.y2;
 
-        let atlas = this.session.atlas;
+        let atlas = this.project.atlas;
         if (atlas.isDirty() || this.tiles.containsDirtyArea(x1, y1, x2, y2)) {
             this.draw();
         }
@@ -182,14 +182,14 @@ export class TileDataChunk extends UpdatedObject {
 
     draw() {
 
-        let session = this.session;
-        if (session == null) {
+        let project = this.project;
+        if (project == null) {
             return;
         }
 
         let tiles = this.tiles.getTiles(false);
-        let tileset = this.session.tileset;
-        let atlas = session.atlas;
+        let tileset = this.project.tileset;
+        let atlas = project.atlas;
 
         if (atlas.isDirty()) {
             this.tileMap.setBitmaps([

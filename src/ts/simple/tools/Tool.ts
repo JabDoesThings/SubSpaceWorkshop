@@ -1,5 +1,5 @@
 import { MapMouseEvent } from '../../common/Renderer';
-import { Session } from '../Session';
+import { Project } from '../Project';
 import { TileCache } from '../../util/map/TileCache';
 import { Edit } from '../edits/Edit';
 
@@ -25,9 +25,9 @@ export abstract class Tool {
 
     }
 
-    start(session: Session, event: MapMouseEvent): Edit[] {
+    start(project: Project, event: MapMouseEvent): Edit[] {
 
-        let edits = this.onStart(session, event);
+        let edits = this.onStart(project, event);
 
         this.last = {
             x: event.data.x,
@@ -41,9 +41,9 @@ export abstract class Tool {
         return edits;
     }
 
-    drag(session: Session, event: MapMouseEvent): Edit[] {
+    drag(project: Project, event: MapMouseEvent): Edit[] {
 
-        let edits = this.onDrag(session, event);
+        let edits = this.onDrag(project, event);
 
         this.last = {
             x: event.data.x,
@@ -55,9 +55,9 @@ export abstract class Tool {
         return edits;
     }
 
-    stop(session: Session, event: MapMouseEvent): Edit[] {
+    stop(project: Project, event: MapMouseEvent): Edit[] {
 
-        let edits = this.onStop(session, event);
+        let edits = this.onStop(project, event);
 
         this.last = null;
         this.down = null;
@@ -66,23 +66,9 @@ export abstract class Tool {
         return edits;
     }
 
-    enter(session: Session, event: MapMouseEvent): Edit[] {
+    enter(project: Project, event: MapMouseEvent): Edit[] {
 
-        let edits = this.onEnter(session, event);
-
-        this.last = {
-            x: event.data.x,
-            y: event.data.y,
-            tileX: event.data.tileX,
-            tileY: event.data.tileY
-        };
-
-        return edits;
-    }
-
-    exit(session: Session, event: MapMouseEvent): Edit[] {
-
-        let edits = this.onExit(session, event);
+        let edits = this.onEnter(project, event);
 
         this.last = {
             x: event.data.x,
@@ -94,13 +80,27 @@ export abstract class Tool {
         return edits;
     }
 
-    protected abstract onStart(session: Session, event: MapMouseEvent): Edit[];
+    exit(project: Project, event: MapMouseEvent): Edit[] {
 
-    protected abstract onDrag(session: Session, event: MapMouseEvent): Edit[];
+        let edits = this.onExit(project, event);
 
-    protected abstract onEnter(session: Session, event: MapMouseEvent): Edit[];
+        this.last = {
+            x: event.data.x,
+            y: event.data.y,
+            tileX: event.data.tileX,
+            tileY: event.data.tileY
+        };
 
-    protected abstract onExit(session: Session, event: MapMouseEvent): Edit[];
+        return edits;
+    }
 
-    protected abstract onStop(session: Session, event: MapMouseEvent): Edit[];
+    protected abstract onStart(project: Project, event: MapMouseEvent): Edit[];
+
+    protected abstract onDrag(project: Project, event: MapMouseEvent): Edit[];
+
+    protected abstract onEnter(project: Project, event: MapMouseEvent): Edit[];
+
+    protected abstract onExit(project: Project, event: MapMouseEvent): Edit[];
+
+    protected abstract onStop(project: Project, event: MapMouseEvent): Edit[];
 }

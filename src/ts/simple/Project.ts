@@ -1,9 +1,9 @@
 import { DEFAULT_ATLAS } from '../main';
-import { SimpleEditor } from './SimpleEditor';
+import { Editor } from './Editor';
 import { Selection, SelectionGroup, SelectionSlot, SelectionType } from './ui/Selection';
 import { UITab } from './ui/UI';
 import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
-import { SessionAtlas } from './render/SessionAtlas';
+import { ProjectAtlas } from './render/ProjectAtlas';
 import { EditManager } from './EditManager';
 import { LayerManager } from './layers/LayerManager';
 import { MapSections } from '../util/map/MapSection';
@@ -14,18 +14,18 @@ import { SelectionRenderer } from './render/SelectionRenderer';
 import { MapRenderer } from './render/MapRenderer';
 
 /**
- * The <i>Session</i> class. TODO: Document.
+ * The <i>Project</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Session extends CustomEventListener<CustomEvent> {
+export class Project extends CustomEventListener<CustomEvent> {
 
-    editor: SimpleEditor;
+    editor: Editor;
     editManager: EditManager;
     selectionGroup: SelectionGroup;
     layers: LayerManager;
     selections: MapSections;
-    atlas: SessionAtlas;
+    atlas: ProjectAtlas;
     tileset: LVLTileSet;
     tab: UITab;
     _name: string;
@@ -68,18 +68,18 @@ export class Session extends CustomEventListener<CustomEvent> {
         this.selectionGroup.setSelection(SelectionSlot.SECONDARY, new Selection(SelectionType.TILE, 2));
     }
 
-    onPreUpdate(): void {
+    preUpdate(): void {
         this.layers.preUpdate();
     }
 
-    onUpdate(delta: number): void {
+    update(delta: number): void {
         this.layers.update(delta);
         this.background.update();
         this.atlas.update();
         this.selectionRenderer.update();
     }
 
-    onPostUpdate(): void {
+    postUpdate(): void {
         this.layers.postUpdate();
         this.tileset.setDirty(false);
         this.background.setDirty(false);
@@ -88,7 +88,7 @@ export class Session extends CustomEventListener<CustomEvent> {
         this.selections.setDirty(false);
     }
 
-    onActivate(): void {
+    activate(): void {
         this.layers.onActivate(this.renderer);
         this.renderer.mapLayers.layers[1].addChild(this.background);
         this.renderer.mapLayers.layers[7].addChild(this.selectionRenderer.graphics);
@@ -107,10 +107,10 @@ export class Session extends CustomEventListener<CustomEvent> {
 }
 
 /**
- * The <i>SessionEvent</i> interface. TODO: Document.
+ * The <i>ProjectEvent</i> interface. TODO: Document.
  *
  * @author Jab
  */
-export interface SessionEvent extends CustomEvent {
-    session: Session
+export interface ProjectEvent extends CustomEvent {
+    project: Project
 }

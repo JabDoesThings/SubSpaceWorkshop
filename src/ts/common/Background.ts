@@ -2,7 +2,7 @@ import * as PIXI from "pixi.js";
 import { MapRenderer } from '../simple/render/MapRenderer';
 import { Renderer } from './Renderer';
 import { SeededRandom } from '../util/SeededRandom';
-import { Session } from '../simple/Session';
+import { Project } from '../simple/Project';
 
 /**
  * The <i>Background</i> class. TODO: Document.
@@ -21,14 +21,14 @@ export class Background extends PIXI.Container {
     private lh: number;
     random: SeededRandom;
     seed: number;
-    session: Session;
+    project: Project;
     private dirty: boolean;
 
-    constructor(session: Session, view: Renderer, seed: number) {
+    constructor(project: Project, view: Renderer, seed: number) {
 
         super();
 
-        this.session = session;
+        this.project = project;
         this.view = view;
         this.setSeed(seed);
 
@@ -217,7 +217,7 @@ export class BackgroundObjectLayer extends PIXI.Container {
 
         let random = this.background.random;
 
-        let atlas = this.background.session.atlas;
+        let atlas = this.background.project.atlas;
 
         let bgs: PIXI.Texture[] = [];
         let stars: PIXI.Texture[] = [];

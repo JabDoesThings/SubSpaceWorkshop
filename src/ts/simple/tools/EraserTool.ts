@@ -1,4 +1,4 @@
-import { Session } from '../Session';
+import { Project } from '../Project';
 import { MapMouseEvent } from '../../common/Renderer';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
@@ -22,9 +22,9 @@ export class EraserTool extends DrawTool {
     }
 
     // @Override
-    protected drawTile(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+    protected drawTile(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
 
-        let activeLayer = session.layers.getActive();
+        let activeLayer = project.layers.getActive();
         if(activeLayer == null || !(activeLayer instanceof TileLayer)) {
             return;
         }
@@ -82,19 +82,19 @@ export class EraserTool extends DrawTool {
     }
 
     // @Override
-    protected drawMapObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+    protected drawMapObject(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
         // TODO: Implement.
         return null;
     }
 
     // @Override
-    protected drawScreenObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+    protected drawScreenObject(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
         // TODO: Implement.
         return null;
     }
 
     // @Override
-    protected drawRegion(session: Session, selection: Selection, event: MapMouseEvent): Edit[] {
+    protected drawRegion(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
         // TODO: Implement.
         return null;
     }

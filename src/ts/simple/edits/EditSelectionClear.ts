@@ -30,7 +30,7 @@ export class EditSelectionClear extends Edit {
             throw new Error("The selection is already removed.");
         }
 
-        this.selections = history.session.selections.clear();
+        this.selections = history.project.selections.clear();
 
         this.done = true;
     }
@@ -42,7 +42,7 @@ export class EditSelectionClear extends Edit {
             throw new Error("The selection is not removed.");
         }
 
-        history.session.selections.addAll(this.selections);
+        history.project.selections.addAll(this.selections);
 
         this.selections = null;
         this.done = false;

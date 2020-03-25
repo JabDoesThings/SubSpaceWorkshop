@@ -1,5 +1,5 @@
 import { Tool } from './Tool';
-import { Session } from '../Session';
+import { Project } from '../Project';
 import { MapMouseEvent } from '../../common/Renderer';
 import { Edit } from '../edits/Edit';
 import { Selection, SelectionType } from '../ui/Selection';
@@ -15,33 +15,33 @@ export abstract class DrawTool extends Tool {
     }
 
     // @Override
-    protected onStart(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
+    protected onStart(project: Project, event: MapMouseEvent): Edit[] {
+        return this.draw(project, event);
     }
 
     // @Override
-    protected onDrag(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
+    protected onDrag(project: Project, event: MapMouseEvent): Edit[] {
+        return this.draw(project, event);
     }
 
     // @Override
-    protected onStop(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
+    protected onStop(project: Project, event: MapMouseEvent): Edit[] {
+        return this.draw(project, event);
     }
 
     // @Override
-    protected onEnter(session: Session, event: MapMouseEvent): Edit[] {
+    protected onEnter(project: Project, event: MapMouseEvent): Edit[] {
         return;
     }
 
     // @Override
-    protected onExit(session: Session, event: MapMouseEvent): Edit[] {
+    protected onExit(project: Project, event: MapMouseEvent): Edit[] {
         return;
     }
 
-    protected draw(session: Session, event: MapMouseEvent): Edit[] {
+    protected draw(project: Project, event: MapMouseEvent): Edit[] {
 
-        let selectionGroup = session.selectionGroup;
+        let selectionGroup = project.selectionGroup;
         let selection = selectionGroup.getSelection(event.button);
         if (selection == null || event.data == null) {
             return;
@@ -49,25 +49,25 @@ export abstract class DrawTool extends Tool {
 
         // Clear any previous edits made by the tool during its current use.
         if (this.clearOnDraw) {
-            session.editManager.reset();
+            project.editManager.reset();
         }
 
         if (selection.type === SelectionType.TILE) {
-            return this.drawTile(session, selection, event);
+            return this.drawTile(project, selection, event);
         } else if (selection.type == SelectionType.MAP_OBJECT) {
-            return this.drawMapObject(session, selection, event);
+            return this.drawMapObject(project, selection, event);
         } else if (selection.type == SelectionType.SCREEN_OBJECT) {
-            return this.drawScreenObject(session, selection, event);
+            return this.drawScreenObject(project, selection, event);
         } else if (selection.type == SelectionType.REGION) {
-            return this.drawRegion(session, selection, event);
+            return this.drawRegion(project, selection, event);
         }
     }
 
-    protected abstract drawTile(session: Session, selection: Selection, event: MapMouseEvent): Edit[];
+    protected abstract drawTile(project: Project, selection: Selection, event: MapMouseEvent): Edit[];
 
-    protected abstract drawMapObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[];
+    protected abstract drawMapObject(project: Project, selection: Selection, event: MapMouseEvent): Edit[];
 
-    protected abstract drawScreenObject(session: Session, selection: Selection, event: MapMouseEvent): Edit[];
+    protected abstract drawScreenObject(project: Project, selection: Selection, event: MapMouseEvent): Edit[];
 
-    protected abstract drawRegion(session: Session, selection: Selection, event: MapMouseEvent): Edit[];
+    protected abstract drawRegion(project: Project, selection: Selection, event: MapMouseEvent): Edit[];
 }

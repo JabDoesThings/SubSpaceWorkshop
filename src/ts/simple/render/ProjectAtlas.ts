@@ -4,11 +4,11 @@ import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
 import { Dirtable } from '../../util/Dirtable';
 
 /**
- * The <i>SessionAtlas</i> class. TODO: Document.
+ * The <i>ProjectAtlas</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class SessionAtlas extends CustomEventListener<CustomEvent> implements Dirtable {
+export class ProjectAtlas extends CustomEventListener<CustomEvent> implements Dirtable {
 
     private readonly textures: { [id: string]: TextureAtlas };
 
@@ -24,16 +24,16 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
         this.dirty = true;
     }
 
-    clone(): SessionAtlas {
+    clone(): ProjectAtlas {
 
-        let sessionAtlas = new SessionAtlas();
+        let projectAtlas = new ProjectAtlas();
         for (let id in this.textures) {
-            sessionAtlas.textures[id] = this.textures[id].clone();
-            sessionAtlas.textures[id].addEventListener(sessionAtlas.tListener);
+            projectAtlas.textures[id] = this.textures[id].clone();
+            projectAtlas.textures[id].addEventListener(projectAtlas.tListener);
         }
 
-        sessionAtlas.setDirty(true);
-        return sessionAtlas;
+        projectAtlas.setDirty(true);
+        return projectAtlas;
     }
 
     /** Updates all sprites registered in the atlas. */
@@ -65,9 +65,9 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
         let textures: { [id: string]: TextureAtlas } = {};
         textures[textureId] = texture;
 
-        this.dispatch(<SessionAtlasEvent> {
-            eventType: 'SessionAtlasEvent',
-            sessionAtlas: this,
+        this.dispatch(<ProjectAtlasEvent> {
+            eventType: 'ProjectAtlasEvent',
+            projectAtlas: this,
             action: AtlasAction.REMOVE_TEXTURES,
             textures: textures,
             forced: true
@@ -87,9 +87,9 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
 
         this.dirty = true;
 
-        this.dispatch(<SessionAtlasEvent> {
-            eventType: 'SessionAtlasEvent',
-            sessionAtlas: this,
+        this.dispatch(<ProjectAtlasEvent> {
+            eventType: 'ProjectAtlasEvent',
+            projectAtlas: this,
             action: AtlasAction.REMOVE_TEXTURES,
             textures: this.textures,
             forced: true
@@ -128,9 +128,9 @@ export class SessionAtlas extends CustomEventListener<CustomEvent> implements Di
         let textures: { [id: string]: TextureAtlas } = {};
         textures[texture.id] = texture;
 
-        this.dispatch(<SessionAtlasEvent> {
-            eventType: 'SessionAtlasEvent',
-            sessionAtlas: this,
+        this.dispatch(<ProjectAtlasEvent> {
+            eventType: 'ProjectAtlasEvent',
+            projectAtlas: this,
             action: AtlasAction.SET_TEXTURES,
             textures: textures,
             forced: true
@@ -310,8 +310,8 @@ export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
     }
 }
 
-export interface SessionAtlasEvent extends CustomEvent {
-    sessionAtlas: SessionAtlas,
+export interface ProjectAtlasEvent extends CustomEvent {
+    projectAtlas: ProjectAtlas,
     action: AtlasAction,
     textures: { [id: string]: TextureAtlas }
 }

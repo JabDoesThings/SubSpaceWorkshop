@@ -1,4 +1,4 @@
-import { Session } from '../Session';
+import { Project } from '../Project';
 import { MapMouseEvent } from '../../common/Renderer';
 import { Tool } from './Tool';
 import { SelectionType } from '../ui/Selection';
@@ -17,38 +17,38 @@ export class SquareTool extends Tool {
     }
 
     // @Override
-    protected onStart(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
+    protected onStart(project: Project, event: MapMouseEvent): Edit[] {
+        return this.draw(project, event);
     }
 
     // @Override
-    protected onDrag(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
+    protected onDrag(project: Project, event: MapMouseEvent): Edit[] {
+        return this.draw(project, event);
     }
 
     // @Override
-    protected onStop(session: Session, event: MapMouseEvent): Edit[] {
-        return this.draw(session, event);
+    protected onStop(project: Project, event: MapMouseEvent): Edit[] {
+        return this.draw(project, event);
     }
 
     // @Override
-    protected onEnter(session: Session, event: MapMouseEvent): Edit[] {
+    protected onEnter(project: Project, event: MapMouseEvent): Edit[] {
         return;
     }
 
     // @Override
-    protected onExit(session: Session, event: MapMouseEvent): Edit[] {
+    protected onExit(project: Project, event: MapMouseEvent): Edit[] {
         return;
     }
 
-    private draw(session: Session, event: MapMouseEvent): Edit[] {
+    private draw(project: Project, event: MapMouseEvent): Edit[] {
 
-        let activeLayer = session.layers.getActive();
+        let activeLayer = project.layers.getActive();
         if(activeLayer == null || !(activeLayer instanceof TileLayer)) {
             return;
         }
 
-        let selectionGroup = session.selectionGroup;
+        let selectionGroup = project.selectionGroup;
 
         let selection = selectionGroup.getSelection(event.button);
         if (selection == null || event.data == null) {
@@ -60,7 +60,7 @@ export class SquareTool extends Tool {
         }
 
         // With the line tool, we only need the latest edits to push.
-        session.editManager.reset();
+        project.editManager.reset();
 
         let tiles: { x: number, y: number }[];
 

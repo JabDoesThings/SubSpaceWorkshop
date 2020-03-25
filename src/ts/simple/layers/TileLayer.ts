@@ -41,7 +41,7 @@ export class TileLayer extends Layer {
         for (let x = 0; x < 16; x++) {
             let xArray: TileDataChunk[] = this.chunks[x] = [];
             for (let y = 0; y < 16; y++) {
-                let chunk = new TileDataChunk(manager.session, this.tiles, x, y);
+                let chunk = new TileDataChunk(manager.project, this.tiles, x, y);
                 chunk.init();
                 xArray[y] = chunk;
 

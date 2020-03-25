@@ -23,7 +23,7 @@ export class EditSelectionRemove extends Edit {
         }
 
         for (let index = 0; index < this.selections.length; index++) {
-            history.session.selections.remove(this.selections[index]);
+            history.project.selections.remove(this.selections[index]);
         }
 
         this.done = true;
@@ -36,7 +36,7 @@ export class EditSelectionRemove extends Edit {
         }
 
         for (let index = this.selections.length - 1; index >= 0; index--) {
-            history.session.selections.add(this.selections[index]);
+            history.project.selections.add(this.selections[index]);
         }
 
         this.done = false;

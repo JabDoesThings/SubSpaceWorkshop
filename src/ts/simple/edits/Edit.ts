@@ -18,14 +18,14 @@ export abstract class Edit {
     /**
      * Redoes the edit.
      *
-     * @param history The history of the session.
+     * @param history The history of the project.
      */
     abstract do(history: EditManager): void;
 
     /**
      * Undoes the edit.
      *
-     * @param history The history of the session.
+     * @param history The history of the project.
      */
     abstract undo(history: EditManager): void;
 }

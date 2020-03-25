@@ -313,7 +313,7 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
 
     getSelected(slot: number): Item {
 
-        let selectionGroup = this.panel.renderer.session.selectionGroup;
+        let selectionGroup = this.panel.renderer.project.selectionGroup;
 
         let selection = selectionGroup.getSelection(slot);
         if (selection == null) {
@@ -331,7 +331,7 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
     }
 
     setSelected(slot: number, item: Item): void {
-        let selectionGroup = this.panel.renderer.session.selectionGroup;
+        let selectionGroup = this.panel.renderer.project.selectionGroup;
 
         let previousItem = this.getSelected(slot);
 
@@ -529,13 +529,13 @@ export abstract class Item implements Dirtable {
     }
 
     isPrimary(): boolean {
-        let selectionGroup = this.selector.panel.renderer.session.selectionGroup;
+        let selectionGroup = this.selector.panel.renderer.project.selectionGroup;
         let primary = selectionGroup.getSelection(SelectionSlot.PRIMARY);
         return primary.id === this.id && primary.type === this.type;
     }
 
     isSecondary(): boolean {
-        let selectionGroup = this.selector.panel.renderer.session.selectionGroup;
+        let selectionGroup = this.selector.panel.renderer.project.selectionGroup;
         let secondary = selectionGroup.getSelection(SelectionSlot.SECONDARY);
         return secondary.id === this.id && secondary.type === this.type;
     }

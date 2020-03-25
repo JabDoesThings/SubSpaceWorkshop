@@ -1,8 +1,8 @@
 import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
 import { CompiledLVZScreenObject, LVZPackage, LVZResource } from '../io/LVZ';
 import { LVZ } from '../io/LVZUtils';
-import { Session } from './Session';
-import { SessionAtlas, TextureAtlas } from './render/SessionAtlas';
+import { Project } from './Project';
+import { ProjectAtlas, TextureAtlas } from './render/ProjectAtlas';
 import Texture = PIXI.Texture;
 import { MapSprite } from './render/MapSprite';
 
@@ -19,16 +19,16 @@ export class LVZManager extends CustomEventListener<LVZEvent> {
     loaded: boolean;
     dirty: boolean;
 
-    session: Session;
+    project: Project;
 
     /**
      * Main constructor.
      */
-    constructor(session: Session) {
+    constructor(project: Project) {
 
         super();
 
-        this.session = session;
+        this.project = project;
 
         this.packages = [];
         this.lvzDirtyRange = {x1: 0, x2: 0, y1: 16384, y2: 16384};
@@ -58,7 +58,7 @@ export class LVZManager extends CustomEventListener<LVZEvent> {
             return;
         }
 
-        this.applyToAtlas(this.session.atlas);
+        this.applyToAtlas(this.project.atlas);
 
         this.loaded = true;
         this.dirty = true;
@@ -165,7 +165,7 @@ export class LVZManager extends CustomEventListener<LVZEvent> {
         return null;
     }
 
-    private applyToAtlas(atlas: SessionAtlas) {
+    private applyToAtlas(atlas: ProjectAtlas) {
         try {
             for (let index = 0; index < this.packages.length; index++) {
 

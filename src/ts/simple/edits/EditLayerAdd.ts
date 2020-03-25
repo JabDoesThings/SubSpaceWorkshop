@@ -19,7 +19,7 @@ export class EditLayerAdd extends Edit {
         if(this.done) {
             throw new Error('The layer is already added: ' + this.layer.getName() + "'");
         }
-        history.session.layers.add(this.layer);
+        history.project.layers.add(this.layer);
         this.done = true;
     }
 
@@ -27,7 +27,7 @@ export class EditLayerAdd extends Edit {
         if(!this.done) {
             throw new Error('The layer is not added: ' + this.layer.getName() + "'");
         }
-        history.session.layers.remove(this.layer);
+        history.project.layers.remove(this.layer);
         this.done = false;
     }
 
