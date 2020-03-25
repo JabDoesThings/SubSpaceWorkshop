@@ -177,6 +177,16 @@ export class MapArea {
     }
 
     /**
+     * @param x The 'X' coordinate to test.
+     * @param y The 'Y' coordinate to test.
+     *
+     * @return Returns true if the section contains the point.
+     */
+    contains(x: number, y: number): boolean {
+        return x >= this.x1 && x <= this.x2 && y >= this.y1 && y <= this.y2;
+    }
+
+    /**
      * Converts the Boundary coordinates to the specified coordinate type.
      *
      * @param type

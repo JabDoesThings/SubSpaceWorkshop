@@ -40,14 +40,12 @@ export class SelectionTool extends Tool {
         this.valid = true;
 
         let editor = project.editor;
-        if (!editor.isControlPressed() && !editor.isAltPressed()) {
+        if (!editor.isControlPressed() && !editor.isAltPressed() && !project.selections.isEmpty()) {
 
             // Remove all selections.
             let history = project.editManager;
             history.append([new EditSelectionClear()]);
             history.push();
-
-            console.log('Cleared Selection.');
         }
 
         this.invert = editor.isAltPressed();

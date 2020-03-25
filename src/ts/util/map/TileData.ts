@@ -3,6 +3,7 @@ import { LVL } from '../../io/LVLUtils';
 import { CoordinateType } from './CoordinateType';
 import { TileEdit } from '../../simple/edits/EditTiles';
 import { Path } from '../Path';
+import { MapSections } from './MapSection';
 
 /**
  * The <i>TileData</i> class. TODO: Document.
@@ -152,16 +153,21 @@ export class TileData {
      * @param x The 'X' coordinate of the tile to set.
      * @param y The 'Y' coordinate of the tile to set.
      * @param value The tile-value to set.
+     * @param mask
      * @param applyDimensions
      *
      * @return Returns 'true' if the 'X' and 'Y' coordinates are within range and the tile is set.
      */
-    public set(x: number, y: number, value: number, applyDimensions: boolean = true): { x: number, y: number, from: number, to: number }[] {
+    public set(x: number, y: number, value: number, mask: MapSections = null, applyDimensions: boolean = true): TileEdit[] {
 
         // Make sure that the tile ID is proper.
         LVL.validateTileId(value);
 
         LVL.validateCoordinates(x, y, 0, 0, this.width - 1, this.height - 1);
+
+        if(mask != null && !mask.test(x, y)) {
+            return [];
+        }
 
         let changed: { x: number, y: number, from: number, to: number }[] = [];
 
@@ -205,7 +211,7 @@ export class TileData {
                     for (let x = cx - 5; x <= cx; x++) {
 
                         // Make sure the tile coordinates are valid.
-                        if (x < 0 || x > 1023 || y < 0 || y > 1023) {
+                        if (x < 0 || x > this.width - 1 || y < 0 || y > this.height - 1) {
                             continue;
                         }
 
@@ -229,7 +235,7 @@ export class TileData {
                     for (let x = x1; x <= x2; x++) {
 
                         // Make sure the tile coordinates are valid.
-                        if (x < 0 || x > 1023 || y < 0 || y > 1023) {
+                        if (x < 0 || x > this.width - 1 || y < 0 || y > this.height - 1) {
                             continue;
                         }
 

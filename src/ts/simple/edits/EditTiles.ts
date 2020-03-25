@@ -50,7 +50,8 @@ export class EditTiles extends Edit {
 
             try {
 
-                let originalTiles = this.layer.tiles.set(next.x, next.y, next.to, this.applyDimensions);
+                let mask = history.project.selections;
+                let originalTiles = this.layer.tiles.set(next.x, next.y, next.to, mask, this.applyDimensions);
                 this.tilesToUndo = this.tilesToUndo.concat(originalTiles);
             } catch (e) {
 
@@ -82,7 +83,8 @@ export class EditTiles extends Edit {
             let next = this.tilesToUndo[index];
 
             try {
-                tiles.set(next.x, next.y, next.from, this.applyDimensions);
+                let mask = history.project.selections;
+                tiles.set(next.x, next.y, next.from, mask, this.applyDimensions);
             } catch (e) {
 
                 let str = next != null ? next.toString() : 'null';

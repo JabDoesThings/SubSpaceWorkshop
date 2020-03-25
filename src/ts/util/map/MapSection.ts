@@ -116,15 +116,15 @@ export class MapSections implements Dirtable {
 
         // Push the section.
         this.sections.push(section);
-        this.dirty = true;
-        this.bounds = null;
-        this.array = null;
+        this.setDirty(true);
     }
 
     addAll(sections: MapSection[]) {
-        for(let index = 0; index < sections.length; index++) {
+        for (let index = 0; index < sections.length; index++) {
             this.sections.push(sections[index]);
         }
+
+        this.setDirty(true);
     }
 
     remove(section: MapSection) {
@@ -146,9 +146,7 @@ export class MapSections implements Dirtable {
             this.sections.push(newArray[index]);
         }
 
-        this.dirty = true;
-        this.bounds = null;
-        this.array = null;
+        this.setDirty(true);
     }
 
     clear(): MapSection[] {
@@ -159,10 +157,8 @@ export class MapSections implements Dirtable {
             toReturn.push(this.sections[index]);
         }
 
-        this.sections = [];
-        this.dirty = true;
-        this.bounds = null;
-        this.array = null;
+        this.sections.length = 0;
+        this.setDirty(true);
 
         return toReturn;
     }
@@ -182,7 +178,45 @@ export class MapSections implements Dirtable {
 
     // @Override
     setDirty(flag: boolean): void {
+
+        if(this.dirty === flag) {
+            return;
+        }
+
         this.dirty = flag;
+
+        if(flag) {
+            this.bounds = null;
+            this.array = null;
+        }
+    }
+
+    /**
+     * Tests whether or not a point is selected.
+     *
+     * @param x The 'X' coordinate to test.
+     * @param y The 'Y' coordinate to test.
+     */
+    test(x: number, y: number): boolean {
+
+        if (this.isEmpty()) {
+            return true;
+        }
+
+        let result = false;
+
+        // The last section to contain the point will determine the result.
+        for (let index = this.sections.length - 1; index >= 0; index--) {
+
+            // The section should only account for the result if the tile is inside of it.
+            let next = this.sections[index];
+            if (next.contains(x, y)) {
+                result = next.test(x, y);
+                break;
+            }
+        }
+
+        return result;
     }
 }
 
@@ -217,6 +251,19 @@ export class MapSection {
         this.height = array[0].length;
         this.invert = invert;
         this.bounds = new MapArea(CoordinateType.TILE, x, y, x + this.width - 1, y + this.height - 1);
+    }
+
+    test(x: number, y: number): boolean {
+        return this.contains(x, y)
+            ? (this.invert
+                    ? !this.array[x - this.bounds.x1][y - this.bounds.y1]
+                    : this.array[x - this.bounds.x1][y - this.bounds.y1]
+            )
+            : false;
+    }
+
+    contains(x: number, y: number): boolean {
+        return this.bounds.contains(x, y);
     }
 
     /**
