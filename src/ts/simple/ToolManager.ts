@@ -85,6 +85,7 @@ export class ToolManager {
                 downProject.editor.renderer.radar.setDirty(true);
             }
             if (reset) {
+                // downProject.layers.drawTileLayer.tiles.clear();
                 downTool = null;
                 downProject = null;
             }

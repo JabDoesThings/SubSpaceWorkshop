@@ -48,6 +48,7 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
 
         this.id = id;
         this.name = name;
+        this.visible = true;
 
         this.renderLayers = [];
         for (let index = 0; index < 8; index++) {
@@ -58,6 +59,56 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
         }
 
         this.ui = new UILayer(this.name);
+        this.ui.visibilityElement.addEventListener('click', (event) => {
+            this.setVisible(!this.visible);
+            this.ui.setVisible(this.visible);
+            this.manager.combineTileLayers();
+        });
+
+        this.ui.element.addEventListener('click', (event) => {
+            this.manager.setActive(this);
+            // this.ui.setSelected(true);
+        });
+    }
+
+    private updatingUI: boolean = false;
+
+    // @Override
+    addChild(object: Layer): void {
+        super.addChild(object);
+        this.updateUI();
+    }
+
+    // @Override
+    removeChild(object: Layer): void {
+        super.removeChild(object);
+        this.updateUI();
+    }
+
+    // @Override
+    removeChildren(): void {
+        super.removeChildren();
+        this.updateUI();
+    }
+
+    private updateUI(): void {
+
+        if (this.updatingUI) {
+            return;
+        }
+
+        this.updatingUI = true;
+
+        this.ui.removeChildren();
+
+        let children = this.getChildren();
+        for (let index = children.length - 1; index >= 0; index--) {
+            this.ui.addChild(children[index].ui);
+        }
+
+        this.manager.updateUI();
+
+        this.updatingUI = false;
     }
 
     preUpdate(): void {
@@ -73,6 +124,13 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
     }
 
     update(delta: number): void {
+
+        let visible = this.hasParent() ? this.getParent().isVisible() && this.visible : this.visible;
+
+        // Set all rendered layers to the visibility state.
+        for (let index = 0; index < this.renderLayers.length; index++) {
+            this.renderLayers[index].visible = visible;
+        }
 
         this.onUpdate(delta);
 
@@ -95,7 +153,7 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
             }
         }
 
-        this.dirty = false;
+        this.setDirty(false);
     }
 
     /**
@@ -180,6 +238,10 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
 
         this.visible = flag;
 
+        if (this instanceof TileLayer) {
+            this.manager.combineTileLayers();
+        }
+
         this.setDirty(true);
     }
 
@@ -194,8 +256,15 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
     }
 
     activate(renderer: MapRenderer): void {
-        renderer.layersTab.addLayer(this.ui);
+
         this.onActivate(renderer);
+
+        if (this.hasChildren()) {
+            let children = this.getChildren();
+            for (let index = 0; index < children.length; index++) {
+                children[index].activate(renderer);
+            }
+        }
     }
 
     protected abstract onPreUpdate(): void;
@@ -210,6 +279,5 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
     abstract getBounds(): MapArea;
 
     abstract onActivate(renderer: MapRenderer): void;
-
 }
 

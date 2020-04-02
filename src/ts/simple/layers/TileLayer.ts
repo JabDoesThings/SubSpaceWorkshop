@@ -2,7 +2,6 @@ import { Layer } from './Layer';
 import { MapArea } from '../../util/map/MapArea';
 import { TileData } from '../../util/map/TileData';
 import { MapRenderer } from '../render/MapRenderer';
-import { TileDataChunk } from '../render/TileDataChunk';
 import { LayerManager } from './LayerManager';
 
 /**
@@ -15,8 +14,6 @@ export class TileLayer extends Layer {
     bounds: MapArea;
 
     readonly tiles: TileData;
-
-    readonly chunks: TileDataChunk[][];
 
     /**
      * Main constructor.
@@ -35,20 +32,8 @@ export class TileLayer extends Layer {
         if (tiles == null) {
             tiles = new TileData();
         }
+
         this.tiles = tiles;
-
-        this.chunks = [];
-        for (let x = 0; x < 16; x++) {
-            let xArray: TileDataChunk[] = this.chunks[x] = [];
-            for (let y = 0; y < 16; y++) {
-                let chunk = new TileDataChunk(manager.project, this.tiles, x, y);
-                chunk.init();
-                xArray[y] = chunk;
-
-                this.renderLayers[2].addChild(chunk.tileMap);
-                this.renderLayers[2].addChild(chunk.tileMapAnim);
-            }
-        }
     }
 
     // @Override
@@ -57,22 +42,11 @@ export class TileLayer extends Layer {
 
     // @Override
     protected onUpdate(delta: number): void {
-
-        for (let x = 0; x < 16; x++) {
-            for (let y = 0; y < 16; y++) {
-                this.chunks[x][y].update(delta);
-            }
-        }
     }
 
     // @Override
     protected onPostUpdate(): void {
         this.tiles.setDirty(false);
-        for (let x = 0; x < 16; x++) {
-            for (let y = 0; y < 16; y++) {
-                this.chunks[x][y].setDirty(false);
-            }
-        }
     }
 
     // @Override
@@ -89,10 +63,6 @@ export class TileLayer extends Layer {
 
     // @Override
     onActivate(renderer: MapRenderer): void {
-
-        for (let index = 0; index < this.renderLayers.length; index++) {
-            renderer.mapLayers.layers[index].addChild(this.renderLayers[index]);
-        }
     }
 
     isDirty(): boolean {

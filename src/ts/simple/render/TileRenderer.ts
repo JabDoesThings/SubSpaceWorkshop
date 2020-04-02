@@ -1,10 +1,98 @@
 import { TileData } from '../../util/map/TileData';
-import { UpdatedObject } from '../../util/UpdatedObject';
+import { Renderer } from '../../common/Renderer';
 import { Project } from '../Project';
+import { MapRenderer } from './MapRenderer';
+import { UpdatedObject } from '../../util/UpdatedObject';
 import { MapArea } from '../../util/map/MapArea';
 import { CoordinateType } from '../../util/map/CoordinateType';
 
-export class TileDataChunk extends UpdatedObject {
+/**
+ * The <i>TileRenderer</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class TileRenderer {
+
+    readonly renderer: MapRenderer;
+    readonly project: Project;
+    readonly data: TileData;
+    readonly container: PIXI.Container;
+    readonly chunks: TileChunk[][];
+
+    /**
+     * Main constructor.
+     *
+     * @param project
+     * @param data
+     */
+    constructor(project: Project, data: TileData) {
+
+        this.project = project;
+        this.renderer = project.renderer;
+        this.data = data;
+
+        this.container = new PIXI.Container();
+        this.container.filters = [Renderer.chromaFilter];
+        this.container.filterArea = this.renderer.app.screen;
+
+        this.chunks = [];
+        for (let x = 0; x < 16; x++) {
+            this.chunks[x] = [];
+            for (let y = 0; y < 16; y++) {
+                let chunk = new TileChunk(project, this.data, x, y);
+                chunk.init();
+                this.chunks[x][y] = chunk;
+
+                this.container.addChild(chunk.tileMap);
+                this.container.addChild(chunk.tileMapAnim);
+            }
+        }
+    }
+
+    update(delta: number): void {
+
+        // ### DEBUG CODE ###
+        //
+        // let dirtyAreas = this.data.dirtyAreas;
+        // if(dirtyAreas.length > 0) {
+        //     let text = 'DIRTY AREAS: [\n';
+        //     for(let index = 0; index < dirtyAreas.length; index++) {
+        //         let next = dirtyAreas[index];
+        //         text += '\n\t{x1: ' + next.x1 + ", y1: " + next.y1 + ", x2: " + next.x2 + ", y2: " + next.y2 + "},";
+        //     }
+        //     text += '\n]';
+        //     console.log(text);
+        // }
+        //
+        // ### DEBUG CODE ###
+
+        for (let x = 0; x < 16; x++) {
+            for (let y = 0; y < 16; y++) {
+                this.chunks[x][y].update(delta);
+            }
+        }
+    }
+
+    draw(): void {
+
+        for (let x = 0; x < 16; x++) {
+            for (let y = 0; y < 16; y++) {
+                this.chunks[x][y].draw();
+            }
+        }
+    }
+
+    onActivate(renderer: MapRenderer): void {
+        renderer.mapLayers.layers[2].addChild(this.container);
+    }
+}
+
+/**
+ * The <i>TileChunk</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class TileChunk extends UpdatedObject {
 
     public static readonly LENGTH = 64;
 
@@ -31,7 +119,6 @@ export class TileDataChunk extends UpdatedObject {
         super();
 
         this.project = project;
-
         this.tiles = tiles;
 
         this.setRequireDirtyToUpdate(false);
@@ -92,11 +179,6 @@ export class TileDataChunk extends UpdatedObject {
     }
 
     // @Override
-    public isDirty(): boolean {
-        return super.isDirty() || this.tiles.isDirty();
-    }
-
-    // @Override
     public onUpdate(delta: number): boolean {
 
         if (this.tileMap == null) {
@@ -151,7 +233,7 @@ export class TileDataChunk extends UpdatedObject {
             }
         }
 
-        return true;
+        this.setDirty(false);
     }
 
     draw() {
@@ -189,6 +271,7 @@ export class TileDataChunk extends UpdatedObject {
                 atlas.getTextureAtlas('wall').texture,
             ]);
         }
+
         this.tileMap.clear();
         this.tilesAnim = [];
 

@@ -69,17 +69,19 @@ export class Project extends CustomEventListener<CustomEvent> {
     }
 
     preUpdate(): void {
+        this.atlas.preUpdate();
         this.layers.preUpdate();
     }
 
     update(delta: number): void {
+        this.atlas.update();
         this.layers.update(delta);
         this.background.update();
-        this.atlas.update();
         this.selectionRenderer.update();
     }
 
     postUpdate(): void {
+        this.atlas.postUpdate();
         this.layers.postUpdate();
         this.tileset.setDirty(false);
         this.background.setDirty(false);

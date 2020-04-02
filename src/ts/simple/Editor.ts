@@ -113,6 +113,10 @@ export class Editor extends CustomEventListener<EditorEvent> {
 
                 let baseLayer = new TileLayer(project.layers, null, 'Base Layer', map.tiles);
                 baseLayer.tiles.set(1, 1, 170);
+
+                // let childLayer = new TileLayer(project.layers, null, "Child Layer");
+                // baseLayer.addChild(childLayer);
+
                 project.layers.add(baseLayer);
 
                 this.add([project]);

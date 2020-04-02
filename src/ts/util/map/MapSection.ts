@@ -25,6 +25,34 @@ export class MapSections implements Dirtable {
         this.dirty = true;
     }
 
+    /**
+     * Tests whether or not a point is selected.
+     *
+     * @param x The 'X' coordinate to test.
+     * @param y The 'Y' coordinate to test.
+     */
+    test(x: number, y: number): boolean {
+
+        if (this.isEmpty()) {
+            return true;
+        }
+
+        let result = false;
+
+        // The last section to contain the point will determine the result.
+        for (let index = this.sections.length - 1; index >= 0; index--) {
+
+            // The section should only account for the result if the tile is inside of it.
+            let next = this.sections[index];
+            if (next.contains(x, y)) {
+                result = next.test(x, y);
+                break;
+            }
+        }
+
+        return result;
+    }
+
     getArray(): boolean[][] {
 
         if (this.array != null) {
@@ -189,34 +217,6 @@ export class MapSections implements Dirtable {
             this.bounds = null;
             this.array = null;
         }
-    }
-
-    /**
-     * Tests whether or not a point is selected.
-     *
-     * @param x The 'X' coordinate to test.
-     * @param y The 'Y' coordinate to test.
-     */
-    test(x: number, y: number): boolean {
-
-        if (this.isEmpty()) {
-            return true;
-        }
-
-        let result = false;
-
-        // The last section to contain the point will determine the result.
-        for (let index = this.sections.length - 1; index >= 0; index--) {
-
-            // The section should only account for the result if the tile is inside of it.
-            let next = this.sections[index];
-            if (next.contains(x, y)) {
-                result = next.test(x, y);
-                break;
-            }
-        }
-
-        return result;
     }
 }
 

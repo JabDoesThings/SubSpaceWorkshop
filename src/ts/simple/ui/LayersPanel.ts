@@ -3,7 +3,6 @@ import { MapRenderer } from '../render/MapRenderer';
 import { Dirtable } from '../../util/Dirtable';
 import { InheritedObject } from '../../util/InheritedObject';
 import { Inheritable } from '../../util/Inheritable';
-import { notDeepEqual } from 'assert';
 
 /**
  * The <i>LayersPanel</i> class. TODO: Document.
@@ -14,9 +13,9 @@ export class LayersPanel extends UIPanelTab {
 
     readonly layers: UILayer[];
 
-    private renderer: MapRenderer;
+    private readonly layerContainer: HTMLDivElement;
 
-    private layerContainer: HTMLDivElement;
+    private renderer: MapRenderer;
 
     selectedLayer: number;
 
@@ -35,27 +34,14 @@ export class LayersPanel extends UIPanelTab {
         this.element.appendChild(this.layerContainer);
 
         this.layers = [];
-
-        // let layer = new UILayer(this, 'Test Layer');
-        // let layer2 = new UILayer(this, 'Test Layer 2');
-        // let layer3 = new UILayer(this, 'Test Layer 3');
-        // layer.addChild(layer2);
-        // layer2.addChild(layer3);
-        // this.addLayer(layer);
-        // let baseLayer = new UILayer('Base Layer');
-        // baseLayer.panel = this;
-        // this.addLayer(baseLayer);
-        // baseLayer.setSelected(true);
     }
 
     addLayer(layer: UILayer) {
         this.layers.push(layer);
-        this.updateElements();
     }
 
     clear(): void {
         this.layers.length = 0;
-        this.updateElements();
     }
 
     updateElements() {
@@ -103,19 +89,18 @@ export class LayersPanel extends UIPanelTab {
 
 export class UILayer extends InheritedObject<UILayer> implements Inheritable, Dirtable {
 
+    private readonly visibilityIcon: HTMLElement;
+    private readonly invisibilityIcon: HTMLElement;
+    private readonly gripElement: HTMLDivElement;
+    private readonly gripIcon: HTMLElement;
+    private readonly selected: boolean;
+
     element: HTMLDivElement;
     titleLabel: HTMLLabelElement;
-
-    private visibilityElement: HTMLDivElement;
-    private visibilityIcon: HTMLElement;
-    private invisibilityIcon: HTMLElement;
-    private gripElement: HTMLDivElement;
-    private gripIcon: HTMLElement;
+    visibilityElement: HTMLDivElement;
+    panel: LayersPanel;
     private visible: boolean;
     private dirty: boolean;
-
-    panel: LayersPanel;
-    private selected: boolean;
 
     constructor(name: string) {
 
@@ -134,7 +119,7 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
         this.visibilityElement.classList.add('visibility-icon');
         this.visibilityElement.appendChild(this.visibilityIcon);
         this.visibilityElement.appendChild(this.invisibilityIcon);
-        this.visibilityElement.addEventListener('click', (event) => {
+        this.visibilityElement.addEventListener('click', () => {
             this.setVisible(!this.visible);
         });
 
@@ -163,7 +148,7 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
     // @Override
     addChild(object: UILayer): void {
         super.addChild(object);
-        if(this.panel != null) {
+        if (this.panel != null) {
             this.panel.updateElements();
         }
     }
@@ -171,7 +156,7 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
     // @Override
     removeChild(object: UILayer): void {
         super.removeChild(object);
-        if(this.panel != null) {
+        if (this.panel != null) {
             this.panel.updateElements();
         }
     }
@@ -179,7 +164,7 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
     // @Override
     setParent(object: UILayer): void {
         super.setParent(object);
-        if(this.panel != null) {
+        if (this.panel != null) {
             this.panel.updateElements();
         }
     }
@@ -221,14 +206,17 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
     }
 
     setSelected(flag: boolean): void {
-        if(this.selected === flag) {
-            return;
-        }
 
-        if(flag) {
-            this.element.classList.add('selected');
+        // console.log('setSelected(flag: ' + flag + ")");
+
+        if (flag) {
+            if (!this.element.classList.contains('selected')) {
+                this.element.classList.add('selected');
+            }
         } else {
-            this.element.classList.remove('selected');
+            if (this.element.classList.contains('selected')) {
+                this.element.classList.remove('selected');
+            }
         }
     }
 }

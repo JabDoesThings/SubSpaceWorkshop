@@ -36,10 +36,22 @@ export class ProjectAtlas extends CustomEventListener<CustomEvent> implements Di
         return projectAtlas;
     }
 
+    preUpdate(): void {
+        for (let id in this.textures) {
+            this.textures[id].preUpdate();
+        }
+    }
+
     /** Updates all sprites registered in the atlas. */
     update(): void {
         for (let id in this.textures) {
             this.textures[id].update();
+        }
+    }
+
+    postUpdate(): void {
+        for (let id in this.textures) {
+            this.textures[id].postUpdate();
         }
     }
 
@@ -60,7 +72,7 @@ export class ProjectAtlas extends CustomEventListener<CustomEvent> implements Di
         texture.removeEventListener(this.tListener);
 
         this.textures[textureId.toLowerCase()] = null;
-        this.dirty = true;
+        this.setDirty(true);
 
         let textures: { [id: string]: TextureAtlas } = {};
         textures[textureId] = texture;
@@ -85,7 +97,7 @@ export class ProjectAtlas extends CustomEventListener<CustomEvent> implements Di
             this.textures[textureId] = null;
         }
 
-        this.dirty = true;
+        this.setDirty(true);
 
         this.dispatch(<ProjectAtlasEvent> {
             eventType: 'ProjectAtlasEvent',
@@ -145,6 +157,15 @@ export class ProjectAtlas extends CustomEventListener<CustomEvent> implements Di
 
     // @Override
     isDirty(): boolean {
+        if (!this.dirty) {
+            for (let id in this.textures) {
+                let next = this.textures[id];
+                if (next.isDirty()) {
+                    return true;
+                }
+            }
+        }
+
         return this.dirty;
     }
 
@@ -169,13 +190,25 @@ export class ProjectAtlas extends CustomEventListener<CustomEvent> implements Di
     }
 }
 
-export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
+/**
+ * The <i>TextureAtlas</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> implements Dirtable {
 
     readonly id: string;
 
-    texture: Texture;
     sprites: { [id: string]: MapSprite };
+    texture: Texture;
+    dirty: boolean;
 
+    /**
+     * Main constructor.
+     *
+     * @param id
+     * @param texture
+     */
     constructor(id: string, texture: Texture) {
 
         super();
@@ -183,6 +216,7 @@ export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
         this.id = id.toLowerCase();
         this.sprites = {};
         this.setTexture(texture);
+        this.dirty = true;
     }
 
     clone(): TextureAtlas {
@@ -195,10 +229,23 @@ export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
         return textureAtlas;
     }
 
+    preUpdate(): void {
+        for (let id in this.sprites) {
+            this.sprites[id].preUpdate();
+        }
+    }
+
     update(): void {
         for (let id in this.sprites) {
             this.sprites[id].update();
         }
+    }
+
+    postUpdate(): void {
+        for (let id in this.sprites) {
+            this.sprites[id].postUpdate();
+        }
+        this.setDirty(false);
     }
 
     addSprite(id: string, sprite: MapSprite): void {
@@ -238,6 +285,7 @@ export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
     }
 
     removeSprite(id: string): void {
+
         let sprite = this.sprites[id.toLowerCase()];
         this.sprites[id.toLowerCase()] = null;
 
@@ -251,6 +299,8 @@ export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
             sprites: sprites,
             forced: true
         });
+
+        this.setDirty(true);
     }
 
     setTexture(texture: Texture): void {
@@ -271,6 +321,8 @@ export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
                 sprites: this.sprites,
                 forced: true
             });
+
+            this.setDirty(true);
         };
 
         if (this.texture != null) {
@@ -302,11 +354,33 @@ export class TextureAtlas extends CustomEventListener<TextureAtlasEvent> {
 
         this.sprites = {};
 
+        this.setDirty(true);
+
         return false;
     }
 
     getSpriteById(id: string): MapSprite {
         return this.sprites[id.toLowerCase()];
+    }
+
+    // @Override
+    isDirty(): boolean {
+
+        if (!this.dirty) {
+            for (let id in this.sprites) {
+                let next = this.sprites[id];
+                if (next.isDirty()) {
+                    return true;
+                }
+            }
+        }
+
+        return this.dirty;
+    }
+
+    // @Override
+    setDirty(flag: boolean): void {
+        this.dirty = flag;
     }
 }
 

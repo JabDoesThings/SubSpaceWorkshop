@@ -7,6 +7,7 @@ import { DrawTool } from './DrawTool';
 import { LVL } from '../../io/LVLUtils';
 import { TileLayer } from '../layers/TileLayer';
 import { TileData } from '../../util/map/TileData';
+import { Layer } from '../layers/Layer';
 
 /**
  * The <i>LineTool</i> class. TODO: Document.
@@ -23,10 +24,15 @@ export class LineTool extends DrawTool {
     }
 
     // @Override
-    protected drawTile(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
+    protected drawTile(project: Project, selection: Selection, event: MapMouseEvent, useActiveLayer: boolean): Edit[] {
 
-        let activeLayer = project.layers.getActive();
-        if(activeLayer == null || !(activeLayer instanceof TileLayer)) {
+        let layer: Layer;
+        if(useActiveLayer) {
+            layer = project.layers.getActive();
+        } else {
+            layer = project.layers.drawTileLayer;
+        }
+        if(layer == null || !(layer instanceof TileLayer)) {
             return;
         }
 
@@ -108,13 +114,13 @@ export class LineTool extends DrawTool {
 
             setSlots(x, y, to);
 
-            let from = this.tileCache.getTile(activeLayer.tiles, x, y);
+            let from = this.tileCache.getTile(layer.tiles, x, y);
 
             apply.push({x: x, y: y, from: from, to: to});
         }
 
         if (apply.length !== 0) {
-            return [new EditTiles(activeLayer, apply)];
+            return [new EditTiles(layer, apply)];
         }
     }
 

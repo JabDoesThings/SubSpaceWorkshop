@@ -16,17 +16,17 @@ export abstract class DrawTool extends Tool {
 
     // @Override
     protected onStart(project: Project, event: MapMouseEvent): Edit[] {
-        return this.draw(project, event);
+        return this.draw(project, event, false);
     }
 
     // @Override
     protected onDrag(project: Project, event: MapMouseEvent): Edit[] {
-        return this.draw(project, event);
+        return this.draw(project, event, false);
     }
 
     // @Override
     protected onStop(project: Project, event: MapMouseEvent): Edit[] {
-        return this.draw(project, event);
+        return this.draw(project, event, true);
     }
 
     // @Override
@@ -39,7 +39,7 @@ export abstract class DrawTool extends Tool {
         return;
     }
 
-    protected draw(project: Project, event: MapMouseEvent): Edit[] {
+    protected draw(project: Project, event: MapMouseEvent, useActiveLayer: boolean): Edit[] {
 
         let selectionGroup = project.selectionGroup;
         let selection = selectionGroup.getSelection(event.button);
@@ -53,21 +53,21 @@ export abstract class DrawTool extends Tool {
         }
 
         if (selection.type === SelectionType.TILE) {
-            return this.drawTile(project, selection, event);
+            return this.drawTile(project, selection, event, useActiveLayer);
         } else if (selection.type == SelectionType.MAP_OBJECT) {
-            return this.drawMapObject(project, selection, event);
+            return this.drawMapObject(project, selection, event, useActiveLayer);
         } else if (selection.type == SelectionType.SCREEN_OBJECT) {
-            return this.drawScreenObject(project, selection, event);
+            return this.drawScreenObject(project, selection, event, useActiveLayer);
         } else if (selection.type == SelectionType.REGION) {
-            return this.drawRegion(project, selection, event);
+            return this.drawRegion(project, selection, event, useActiveLayer);
         }
     }
 
-    protected abstract drawTile(project: Project, selection: Selection, event: MapMouseEvent): Edit[];
+    protected abstract drawTile(project: Project, selection: Selection, event: MapMouseEvent, useActiveLayer: boolean): Edit[];
 
-    protected abstract drawMapObject(project: Project, selection: Selection, event: MapMouseEvent): Edit[];
+    protected abstract drawMapObject(project: Project, selection: Selection, event: MapMouseEvent, useActiveLayer: boolean): Edit[];
 
-    protected abstract drawScreenObject(project: Project, selection: Selection, event: MapMouseEvent): Edit[];
+    protected abstract drawScreenObject(project: Project, selection: Selection, event: MapMouseEvent, useActiveLayer: boolean): Edit[];
 
-    protected abstract drawRegion(project: Project, selection: Selection, event: MapMouseEvent): Edit[];
+    protected abstract drawRegion(project: Project, selection: Selection, event: MapMouseEvent, useActiveLayer: boolean): Edit[];
 }

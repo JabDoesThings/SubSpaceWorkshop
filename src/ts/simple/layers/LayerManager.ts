@@ -1,6 +1,11 @@
 import { Layer } from './Layer';
 import { Project } from '../Project';
 import { MapRenderer } from '../render/MapRenderer';
+import { TileData } from '../../util/map/TileData';
+import { TileLayer } from './TileLayer';
+import { TileRenderer } from '../render/TileRenderer';
+import { MapArea } from '../../util/map/MapArea';
+import { CoordinateType } from '../../util/map/CoordinateType';
 
 /**
  * The <i>LayerManager</i> class. TODO: Document.
@@ -9,10 +14,15 @@ import { MapRenderer } from '../render/MapRenderer';
  */
 export class LayerManager {
 
+    readonly drawTileLayer: TileLayer;
     readonly layers: Layer[];
     readonly project: Project;
+    private readonly _combinedTileRenderer: TileRenderer;
+    private readonly _combinedTileData: TileData;
+    private readonly _drawTileRenderer: TileRenderer;
 
     active: Layer;
+    private updatingUI: boolean;
 
     /**
      * Main constructor.
@@ -25,6 +35,39 @@ export class LayerManager {
 
         this.layers = [];
         this.active = null;
+
+        this._combinedTileData = new TileData();
+        this._combinedTileRenderer = new TileRenderer(project, this._combinedTileData);
+
+        this.drawTileLayer = new TileLayer(this, 'drawTileLayer', 'drawTileLayer');
+        this._drawTileRenderer = new TileRenderer(project, this.drawTileLayer.tiles);
+
+        this.updatingUI = false;
+    }
+
+    updateUI(): void {
+
+        if (this.updatingUI) {
+            return;
+        }
+
+        this.updatingUI = true;
+
+        let ui = this.project.editor.renderer.layersTab;
+        ui.clear();
+
+        let build = (layers: Layer[]): void => {
+            for (let index = layers.length - 1; index >= 0; index--) {
+                let next = layers[index];
+                ui.addLayer(next.ui);
+            }
+        };
+
+        build(this.layers);
+
+        ui.updateElements();
+
+        this.updatingUI = false;
     }
 
     /**
@@ -40,6 +83,12 @@ export class LayerManager {
         if (setActive) {
             this.active = layer;
         }
+
+        if (layer instanceof TileLayer) {
+            this.combineTileLayers(true);
+        }
+
+        this.updateUI();
     }
 
     /**
@@ -76,6 +125,8 @@ export class LayerManager {
                 this.active = this.layers[this.layers.length - 1];
             }
         }
+
+        this.updateUI();
     }
 
     /**
@@ -104,6 +155,8 @@ export class LayerManager {
                 this.layers.push(toCopy[index]);
             }
         }
+
+        this.updateUI();
 
         return toReturn;
     }
@@ -141,36 +194,52 @@ export class LayerManager {
         return check(this.layers);
     }
 
-    /**
-     * @return Returns the active layer in the project. If no layer is active,
-     *   null is returned.
-     */
-    getActive(): Layer {
-        return this.active;
-    }
-
     preUpdate(): void {
         if (this.layers.length !== 0) {
             for (let index = 0; index < this.layers.length; index++) {
                 this.layers[index].preUpdate();
             }
         }
+
+        this.drawTileLayer.preUpdate();
     }
 
     update(delta: number): void {
+
+        let tileDirty = false;
+
         if (this.layers.length !== 0) {
             for (let index = 0; index < this.layers.length; index++) {
-                this.layers[index].update(delta);
+                let next = this.layers[index];
+                next.update(delta);
+
+                if (next instanceof TileLayer && next.tiles.isDirty()) {
+                    tileDirty = true;
+                }
             }
         }
+
+        if (tileDirty) {
+            this.combineTileLayers(false);
+        }
+
+        this.drawTileLayer.update(delta);
     }
 
     postUpdate(): void {
+
         if (this.layers.length !== 0) {
             for (let index = 0; index < this.layers.length; index++) {
                 this.layers[index].postUpdate();
             }
         }
+
+        this._combinedTileRenderer.update(0);
+        this._drawTileRenderer.update(0);
+
+        this.drawTileLayer.postUpdate();
+
+        this._combinedTileData.setDirty(false);
     }
 
     /**
@@ -218,8 +287,161 @@ export class LayerManager {
             return false;
         }
 
+        this._combinedTileRenderer.onActivate(renderer);
+        this._drawTileRenderer.onActivate(renderer);
+
         for (let index = 0; index < this.layers.length; index++) {
             this.layers[index].activate(renderer);
+        }
+
+        this.combineTileLayers(true);
+    }
+
+    /**
+     * @return Returns the active layer in the project. If no layer is active,
+     *   null is returned.
+     */
+    getActive(): Layer {
+        return this.active;
+    }
+
+    combineTileLayers(clear: boolean = false): void {
+
+        console.log('combineTileLayers(clear: ' + clear + ')');
+
+        let isVisible = (layer: Layer): boolean => {
+
+            if (!layer.isVisible()) {
+                return false;
+            }
+
+            let next = layer;
+
+            while (next != null) {
+
+                if (!next.isVisible()) {
+                    return false;
+                }
+
+                if (next.hasParent()) {
+                    next = next.getParent();
+                } else {
+                    next = null;
+                }
+            }
+
+            return true;
+
+        };
+
+        if (clear) {
+            let area = new MapArea(CoordinateType.TILE, 0, 0, 1023, 1023);
+            this._combinedTileData.clear(area);
+
+            let recurse = (layers: Layer[]): void => {
+                for (let index = 0; index < layers.length; index++) {
+
+                    let next = layers[index];
+                    if (next instanceof TileLayer && isVisible(next)) {
+                        this._combinedTileData.apply(next.tiles, area);
+                    }
+
+                    if (next.hasChildren()) {
+                        recurse(next.getChildren());
+                    }
+                }
+            };
+
+            recurse(this.layers);
+        } else {
+
+            let region = {x1: 1024, y1: 1024, x2: -1, y2: -1};
+
+            let recurseRegion = (layers: Layer[]): void => {
+                for (let index = 0; index < layers.length; index++) {
+
+                    let next = layers[index];
+                    if (next instanceof TileLayer) {
+
+                        let data = next.tiles;
+                        let dirtyAreas = data.dirtyAreas;
+                        if (dirtyAreas.length === 0) {
+                            continue;
+                        }
+
+                        for (let index = 0; index < dirtyAreas.length; index++) {
+                            let nextArea = dirtyAreas[index];
+                            if (region.x1 > nextArea.x1) {
+                                region.x1 = nextArea.x1;
+                            }
+                            if (region.x2 < nextArea.x2) {
+                                region.x2 = nextArea.x2;
+                            }
+                            if (region.y1 > nextArea.y1) {
+                                region.y1 = nextArea.y1;
+                            }
+                            if (region.y2 < nextArea.y2) {
+                                region.y2 = nextArea.y2;
+                            }
+                        }
+                    }
+
+                    if (next.hasChildren()) {
+                        recurseRegion(next.getChildren());
+                    }
+                }
+            };
+
+            let recurse = (layers: Layer[], area: MapArea): void => {
+                for (let index = 0; index < layers.length; index++) {
+
+                    let next = layers[index];
+                    if (next instanceof TileLayer && isVisible(next)) {
+                        this._combinedTileData.apply(next.tiles, area);
+                    }
+
+                    if (next.hasChildren()) {
+                        recurse(next.getChildren(), area);
+                    }
+                }
+            };
+
+            recurseRegion(this.layers);
+
+            if (region.x1 === -1 || region.y1 === -1 || region.x2 === 1024 || region.y2 === 1024) {
+                return;
+            }
+
+            let area = new MapArea(CoordinateType.TILE, region.x1, region.y1, region.x2, region.y2);
+            this._combinedTileData.clear(area);
+
+            recurse(this.layers, area);
+        }
+    }
+
+    setActive(layer: Layer) {
+
+        let deactivate = (layers: Layer[]): void => {
+            for (let index = 0; index < layers.length; index++) {
+
+                let next = layers[index];
+                next.ui.setSelected(false);
+
+                if (next.hasChildren()) {
+                    deactivate(next.getChildren());
+                }
+            }
+        };
+
+        deactivate(this.layers);
+
+        if (this.active != null) {
+            this.active.ui.setSelected(false);
+        }
+
+        this.active = layer;
+        if (layer != null) {
+            layer.ui.setSelected(true);
         }
     }
 }

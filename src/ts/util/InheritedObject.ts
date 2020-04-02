@@ -126,6 +126,10 @@ export abstract class InheritedObject<I extends InheritedObject<I>> implements I
 
     }
 
+    removeChildren(): void {
+        this.children.length = 0;
+    }
+
     // @Override
     public removeChild(object: I): void {
 

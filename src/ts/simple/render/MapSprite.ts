@@ -391,6 +391,10 @@ export class MapSprite implements Validatable {
         this.last = Date.now();
     }
 
+    preUpdate(): void {
+
+    }
+
     update(): void {
 
         let now = Date.now();
@@ -402,6 +406,10 @@ export class MapSprite implements Validatable {
         }
 
         this.last = now - delta;
+    }
+
+    postUpdate(): void {
+        this.setDirty(false);
     }
 
     next(): void {

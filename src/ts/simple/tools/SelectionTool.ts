@@ -1,6 +1,6 @@
 import { Tool } from './Tool';
 import { Project } from '../Project';
-import { MapMouseEvent, MapMouseEventType } from '../../common/Renderer';
+import { MapMouseEvent } from '../../common/Renderer';
 import { Edit } from '../edits/Edit';
 import { MapSection } from '../../util/map/MapSection';
 import { EditSelectionAdd } from '../edits/EditSelectionAdd';

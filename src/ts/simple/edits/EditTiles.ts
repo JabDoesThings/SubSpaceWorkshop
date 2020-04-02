@@ -55,14 +55,7 @@ export class EditTiles extends Edit {
                 this.tilesToUndo = this.tilesToUndo.concat(originalTiles);
             } catch (e) {
 
-                let str = 'null';
-                if (next != null) {
-                    str = '{x: ' + next.x
-                        + ', y: ' + next.y
-                        + ', from: ' + next.from
-                        + ', to: ' + next.to + '}';
-                }
-
+                let str = next != null ? next.toString() : 'null';
                 console.error('Failed to DO tile: ' + str);
                 console.error(e);
             }

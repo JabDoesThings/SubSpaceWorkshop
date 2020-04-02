@@ -417,8 +417,6 @@ $tooltip_border_color: $color8;
     border: 1px solid $color4;
     border-bottom-color: $color2;
 
-    line-height: 26px;
-
     transition: border-color 300ms;
 
     &:hover {
@@ -428,6 +426,11 @@ $tooltip_border_color: $color8;
 
       .title {
         color: $color7;
+      }
+
+      .grip-icon {
+        transition: unset;
+        opacity: 1;
       }
 
       transition: unset;
@@ -462,12 +465,15 @@ $tooltip_border_color: $color8;
     .grip-icon {
       float: right;
       position: relative;
+      opacity: 0;
       top: 0;
       right: 0;
       width: 24px;
       height: 24px;
 
       cursor: n-resize;
+
+      transition: opacity 100ms;
 
       i {
         position: absolute;
@@ -486,7 +492,7 @@ $tooltip_border_color: $color8;
 
     .title {
       position: relative;
-      top: -7px;
+      top: -8px;
       margin-left: 2px;
 
       color: $color8;

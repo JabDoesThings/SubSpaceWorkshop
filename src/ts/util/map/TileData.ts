@@ -73,6 +73,9 @@ export class TileData {
                     tiles[x][y] = 0;
                 }
             }
+
+            this.width = 1024;
+            this.height = 1024;
         }
 
         this.tiles = tiles;
@@ -85,27 +88,55 @@ export class TileData {
      *
      * @return Returns the previous tile data that is cleared.
      */
-    clear(): number[][] {
-        return this.fill(0);
+    clear(
+        area: MapArea = new MapArea(CoordinateType.TILE, 0, 0, 1023, 1023)
+    ): number[][] {
+        return this.fill(0, area);
     }
 
     /**
      * Fills all tiles with a value.
      *
      * @param tileId The tile ID to fill.
+     * @param area
      *
      * @return Returns the previous tile data that is filled.
      */
 
-    fill(tileId: number): number[][] {
+    fill(tileId: number,
+         area: MapArea = new MapArea(CoordinateType.TILE, 0, 0, 1023, 1023)
+    ): number[][] {
+
+        if (area.type === CoordinateType.PIXEL) {
+            area = area.asType(CoordinateType.TILE);
+        }
 
         let copy = this.copy();
 
-        for (let x = 0; x < this.width; x++) {
-            for (let y = 0; y < this.height; y++) {
-                this.tiles[x][y] = tileId;
+        let region = {x1: 1024, y1: 1024, x2: -1, y2: -1};
+
+        for (let x = area.x1; x <= area.x2; x++) {
+            for (let y = area.y1; y <= area.y2; y++) {
+                if(this.tiles[x][y] !== tileId) {
+                    this.tiles[x][y] = tileId;
+
+                    if(region.x1 > x) {
+                        region.x1 = x;
+                    }
+                    if(region.x2 < x) {
+                        region.x2 = x;
+                    }
+                    if(region.y1 > y) {
+                        region.y1 = y;
+                    }
+                    if(region.y2 < y) {
+                        region.y2 = y;
+                    }
+                }
             }
         }
+
+        this.setAreaDirty(area.x1, area.y1, area.x2, area.y2);
 
         return copy;
     }
@@ -165,7 +196,7 @@ export class TileData {
 
         LVL.validateCoordinates(x, y, 0, 0, this.width - 1, this.height - 1);
 
-        if(mask != null && !mask.test(x, y)) {
+        if (mask != null && !mask.test(x, y)) {
             return [];
         }
 
@@ -298,6 +329,8 @@ export class TileData {
 
     private setAreaDirty(x1: number, y1: number, x2: number, y2: number) {
 
+        // console.log('setAreaDirty(x1: ' + x1 + ", y1: " + y1 + ", x2: " + x2 + ", y2: " + y2 + ");");
+
         if (x1 > this.width - 1 || y1 > this.height - 1 || x2 < 0 || y2 < 0) {
             return;
         }
@@ -320,6 +353,29 @@ export class TileData {
         this.setDirty(true);
     }
 
+    apply(tiles: TileData,
+          area: MapArea = new MapArea(CoordinateType.TILE, 0, 0, 1023, 1023)
+    ): void {
+
+        if (area.type === CoordinateType.PIXEL) {
+            area = area.asType(CoordinateType.TILE);
+        }
+
+        // let width = Math.min(this.width, tiles.width);
+        // let height = Math.min(this.height, tiles.height);
+
+        for (let x = area.x1; x <= area.x2; x++) {
+            for (let y = area.y1; y <= area.y2; y++) {
+                let next = tiles.tiles[x][y];
+                if (next > 0) {
+                    this.tiles[x][y] = next;
+                }
+            }
+        }
+
+        this.setDirty(true);
+    }
+
     containsDirtyArea(x1: number, y1: number, x2: number, y2: number): boolean {
 
         if (this.dirtyAreas.length != 0) {
@@ -327,14 +383,14 @@ export class TileData {
             for (let index = 0; index < this.dirtyAreas.length; index++) {
 
                 let next = this.dirtyAreas[index];
-
-                if (x2 < next.x1 || x1 > next.x2 || y2 < next.y1 || y1 > next.y2) {
+                if (next.x1 > x2 || next.x2 < x1 || next.y1 > y2 || next.y2 < y1) {
                     continue;
                 }
 
                 return true;
             }
         }
+
         return false;
     }
 

@@ -7,6 +7,7 @@ import { DrawTool } from './DrawTool';
 import { LVL } from '../../io/LVLUtils';
 import { TileLayer } from '../layers/TileLayer';
 import { TileData } from '../../util/map/TileData';
+import { Layer } from '../layers/Layer';
 
 /**
  * The <i>PencilTool</i> class. TODO: Document.
@@ -16,12 +17,14 @@ import { TileData } from '../../util/map/TileData';
 export class PencilTool extends DrawTool {
 
     slots: boolean[][] = [];
+    apply: { x: number, y: number, from: number, to: number }[];
 
     /**
      * Main constructor.
      */
     constructor() {
-        super();
+        super(true);
+        this.apply = [];
     }
 
     // @Override
@@ -29,6 +32,7 @@ export class PencilTool extends DrawTool {
 
         let edits = super.onStop(project, event);
         this.slots = [];
+        this.apply = [];
         return edits;
     }
 
@@ -51,20 +55,30 @@ export class PencilTool extends DrawTool {
         let y2 = y1 + dimensions[1] - 1;
         for (let y = y1; y <= y2; y++) {
             for (let x = x1; x <= x2; x++) {
-                let xa = this.slots[x];
-                if (xa == null) {
-                    xa = this.slots[x] = [];
+                if (this.slots[x] == null) {
+                    this.slots[x] = [];
                 }
-                xa[y] = true;
+                this.slots[x][y] = true;
             }
         }
     };
 
     // @Override
-    protected drawTile(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
+    protected drawTile(project: Project, selection: Selection, event: MapMouseEvent, useActiveLayer: boolean): Edit[] {
 
-        let activeLayer = project.layers.getActive();
-        if(activeLayer == null || !(activeLayer instanceof TileLayer)) {
+        let layerActive: Layer = project.layers.getActive();
+
+        if(!(layerActive instanceof TileLayer)) {
+            return;
+        }
+
+        let layer: TileLayer;
+        if(useActiveLayer) {
+            layer = layerActive;
+        } else {
+            layer = project.layers.drawTileLayer;
+        }
+        if(layer == null) {
             return;
         }
 
@@ -94,8 +108,6 @@ export class PencilTool extends DrawTool {
             return;
         }
 
-        let apply: { x: number, y: number, from: number, to: number }[] = [];
-
         let to = typeof selection.id === 'string' ? parseInt(selection.id) : selection.id;
 
         for (let index = 0; index < tiles.length; index++) {
@@ -117,16 +129,16 @@ export class PencilTool extends DrawTool {
             this.slots = [];
             this.setSlots(tile.x, tile.y, to);
 
-            apply.push({
+            this.apply.push({
                 x: x,
                 y: y,
-                from: this.tileCache.getTile(activeLayer.tiles, x, y),
+                from: this.tileCache.getTile(layerActive.tiles, x, y),
                 to: to
             });
         }
 
-        if (apply.length !== 0) {
-            return [new EditTiles(activeLayer, apply)];
+        if (this.apply.length !== 0) {
+            return [new EditTiles(layer, this.apply)];
         }
     }
 
