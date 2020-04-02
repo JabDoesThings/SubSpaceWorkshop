@@ -12,6 +12,7 @@ import {
     TabOrientation,
     TabPanelAction,
     ToolbarOrientation,
+    ToolbarSize,
     UIIcon,
     UIIconToolbar,
     UIIconToolbarEvent,
@@ -179,7 +180,7 @@ export class MapRenderer extends Renderer {
         let toolCircle = new UITool('circle', new UIIcon(['fas', 'fa-circle']), new UITooltip('Circle'));
         let toolSelect = new UITool('select', new UIIcon(['fas', 'fa-expand']), new UITooltip('Select'));
 
-        this.toolbarLeft = new UIIconToolbar(ToolbarOrientation.LEFT);
+        this.toolbarLeft = new UIIconToolbar(ToolbarOrientation.LEFT, ToolbarSize.MEDIUM);
         this.toolbarLeft.add(toolPencil);
         this.toolbarLeft.add(toolEraser);
         this.toolbarLeft.add(toolLine);

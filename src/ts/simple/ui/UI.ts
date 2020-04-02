@@ -1210,16 +1210,16 @@ export class UITab extends CustomEventListener<UITabEvent> {
     }
 }
 
-export class UIIconToolbar extends CustomEventListener<UIIconToolbarEvent> {
+export class UIIconToolbar extends CustomEventListener<CustomEvent> {
 
     readonly element: HTMLDivElement;
 
     readonly tools: UITool[];
     active: number;
 
-    private toolListener: (event: UIToolEvent) => void;
+    private readonly toolListener: (event: UIToolEvent) => void;
 
-    constructor(orientation: ToolbarOrientation = ToolbarOrientation.TOP) {
+    constructor(orientation: ToolbarOrientation = ToolbarOrientation.TOP, size: ToolbarSize = ToolbarSize.SMALL) {
 
         super();
 
@@ -1228,16 +1228,21 @@ export class UIIconToolbar extends CustomEventListener<UIIconToolbarEvent> {
         this.element = document.createElement('div');
         this.element.classList.add('ui-icon-toolbar');
         this.element.classList.add(orientation);
+        this.element.classList.add(size);
 
         this.active = -1;
 
         this.toolListener = (event: UIToolEvent): void => {
-            let index = this.getIndex(event.tool);
-            if (index == -1) {
-                return;
+            let tool = event.tool;
+            if (tool.staySelected) {
+                let index = this.getIndex(event.tool);
+                if (index == -1) {
+                    return;
+                }
+                this.setActiveIndex(index);
             }
 
-            this.setActiveIndex(index);
+            this.dispatch(event);
         };
     }
 
@@ -1268,7 +1273,7 @@ export class UIIconToolbar extends CustomEventListener<UIIconToolbarEvent> {
 
         this.tools.push(tool);
 
-        this.dispatch({
+        this.dispatch(<UIIconToolbarEvent> {
             eventType: 'UIIconToolbarEvent',
             toolBar: this,
             tool: tool,
@@ -1303,7 +1308,7 @@ export class UIIconToolbar extends CustomEventListener<UIIconToolbarEvent> {
             this.tools.push(temp[index]);
         }
 
-        this.dispatch({
+        this.dispatch(<UIIconToolbarEvent> {
             eventType: 'UIIconToolbarEvent',
             toolBar: this,
             tool: tool,
@@ -1338,7 +1343,7 @@ export class UIIconToolbar extends CustomEventListener<UIIconToolbarEvent> {
             }
         }
 
-        this.dispatch({
+        this.dispatch(<UIIconToolbarEvent> {
             eventType: 'UIIconToolbarEvent',
             toolBar: this,
             tool: tool,
@@ -1372,11 +1377,13 @@ export class UITool extends CustomEventListener<UIToolEvent> {
     private readonly tooltip: UITooltip;
 
     toolbar: UIIconToolbar;
+    staySelected: boolean;
 
-    constructor(id: string, icon: UIIcon, tooltip: UITooltip) {
+    constructor(id: string, icon: UIIcon, tooltip: UITooltip, staySelected: boolean = true) {
 
         super();
 
+        this.staySelected = staySelected;
         this.id = id;
         this.icon = icon;
         this.tooltip = tooltip;
@@ -1446,6 +1453,12 @@ export enum ToolbarOrientation {
     BOTTOM = 'bottom',
     LEFT = 'left',
     RIGHT = 'right'
+}
+
+export enum ToolbarSize {
+    SMALL = 'small',
+    MEDIUM = 'medium',
+    LARGE = 'large'
 }
 
 /**

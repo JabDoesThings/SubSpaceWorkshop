@@ -1,8 +1,19 @@
-import { UIPanelTab } from './UI';
+import {
+    ToolbarOrientation,
+    UIIcon,
+    UIIconToolbar,
+    UIIconToolbarEvent,
+    UIPanelTab,
+    UITool,
+    UIToolEvent,
+    UITooltip
+} from './UI';
 import { MapRenderer } from '../render/MapRenderer';
 import { Dirtable } from '../../util/Dirtable';
 import { InheritedObject } from '../../util/InheritedObject';
 import { Inheritable } from '../../util/Inheritable';
+import { Layer } from '../layers/Layer';
+import { TileLayer } from '../layers/TileLayer';
 
 /**
  * The <i>LayersPanel</i> class. TODO: Document.
@@ -11,6 +22,7 @@ import { Inheritable } from '../../util/Inheritable';
  */
 export class LayersPanel extends UIPanelTab {
 
+    readonly toolbar: UIIconToolbar;
     readonly layers: UILayer[];
 
     private readonly layerContainer: HTMLDivElement;
@@ -31,7 +43,37 @@ export class LayersPanel extends UIPanelTab {
 
         this.layerContainer = document.createElement('div');
         this.layerContainer.classList.add('ui-layer-container');
+
+        let toolAdd = new UITool(
+            'new-layer',
+            new UIIcon([
+                'fas',
+                'fa-plus-square'
+            ]),
+            new UITooltip('New Layer'),
+            false
+        );
+
+        this.toolbar = new UIIconToolbar(ToolbarOrientation.BOTTOM);
+        this.toolbar.add(toolAdd);
+
+        this.toolbar.addEventListener((e) => {
+
+            console.log(e);
+            if (e.eventType !== 'UIToolEvent') {
+                return;
+            }
+
+            let event = <UIToolEvent> e;
+            if (event.tool.id === 'new-layer') {
+                this.newLayer();
+            }
+        });
+
         this.element.appendChild(this.layerContainer);
+        this.element.appendChild(this.toolbar.element);
+        this.element.style.overflowY = 'hidden';
+        this.element.style.overflowX = '';
 
         this.layers = [];
     }
@@ -84,6 +126,21 @@ export class LayersPanel extends UIPanelTab {
             }
         }
         return -1;
+    }
+
+    newLayer(): Layer {
+
+        let project = this.renderer.project;
+        if (project == null) {
+            return;
+        }
+
+        let layers = project.layers;
+        let layer = new TileLayer(layers, null, 'Untitled Layer');
+
+        layers.add(layer, true);
+
+        return layer;
     }
 }
 

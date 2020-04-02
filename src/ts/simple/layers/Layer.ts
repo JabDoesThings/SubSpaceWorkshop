@@ -62,7 +62,7 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
         this.ui.visibilityElement.addEventListener('click', (event) => {
             this.setVisible(!this.visible);
             this.ui.setVisible(this.visible);
-            this.manager.combineTileLayers();
+            this.manager.combineTileLayers(true);
         });
 
         this.ui.element.addEventListener('click', (event) => {

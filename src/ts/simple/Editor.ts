@@ -107,16 +107,11 @@ export class Editor extends CustomEventListener<EditorEvent> {
                     }
                 });
 
-                let map = LVL.read('assets/lvl/zone66.lvl');
-                project.setTileset(map.tileset);
-                project.atlas.getTextureAtlas('tiles').setTexture(map.tileset.texture);
+                // let map = LVL.read('assets/lvl/zone66.lvl');
+                // project.setTileset(map.tileset);
+                // project.atlas.getTextureAtlas('tiles').setTexture(map.tileset.texture);
 
-                let baseLayer = new TileLayer(project.layers, null, 'Base Layer', map.tiles);
-                baseLayer.tiles.set(1, 1, 170);
-
-                // let childLayer = new TileLayer(project.layers, null, "Child Layer");
-                // baseLayer.addChild(childLayer);
-
+                let baseLayer = new TileLayer(project.layers, null, 'Base Layer');
                 project.layers.add(baseLayer);
 
                 this.add([project]);

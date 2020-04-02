@@ -295,6 +295,7 @@ export class LayerManager {
         }
 
         this.combineTileLayers(true);
+        this.updateUI();
     }
 
     /**
@@ -307,7 +308,7 @@ export class LayerManager {
 
     combineTileLayers(clear: boolean = false): void {
 
-        console.log('combineTileLayers(clear: ' + clear + ')');
+        // console.log('combineTileLayers(clear: ' + clear + ')');
 
         let isVisible = (layer: Layer): boolean => {
 
