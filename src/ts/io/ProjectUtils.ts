@@ -2,19 +2,134 @@ import { Project } from '../simple/Project';
 import { Layer } from '../simple/layers/Layer';
 import { TileData } from '../util/map/TileData';
 import { Bitmap } from './Bitmap';
+import { LVLMap } from './LVL';
+import { LVL } from './LVLUtils';
 
 const archiver = require('archiver');
+const unzipper = require('unzipper');
 const fs = require('fs');
 
 export class ProjectUtils {
 
-    static read(path: string): Project {
+    static async read(path: string): Promise<Project> {
 
         if (path == null) {
             throw new Error('The path provided is null or undefined.');
         }
 
-        return;
+        let projectJson: any;
+        let project: Project = null;
+        let entries: { [id: string]: ProjectFile } = {};
+        let count = 0;
+        let init = false;
+
+        let finish = (): Project => {
+
+            for (let path in entries) {
+                let entry = entries[path];
+                if (entry.path.toLowerCase() === 'project.json') {
+                    projectJson = JSON.parse(entry.data.toString());
+                    console.log(projectJson);
+                }
+                console.log(entry);
+            }
+
+            if (projectJson == null) {
+                throw new Error('The project.json file is missing.');
+            } else if (projectJson.layers == null) {
+                throw new Error('The project.json file is missing the \'layers\' section.');
+            }
+
+            // @ts-ignore
+            let renderer: MapRenderer = global.editor.renderer;
+            project = new Project(renderer, projectJson.name);
+
+            // Load metadata for the project.
+            if (projectJson.metadata != null) {
+                for (let o in projectJson.metadata) {
+                    let key: string = <string> o;
+                    let value = projectJson.metadata[key];
+                    project.setMetadata(key, value);
+                }
+            }
+
+            // Load all layers in the project.
+            let layers = project.layers;
+            for (let o in projectJson.layers) {
+                let id = <string> o;
+                let next = projectJson.layers[id];
+
+                if (next.name == null) {
+                    throw new Error('The layer \'' + id + '\' does not have a name.');
+                }
+
+                if (next.visible == null) {
+                    throw new Error('The layer \'' + id + '\' does not have the \'visible\' flag.');
+                }
+
+                let layer = new Layer(layers, id, next.name);
+
+                layer.setVisible(next.visible);
+
+                // If the map has tiledata, load it.
+                console.log('tiledata: ' + next.tiledata);
+                if (next.tiledata != null) {
+                    let tiledata = entries[next.tiledata];
+                    console.log('tiledata file: ' + tiledata);
+                    if (tiledata != null) {
+                        try {
+                            layer.tiles = ProjectUtils.readTileData(tiledata.data);
+                        } catch (e) {
+                            console.error('Failed to read \'' + next.path + '\'.');
+                            console.error(e);
+                        }
+                    }
+                }
+
+                layer.setDirty(true);
+
+                // Load metadata for the layer.
+                if (next.metadata != null) {
+                    for (let o in next.metadata) {
+                        let key: string = <string> o;
+                        let value = next.metadata[key];
+                        layer.setMetadata(key, value);
+                    }
+                }
+
+                layers.add(layer);
+            }
+
+            return project;
+        };
+
+        const zip = fs.createReadStream(path).pipe(unzipper.Parse({forceStream: true}));
+        for await (const entry of zip) {
+
+            let path: string = entry.path;
+            let pathLower: string = path.toLowerCase();
+            let type: string = entry.type; // 'Directory' or 'File'
+            let size: number = entry.vars.uncompressedSize; // There is also compressedSize;
+            let promise = entry.buffer();
+
+            let zipEntry = {path: path, data: <Buffer> null};
+
+            promise.then((data: any) => {
+                    zipEntry.data = data;
+                },
+                (reason: any) => {
+                    console.error(reason);
+                });
+
+            entries[path] = zipEntry;
+
+            init = true;
+            count++;
+        }
+
+        console.log('FINISH READ PROJECT.');
+        project = finish();
+        return project;
     }
 
     static write(project: Project, path: string = null): void {
@@ -126,8 +241,8 @@ export class ProjectUtils {
                 + ' (min: 1, given: ' + height + ')');
         }
 
-        let count = buffer.readUInt16LE(offset);
-        offset += 2;
+        let count = buffer.readUInt32LE(offset);
+        offset += 4;
 
         // Make sure that the count is not negative.
         if (count < 0) {
@@ -148,12 +263,12 @@ export class ProjectUtils {
 
             for (let index = 0; index < count; index++) {
 
-                let value = buffer.readUInt32LE(offset);
+                let i = buffer.readInt32LE(offset);
                 offset += 4;
-
-                let x = value & 0x03FF;
-                let y = value >> 12 & 0x03FF;
-                data[x][y] = value >> 24 & 0x00ff;
+                let tile = (i >> 24 & 0x00ff);
+                let y = (i >> 12) & 0x03FF;
+                let x = i & 0x03FF;
+                data[x][y] = tile;
             }
         }
 
@@ -162,16 +277,9 @@ export class ProjectUtils {
 
     static writeTileData(data: TileData): Buffer {
 
-        interface Tile {
-            x: number,
-            y: number,
-            id: number
-        }
-
         let tiles: Tile[] = [];
 
-        // Go through and flatten the raw array into non-zero-based tile
-        //   profiles.
+        // Go through and flatten the raw array into non-zero-based tile profiles.
         for (let y = 0; y < data.height; y++) {
             for (let x = 0; x < data.width; x++) {
                 let next = data.tiles[x][y];
@@ -217,15 +325,6 @@ export class ProjectUtils {
         return buffer;
     }
 
-    private static parseProjectJSON(json: string): { [id: string]: any } {
-
-        if (json == null) {
-            throw new Error('The JSON given is null or undefined.');
-        }
-
-        return JSON.parse(json);
-    }
-
     private static writeProjectJSON(project: Project): { [id: string]: any } {
 
         if (project == null) {
@@ -266,4 +365,31 @@ export class ProjectUtils {
         return object;
     }
 
+    static export(project: Project, path: string): void {
+
+        let tiles = new TileData();
+        for (let x = 0; x < 1024; x++) {
+            for (let y = 0; y < 1024; y++) {
+                let id = project.layers.getTile(x, y);
+                if (id === -1) {
+                    id = 0;
+                }
+                tiles.set(x, y, id, null, false);
+            }
+        }
+
+        let map = new LVLMap('name', tiles, project.tileset);
+        LVL.write(map, path);
+    }
+}
+
+export interface ProjectFile {
+    path: string,
+    data: Buffer
+}
+
+interface Tile {
+    x: number,
+    y: number,
+    id: number
 }

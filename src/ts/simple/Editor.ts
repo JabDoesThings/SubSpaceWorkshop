@@ -5,6 +5,7 @@ import { TabAction, UITabEvent, UITabMenu } from './ui/UI';
 import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 import * as PIXI from "pixi.js";
 import { Layer } from './layers/Layer';
+import { ProjectUtils } from '../io/ProjectUtils';
 
 /**
  * The <i>Editor</i> class. TODO: Document.
@@ -97,14 +98,6 @@ export class Editor extends CustomEventListener<EditorEvent> {
             if (event.menuId === 'new') {
 
                 let project = new Project(this.renderer, 'untitled');
-                project.tab = this.tabMenu.createTab(project._name, project._name);
-
-                const _i = this.projects.length;
-                project.tab.addEventListener((event: UITabEvent) => {
-                    if (event.action == TabAction.SELECT) {
-                        this.setActive(_i);
-                    }
-                });
 
                 // let map = LVL.read('assets/lvl/zone66.lvl');
                 // project.setTileset(map.tileset);
@@ -116,6 +109,10 @@ export class Editor extends CustomEventListener<EditorEvent> {
                 this.add([project]);
                 this.setActive(this.projects.length - 1);
                 this.renderer.paletteTab.draw();
+            } else if (event.menuId === 'open') {
+                this.open();
+            } else if (event.menuId === 'export-lvl') {
+                this.exportLVL();
             }
 
         });
@@ -146,6 +143,14 @@ export class Editor extends CustomEventListener<EditorEvent> {
         for (let index = 0; index < projects.length; index++) {
             let next = projects[index];
             this.projects.push(next);
+            next.tab = this.tabMenu.createTab(next._name, next._name);
+
+            const _i = this.projects.length - 1;
+            next.tab.addEventListener((event: UITabEvent) => {
+                if (event.action == TabAction.SELECT) {
+                    this.setActive(_i);
+                }
+            });
         }
 
         this.dispatch(<EditorProjectEvent> {
@@ -243,6 +248,108 @@ export class Editor extends CustomEventListener<EditorEvent> {
             projects: projects,
             forced: true
         });
+    }
+
+    open(path: string = null): void {
+
+        let open = (_paths: string[]): void => {
+
+            if (_paths == null || _paths.length === 0) {
+                return;
+            }
+
+            for (let index = 0; index < _paths.length; index++) {
+                ProjectUtils.read(_paths[index]).then(project => {
+                    this.add([project]);
+                    this.setActive(this.projects.length - 1);
+                });
+            }
+        };
+
+        if (path == null) {
+
+            const {dialog} = require('electron').remote;
+
+            interface DialogResult {
+                canceled: boolean,
+                filePaths: string[],
+                bookmark: string
+            }
+
+            let promise: Promise<DialogResult> = dialog.showOpenDialog(null, {
+                    title: 'Open Project',
+                    buttonLabel: 'Open',
+                    filters: [
+                        {name: 'SubSpace Workshop Project', extensions: ['sswp']}
+                    ]
+                }
+            );
+
+            promise.then((result: DialogResult) => {
+
+                console.log(result);
+
+                if (result.canceled || result.filePaths == null || result.filePaths.length === 0) {
+                    return;
+                }
+
+                open(result.filePaths);
+            });
+        } else {
+            open([path]);
+        }
+    }
+
+    private exportLVL(path: string = null) {
+
+        let project = this.projects[this.active];
+        if(project == null) {
+            return;
+        }
+
+        let _export = (_path: string): void => {
+            ProjectUtils.export(project, _path);
+        };
+
+        if (path == null) {
+
+            const {dialog} = require('electron').remote;
+
+            interface DialogResult {
+                canceled: boolean,
+                filePath: string,
+                bookmark: string
+            }
+
+            let promise: Promise<DialogResult> = dialog.showSaveDialog(null, {
+                    title: 'Export LVL',
+                    buttonLabel: 'Export',
+                    filters: [
+                        {name: 'SubSpace Level Map', extensions: ['lvl']}
+                    ],
+                    properties: {
+                        dontAddToRecent: true
+                    }
+                }
+            );
+
+            promise.then((result: DialogResult) => {
+
+                if (result.canceled || result.filePath == null) {
+                    return;
+                }
+
+                // Ensure the file-name ends with the extension.
+                let path = result.filePath;
+                if (!path.toLowerCase().endsWith('.lvl')) {
+                    path += '.lvl';
+                }
+
+                _export(path);
+            });
+        } else {
+            _export(path);
+        }
     }
 
     /**

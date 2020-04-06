@@ -237,9 +237,7 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
 
         this.setDirty(true);
 
-        if (flag) {
-            this.manager.combineTileLayers(true);
-        }
+        this.manager.combineTileLayers(true);
     }
 
     // @Override

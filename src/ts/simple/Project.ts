@@ -110,7 +110,7 @@ export class Project extends CustomEventListener<CustomEvent> {
 
                 // Ensure the file-name ends with the extension.
                 let path = result.filePath;
-                if (!path.endsWith('.sswp')) {
+                if (!path.toLowerCase().endsWith('.sswp')) {
                     path += '.sswp';
                 }
 

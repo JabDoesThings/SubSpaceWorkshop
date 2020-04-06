@@ -78,7 +78,7 @@ export class LVL {
         if (map.tileset != null && map.tileset !== LVL.DEFAULT_TILESET) {
             // @ts-ignore
             let source = global.editor.renderer.toCanvas(map.tileset.texture);
-            tileSetBuffer = Bitmap.toBuffer(source, map.tileset.bitCount, true);
+            tileSetBuffer = Bitmap.toBuffer(source, map.tileset.bitCount, false);
             buffer = Buffer.concat([tileSetBuffer, tileBuffer]);
         } else {
             buffer = tileBuffer;

@@ -55,6 +55,7 @@
     "stats.js": "latest",
     "suncalc": "^1.8.0",
     "three": "^0.106.2",
+    "unzipper": "^0.10.10",
     "yaml": "^1.6.0",
     "zlib": "^1.0.5"
   }
