@@ -2,35 +2,39 @@ import uuid = require('uuid');
 import { MapArea } from '../../util/map/MapArea';
 import { Dirtable } from '../../util/Dirtable';
 import { InheritedObject } from '../../util/InheritedObject';
-import { TileLayer } from './TileLayer';
 import { MapRenderer } from '../render/MapRenderer';
 import { LayerManager } from './LayerManager';
 import { UILayer } from '../ui/LayersPanel';
+import { EditLayerVisible } from '../edits/EditLayerVisible';
+import { TileData } from '../../util/map/TileData';
 
-export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
+export class Layer extends InheritedObject<Layer> implements Dirtable {
 
     static readonly DEFAULT_NAME: string = 'Untitled Layer';
 
+    readonly manager: LayerManager;
+    readonly ui: UILayer;
+    private readonly metadata: { [id: string]: any };
     private readonly id: string;
+
+    bounds: MapArea;
+    tiles: TileData;
     private name: string;
     private visible: boolean;
     private dirty: boolean;
     private locked: boolean;
-
-    readonly renderLayers: PIXI.Container[];
-    readonly manager: LayerManager;
-
-    readonly ui: UILayer;
+    private updatingUI: boolean;
 
     /**
      * Main constructor.
      *
+     * @param manager
      * @param id The unique ID of the layer. <br/>
      *   <b>NOTE</b>: Only provide this when loading an existing layer. A
      *   unique ID will generate for new layers.
      * @param name The displayed name of the layer.
      */
-    protected constructor(manager: LayerManager, id: string, name: string) {
+    constructor(manager: LayerManager, id: string, name: string) {
 
         super();
 
@@ -49,29 +53,23 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
         this.id = id;
         this.name = name;
         this.visible = true;
-
-        this.renderLayers = [];
-        for (let index = 0; index < 8; index++) {
-            let next = new PIXI.Container();
-            next.sortableChildren = false;
-            next.interactive = next.interactiveChildren = false;
-            this.renderLayers.push(next);
-        }
+        this.tiles = new TileData();
 
         this.ui = new UILayer(this.name);
         this.ui.visibilityElement.addEventListener('click', (event) => {
-            this.setVisible(!this.visible);
-            this.ui.setVisible(this.visible);
-            this.manager.combineTileLayers(true);
+
+            let edit = new EditLayerVisible(this, !this.visible);
+            let editManager = this.manager.project.editManager;
+            editManager.append([edit]);
+            editManager.push();
         });
 
         this.ui.element.addEventListener('click', (event) => {
             this.manager.setActive(this);
-            // this.ui.setSelected(true);
         });
-    }
 
-    private updatingUI: boolean = false;
+        this.updatingUI = false;
+    }
 
     // @Override
     addChild(object: Layer): void {
@@ -80,15 +78,17 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
     }
 
     // @Override
-    removeChild(object: Layer): void {
-        super.removeChild(object);
+    removeChild(object: Layer): number {
+        let index = super.removeChild(object);
         this.updateUI();
+        return index;
     }
 
     // @Override
-    removeChildren(): void {
-        super.removeChildren();
+    removeChildren(): Layer[] {
+        let copy = super.removeChildren();
         this.updateUI();
+        return copy;
     }
 
     private updateUI(): void {
@@ -125,13 +125,6 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
 
     update(delta: number): void {
 
-        let visible = this.hasParent() ? this.getParent().isVisible() && this.visible : this.visible;
-
-        // Set all rendered layers to the visibility state.
-        for (let index = 0; index < this.renderLayers.length; index++) {
-            this.renderLayers[index].visible = visible;
-        }
-
         this.onUpdate(delta);
 
         if (this.hasChildren()) {
@@ -151,6 +144,10 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
             for (let index = 0; index < children.length; index++) {
                 children[index].postUpdate();
             }
+        }
+
+        if (this.tiles != null) {
+            this.tiles.setDirty(false);
         }
 
         this.setDirty(false);
@@ -177,13 +174,11 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
         }
 
         // Check if the layer is a TileLayer and check here.
-        if ((this instanceof TileLayer)) {
-            return (<TileLayer> this).tiles.get(x, y);
+        if (this.tiles != null && x < this.tiles.width && y < this.tiles.height) {
+            return this.tiles.get(x, y);
         }
 
-        // If there are no children who are TileLayers AND this layer is NOT a
-        //   TileLayer, then return -1 to let the caller know that there's no
-        //   tile data at all for this coordinate.
+        // If the tile is out of the boundaries of the tile data, return -1.
         return -1;
     }
 
@@ -237,17 +232,19 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
         }
 
         this.visible = flag;
-
-        if (this instanceof TileLayer) {
-            this.manager.combineTileLayers();
-        }
+        this.ui.setVisible(flag);
+        this.manager.updateUI();
 
         this.setDirty(true);
+
+        if (flag) {
+            this.manager.combineTileLayers(true);
+        }
     }
 
     // @Override
     isDirty(): boolean {
-        return this.dirty;
+        return this.dirty || (this.tiles != null && this.tiles.isDirty());
     }
 
     // @Override
@@ -267,17 +264,34 @@ export abstract class Layer extends InheritedObject<Layer> implements Dirtable {
         }
     }
 
-    protected abstract onPreUpdate(): void;
-
-    protected abstract onUpdate(delta: number): void;
-
-    protected abstract onPostUpdate(): void;
-
     /**
      * @return Returns the minimum and maximum coordinates populated by the layer.
      */
-    abstract getBounds(): MapArea;
+    getBounds(): MapArea {
+        return;
+    }
 
-    abstract onActivate(renderer: MapRenderer): void;
+    getMetadata(id: string): any {
+        return this.metadata[id];
+    }
+
+    setMetadata(id: string, value: any): void {
+        this.metadata[id] = value;
+    }
+
+    getMetadataTable(): { [id: string]: any } {
+        return this.metadata;
+    }
+
+    protected onPreUpdate(): void {
+    }
+
+    protected onUpdate(delta: number): void {
+    }
+
+    protected onPostUpdate(): void {
+    }
+
+    onActivate(renderer: MapRenderer): void {
+    }
 }
-

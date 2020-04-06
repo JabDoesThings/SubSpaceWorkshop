@@ -12,6 +12,7 @@ import { LVL } from '../io/LVLUtils';
 import { Background } from '../common/Background';
 import { SelectionRenderer } from './render/SelectionRenderer';
 import { MapRenderer } from './render/MapRenderer';
+import { ProjectUtils } from '../io/ProjectUtils';
 
 /**
  * The <i>Project</i> class. TODO: Document.
@@ -19,6 +20,8 @@ import { MapRenderer } from './render/MapRenderer';
  * @author Jab
  */
 export class Project extends CustomEventListener<CustomEvent> {
+
+    private readonly metadata: { [id: string]: any };
 
     editor: Editor;
     editManager: EditManager;
@@ -34,6 +37,7 @@ export class Project extends CustomEventListener<CustomEvent> {
     selectionRenderer: SelectionRenderer;
 
     renderer: MapRenderer;
+    path: string;
 
     /**
      * Main constructor.
@@ -49,6 +53,8 @@ export class Project extends CustomEventListener<CustomEvent> {
         this.editor = this.renderer.editor;
         this._name = name;
         this.tileset = LVL.DEFAULT_TILESET.clone();
+        this.path = null;
+        this.metadata = {};
 
         this.atlas = DEFAULT_ATLAS.clone();
         this.atlas.getTextureAtlas('tiles').setTexture(this.tileset.texture);
@@ -66,6 +72,53 @@ export class Project extends CustomEventListener<CustomEvent> {
         this.selectionGroup = new SelectionGroup();
         this.selectionGroup.setSelection(SelectionSlot.PRIMARY, new Selection(SelectionType.TILE, 1));
         this.selectionGroup.setSelection(SelectionSlot.SECONDARY, new Selection(SelectionType.TILE, 2));
+    }
+
+    saveAs(): void {
+        this.save(true);
+    }
+
+    save(as: boolean): void {
+
+        if (this.path == null || as) {
+
+            const {dialog} = require('electron').remote;
+
+            interface DialogResult {
+                canceled: boolean,
+                filePath: string,
+                bookmark: string
+            }
+
+            let promise: Promise<DialogResult> = dialog.showSaveDialog(null, {
+                    title: 'Save Project',
+                    buttonLabel: 'Save',
+                    filters: [
+                        {name: 'SubSpace Workshop Project', extensions: ['sswp']}
+                    ],
+                    properties: {
+                        dontAddToRecent: true
+                    }
+                }
+            );
+
+            promise.then((result: DialogResult) => {
+
+                if (result.canceled || result.filePath == null) {
+                    return;
+                }
+
+                // Ensure the file-name ends with the extension.
+                let path = result.filePath;
+                if (!path.endsWith('.sswp')) {
+                    path += '.sswp';
+                }
+
+                this.path = path;
+
+                ProjectUtils.write(this);
+            });
+        }
     }
 
     preUpdate(): void {
@@ -105,6 +158,18 @@ export class Project extends CustomEventListener<CustomEvent> {
         this.tileset = tileset;
         tileset.setDirty(true);
         this.atlas.getTextureAtlas('tiles').setTexture(tileset.texture);
+    }
+
+    getMetadata(id: string): any {
+        return this.metadata[id];
+    }
+
+    setMetadata(id: string, value: any): void {
+        this.metadata[id] = value;
+    }
+
+    getMetadataTable(): { [id: string]: any } {
+        return this.metadata;
     }
 }
 

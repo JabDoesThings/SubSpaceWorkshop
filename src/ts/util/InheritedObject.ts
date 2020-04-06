@@ -8,9 +8,11 @@ import { Inheritable } from './Inheritable';
 export abstract class InheritedObject<I extends InheritedObject<I>> implements Inheritable {
 
     private children: I[];
-
     private parent: I;
 
+    /**
+     * Main constructor.
+     */
     protected constructor() {
         this.children = [];
     }
@@ -20,22 +22,22 @@ export abstract class InheritedObject<I extends InheritedObject<I>> implements I
     /////////////////
 
     // @Override
-    public hasParent(): boolean {
+    hasParent(): boolean {
         return this.parent != null;
     }
 
     // @Override
-    public isParent(object: I): boolean {
+    isParent(object: I): boolean {
         return this.parent != null && this.parent === object;
     }
 
     // @Override
-    public getParent(): I {
+    getParent(): I {
         return this.parent;
     }
 
     // @Override
-    public setParent(object: I): void {
+    setParent(object: I): void {
 
         if (this.parent != null) {
 
@@ -64,12 +66,12 @@ export abstract class InheritedObject<I extends InheritedObject<I>> implements I
     ///////////////////
 
     // @Override
-    public hasChildren(): boolean {
+    hasChildren(): boolean {
         return this.children.length != 0;
     }
 
     // @Override
-    public isChild(object: I): boolean {
+    isChild(object: I): boolean {
 
         // Make sure the object given is not null.
         if (object == null) {
@@ -98,7 +100,7 @@ export abstract class InheritedObject<I extends InheritedObject<I>> implements I
     }
 
     // @Override
-    public addChild(object: I): void {
+    addChild(object: I): void {
 
         // Make sure the object given is not null.
         if (object == null) {
@@ -126,12 +128,14 @@ export abstract class InheritedObject<I extends InheritedObject<I>> implements I
 
     }
 
-    removeChildren(): void {
+    removeChildren(): I[] {
+        let copy = this.copyChildren();
         this.children.length = 0;
+        return copy;
     }
 
     // @Override
-    public removeChild(object: I): void {
+    removeChild(object: I): number {
 
         // Make sure the object given is not null.
         if (object == null) {
@@ -157,13 +161,16 @@ export abstract class InheritedObject<I extends InheritedObject<I>> implements I
         // Create the new array to replace the children array.
         let newChildren: I[] = [];
 
-        // Go through each child and check for a match.
-        for (let key in this.children) {
+        let _index = -1;
 
-            let value = this.children[key];
+        // Go through each child and check for a match.
+        for (let index = 0; index < this.children.length; index++) {
+
+            let value = this.children[index];
 
             // If the child matches, skip adding it to the new array.
             if (value === object) {
+                _index = index;
                 continue;
             }
 
@@ -174,10 +181,27 @@ export abstract class InheritedObject<I extends InheritedObject<I>> implements I
         // Set the new children array.
         this.children = newChildren;
 
+        return _index;
     }
 
     // @Override
-    public getChildren(): I[] {
+    getChildren(): I[] {
         return this.children;
+    }
+
+    private copyChildren(): I[] {
+
+        // Make sure the element has children to index.
+        if (!this.hasChildren()) {
+            return [];
+        }
+
+        // Copy the children.
+        let array = [];
+        for (let index = 0; index < this.children.length; index++) {
+            array.push(this.children[index]);
+        }
+
+        return array;
     }
 }

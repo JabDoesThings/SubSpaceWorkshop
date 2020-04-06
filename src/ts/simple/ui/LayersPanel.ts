@@ -2,7 +2,6 @@ import {
     ToolbarOrientation,
     UIIcon,
     UIIconToolbar,
-    UIIconToolbarEvent,
     UIPanelTab,
     UITool,
     UIToolEvent,
@@ -13,7 +12,8 @@ import { Dirtable } from '../../util/Dirtable';
 import { InheritedObject } from '../../util/InheritedObject';
 import { Inheritable } from '../../util/Inheritable';
 import { Layer } from '../layers/Layer';
-import { TileLayer } from '../layers/TileLayer';
+import { EditLayerRemove } from '../edits/EditLayerRemove';
+import { EditLayerAdd } from '../edits/EditLayerAdd';
 
 /**
  * The <i>LayersPanel</i> class. TODO: Document.
@@ -46,16 +46,53 @@ export class LayersPanel extends UIPanelTab {
 
         let toolAdd = new UITool(
             'new-layer',
-            new UIIcon([
-                'fas',
-                'fa-plus-square'
-            ]),
+            new UIIcon(['fas', 'fa-plus-square']),
             new UITooltip('New Layer'),
+            false
+        );
+
+        let toolRemove = new UITool(
+            'remove-layer',
+            new UIIcon(['fas', 'fa-minus-square']),
+            new UITooltip('Remove Layer'),
+            false
+        );
+
+        let toolDuplicate = new UITool(
+            'duplicate-layer',
+            new UIIcon(['fas', 'fa-clone']),
+            new UITooltip('Duplicate Layer'),
+            false
+        );
+
+        let toolMerge = new UITool(
+            'merge-layer',
+            new UIIcon(['fas', 'fa-arrow-down']),
+            new UITooltip('Merge Layer'),
+            false
+        );
+
+        let toolMoveUp = new UITool(
+            'move-up-layer',
+            new UIIcon(['fas', 'fa-caret-square-up']),
+            new UITooltip('Move Layer Up'),
+            false
+        );
+
+        let toolMoveDown = new UITool(
+            'move-down-layer',
+            new UIIcon(['fas', 'fa-caret-square-down']),
+            new UITooltip('Move Layer Down'),
             false
         );
 
         this.toolbar = new UIIconToolbar(ToolbarOrientation.BOTTOM);
         this.toolbar.add(toolAdd);
+        this.toolbar.add(toolRemove);
+        this.toolbar.add(toolDuplicate);
+        this.toolbar.add(toolMerge);
+        this.toolbar.add(toolMoveUp);
+        this.toolbar.add(toolMoveDown);
 
         this.toolbar.addEventListener((e) => {
 
@@ -65,8 +102,11 @@ export class LayersPanel extends UIPanelTab {
             }
 
             let event = <UIToolEvent> e;
-            if (event.tool.id === 'new-layer') {
+            let id = event.tool.id;
+            if (id === 'new-layer') {
                 this.newLayer();
+            } else if(id === 'remove-layer') {
+                this.removeLayer();
             }
         });
 
@@ -136,11 +176,31 @@ export class LayersPanel extends UIPanelTab {
         }
 
         let layers = project.layers;
-        let layer = new TileLayer(layers, null, 'Untitled Layer');
+        let layer = new Layer(layers, null, 'Untitled Layer');
 
-        layers.add(layer, true);
-
+        let edit = new EditLayerAdd(layer, true);
+        project.editManager.append([edit]);
+        project.editManager.push();
         return layer;
+    }
+
+    removeLayer(): void {
+
+        let project = this.renderer.project;
+        if (project == null) {
+            return;
+        }
+
+        let layers = project.layers;
+
+        let active = layers.active;
+        if(active == null) {
+            return;
+        }
+
+        let edit = new EditLayerRemove(active);
+        project.editManager.append([edit]);
+        project.editManager.push();
     }
 }
 
@@ -211,11 +271,15 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
     }
 
     // @Override
-    removeChild(object: UILayer): void {
-        super.removeChild(object);
+    removeChild(object: UILayer): number {
+
+        let index = super.removeChild(object);
+
         if (this.panel != null) {
             this.panel.updateElements();
         }
+
+        return index;
     }
 
     // @Override

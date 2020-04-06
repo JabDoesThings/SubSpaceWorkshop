@@ -295,6 +295,10 @@ $panelWidth: 320px;
       position: absolute;
       font-size: 12px;
       background-color: $color3;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+      user-focus: none;
     }
 
     &:hover {
@@ -407,10 +411,7 @@ $tooltip_border_color: $color8;
       padding: 2px 4px 2px 2px;
       transform: translateX(-50%);
 
-      border-top: 1px solid $tooltip_border_color;
-      border-bottom: 1px solid $tooltip_border_color;
-      border-right: 1px solid $tooltip_border_color;
-      border-left: 1px solid transparent;
+      border: 1px solid $tooltip_border_color;
 
       transition: opacity 200ms, left 200ms;
       transition-delay: 0s;
@@ -422,15 +423,16 @@ $tooltip_border_color: $color8;
       &:before {
         z-index: -1;
         position: absolute;
-        left: -7px;
-        width: 13px;
-        height: 13px;
+        left: calc(50% - 4px);
+        bottom: -5px;
+        width: 7px;
+        height: 7px;
         transform: rotate(45deg);
 
         background-color: $color3;
 
-        border-left: 1px solid $tooltip_border_color;
         border-bottom: 1px solid $tooltip_border_color;
+        border-right: 1px solid $tooltip_border_color;
 
         content: '';
       }
@@ -456,6 +458,12 @@ $tooltip_border_color: $color8;
   .tool {
     width: 16px;
     height: 16px;
+
+    border-color: transparent;
+
+    &:hover, &:active {
+      border-color: transparent;
+    }
 
     .fas {
       font-size: 14px;

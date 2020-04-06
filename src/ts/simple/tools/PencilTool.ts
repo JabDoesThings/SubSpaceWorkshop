@@ -5,7 +5,6 @@ import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 import { DrawTool } from './DrawTool';
 import { LVL } from '../../io/LVLUtils';
-import { TileLayer } from '../layers/TileLayer';
 import { TileData } from '../../util/map/TileData';
 import { Layer } from '../layers/Layer';
 
@@ -68,11 +67,7 @@ export class PencilTool extends DrawTool {
 
         let layerActive: Layer = project.layers.getActive();
 
-        if(!(layerActive instanceof TileLayer)) {
-            return;
-        }
-
-        let layer: TileLayer;
+        let layer: Layer;
         if(useActiveLayer) {
             layer = layerActive;
         } else {

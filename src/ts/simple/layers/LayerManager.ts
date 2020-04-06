@@ -2,7 +2,6 @@ import { Layer } from './Layer';
 import { Project } from '../Project';
 import { MapRenderer } from '../render/MapRenderer';
 import { TileData } from '../../util/map/TileData';
-import { TileLayer } from './TileLayer';
 import { TileRenderer } from '../render/TileRenderer';
 import { MapArea } from '../../util/map/MapArea';
 import { CoordinateType } from '../../util/map/CoordinateType';
@@ -14,7 +13,7 @@ import { CoordinateType } from '../../util/map/CoordinateType';
  */
 export class LayerManager {
 
-    readonly drawTileLayer: TileLayer;
+    readonly drawTileLayer: Layer;
     readonly layers: Layer[];
     readonly project: Project;
     private readonly _combinedTileRenderer: TileRenderer;
@@ -39,7 +38,7 @@ export class LayerManager {
         this._combinedTileData = new TileData();
         this._combinedTileRenderer = new TileRenderer(project, this._combinedTileData);
 
-        this.drawTileLayer = new TileLayer(this, 'drawTileLayer', 'drawTileLayer');
+        this.drawTileLayer = new Layer(this, 'drawTileLayer', 'drawTileLayer');
         this._drawTileRenderer = new TileRenderer(project, this.drawTileLayer.tiles);
 
         this.updatingUI = false;
@@ -84,27 +83,88 @@ export class LayerManager {
             this.active = layer;
         }
 
-        if (layer instanceof TileLayer) {
-            this.combineTileLayers(true);
+        this.combineTileLayers(true);
+        this.updateUI();
+    }
+
+    /**
+     *
+     * @param index The index to insert the layer. If the index is greater than the last index
+     *   of the registered layers in the root container, the layer will simply be appended.
+     * @param layer The layer to insert.
+     * @param setActive Flag to set whether or not the layer should be set active after being
+     *   inserted.
+     *
+     * @throws Error Thrown if the following occurs: <br/>
+     *  <uL>
+     *      <li>The layer is alrady registered to the root container or is registered as
+     *      a child to any parent layer that is registered.
+     *      <li>The index given is negative.
+     *      <li>The index given is null or undefined.
+     *      <li>The layer given is null or undefined.
+     *  <ul/>
+     */
+    set(index: number, layer: Layer, setActive: boolean = true): void {
+
+        if (index == null) {
+            throw new Error("The index given is null or undefined.");
         }
 
-        this.updateUI();
+        if (layer == null) {
+            throw new Error("The layer given is null or undefined.");
+        }
+
+        if (this.contains(layer, true)) {
+            throw new Error("The layer given is already registered.");
+        }
+
+        if (index < 0) {
+            throw new Error('Invalid index to set layer. (' + index + " given)");
+        }
+
+        if (index > this.layers.length - 1) {
+            this.add(layer, setActive);
+            return;
+        }
+
+        // Copy the layer array.
+        let newArray = [];
+        for (let _index = 0; _index < this.layers.length; _index++) {
+
+            // If we're on the index to insert, insert the layer to add first.
+            if (_index === index) {
+                newArray.push(layer);
+            }
+
+            // Normally push the next registered layer.
+            newArray.push(this.layers[_index]);
+        }
+
+        // Repopulate the layers array with the inserted layer.
+        this.layers.length = 0;
+        for (let _index = 0; _index < newArray.length; _index++) {
+            this.layers.push(newArray[_index]);
+        }
     }
 
     /**
      * Removes a layer from the project.
      *
      * @param layer The layer to remove.
+     *
+     * @return Returns the original index of the removed layer. If the layer is not
+     *   registered, -1 is returned.
      */
-    remove(layer: Layer): void {
+    remove(layer: Layer): number {
 
         let isActiveRemoved = this.active === layer;
-
+        let _index = -1;
         let toCopy = [];
         for (let index = 0; index < this.layers.length; index++) {
 
             let next = this.layers[index];
             if (next === layer) {
+                _index = index;
                 continue;
             }
 
@@ -127,6 +187,8 @@ export class LayerManager {
         }
 
         this.updateUI();
+
+        return _index;
     }
 
     /**
@@ -213,7 +275,7 @@ export class LayerManager {
                 let next = this.layers[index];
                 next.update(delta);
 
-                if (next instanceof TileLayer && next.tiles.isDirty()) {
+                if (next.tiles.isDirty()) {
                     tileDirty = true;
                 }
             }
@@ -308,7 +370,7 @@ export class LayerManager {
 
     combineTileLayers(clear: boolean = false): void {
 
-        // console.log('combineTileLayers(clear: ' + clear + ')');
+        console.log('combineTileLayers(clear: ' + clear + ')');
 
         let isVisible = (layer: Layer): boolean => {
 
@@ -343,7 +405,7 @@ export class LayerManager {
                 for (let index = 0; index < layers.length; index++) {
 
                     let next = layers[index];
-                    if (next instanceof TileLayer && isVisible(next)) {
+                    if (isVisible(next)) {
                         this._combinedTileData.apply(next.tiles, area);
                     }
 
@@ -362,28 +424,25 @@ export class LayerManager {
                 for (let index = 0; index < layers.length; index++) {
 
                     let next = layers[index];
-                    if (next instanceof TileLayer) {
+                    let data = next.tiles;
+                    let dirtyAreas = data.dirtyAreas;
+                    if (dirtyAreas.length === 0) {
+                        continue;
+                    }
 
-                        let data = next.tiles;
-                        let dirtyAreas = data.dirtyAreas;
-                        if (dirtyAreas.length === 0) {
-                            continue;
+                    for (let index = 0; index < dirtyAreas.length; index++) {
+                        let nextArea = dirtyAreas[index];
+                        if (region.x1 > nextArea.x1) {
+                            region.x1 = nextArea.x1;
                         }
-
-                        for (let index = 0; index < dirtyAreas.length; index++) {
-                            let nextArea = dirtyAreas[index];
-                            if (region.x1 > nextArea.x1) {
-                                region.x1 = nextArea.x1;
-                            }
-                            if (region.x2 < nextArea.x2) {
-                                region.x2 = nextArea.x2;
-                            }
-                            if (region.y1 > nextArea.y1) {
-                                region.y1 = nextArea.y1;
-                            }
-                            if (region.y2 < nextArea.y2) {
-                                region.y2 = nextArea.y2;
-                            }
+                        if (region.x2 < nextArea.x2) {
+                            region.x2 = nextArea.x2;
+                        }
+                        if (region.y1 > nextArea.y1) {
+                            region.y1 = nextArea.y1;
+                        }
+                        if (region.y2 < nextArea.y2) {
+                            region.y2 = nextArea.y2;
                         }
                     }
 
@@ -397,7 +456,7 @@ export class LayerManager {
                 for (let index = 0; index < layers.length; index++) {
 
                     let next = layers[index];
-                    if (next instanceof TileLayer && isVisible(next)) {
+                    if (isVisible(next)) {
                         this._combinedTileData.apply(next.tiles, area);
                     }
 

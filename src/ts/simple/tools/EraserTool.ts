@@ -5,8 +5,6 @@ import { EditTiles } from '../edits/EditTiles';
 import { DrawTool } from './DrawTool';
 import { Selection } from '../ui/Selection';
 import { TileData } from '../../util/map/TileData';
-import { TileLayer } from '../layers/TileLayer';
-import { Layer } from '../layers/Layer';
 
 /**
  * The <i>EraserTool</i> class. TODO: Document.
@@ -25,13 +23,8 @@ export class EraserTool extends DrawTool {
     // @Override
     protected drawTile(project: Project, selection: Selection, event: MapMouseEvent, useActiveLayer: boolean): Edit[] {
 
-        let layer: Layer;
-        // if(useActiveLayer) {
-            layer = project.layers.getActive();
-        // } else {
-        //     layer = project.layers.drawTileLayer;
-        // }
-        if(layer == null || !(layer instanceof TileLayer)) {
+        let layer = project.layers.getActive();
+        if(layer == null) {
             return;
         }
 

@@ -41,6 +41,7 @@
     "@types/highlight.js": "^9.12.3",
     "@types/stats": "^0.16.30",
     "@types/uuid": "^3.4.7",
+    "archiver": "^3.1.1",
     "chart.js": "^2.8.0",
     "fs-extra": "^8.1.0",
     "glsl-atmosphere": "^2.0.0",

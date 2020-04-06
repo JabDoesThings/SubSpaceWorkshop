@@ -5,7 +5,6 @@ import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 import { DrawTool } from './DrawTool';
 import { LVL } from '../../io/LVLUtils';
-import { TileLayer } from '../layers/TileLayer';
 import { TileData } from '../../util/map/TileData';
 import { Layer } from '../layers/Layer';
 
@@ -32,7 +31,8 @@ export class LineTool extends DrawTool {
         } else {
             layer = project.layers.drawTileLayer;
         }
-        if(layer == null || !(layer instanceof TileLayer)) {
+
+        if(layer == null) {
             return;
         }
 

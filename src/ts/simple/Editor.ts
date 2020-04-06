@@ -4,8 +4,7 @@ import { Project } from './Project';
 import { TabAction, UITabEvent, UITabMenu } from './ui/UI';
 import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 import * as PIXI from "pixi.js";
-import { TileLayer } from './layers/TileLayer';
-import { LVL } from '../io/LVLUtils';
+import { Layer } from './layers/Layer';
 
 /**
  * The <i>Editor</i> class. TODO: Document.
@@ -111,7 +110,7 @@ export class Editor extends CustomEventListener<EditorEvent> {
                 // project.setTileset(map.tileset);
                 // project.atlas.getTextureAtlas('tiles').setTexture(map.tileset.texture);
 
-                let baseLayer = new TileLayer(project.layers, null, 'Base Layer');
+                let baseLayer = new Layer(project.layers, null, 'Base Layer');
                 project.layers.add(baseLayer);
 
                 this.add([project]);

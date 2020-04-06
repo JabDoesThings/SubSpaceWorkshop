@@ -411,7 +411,7 @@ export class LVL {
 }
 
 // Create dimension array to reference for tools.
-for (let index = 0; index < 255; index++) {
+for (let index = 0; index < 256; index++) {
 
     LVL.TILE_DIMENSIONS[index] = new Array(2);
 

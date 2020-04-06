@@ -117,19 +117,19 @@ export class TileData {
 
         for (let x = area.x1; x <= area.x2; x++) {
             for (let y = area.y1; y <= area.y2; y++) {
-                if(this.tiles[x][y] !== tileId) {
+                if (this.tiles[x][y] !== tileId) {
                     this.tiles[x][y] = tileId;
 
-                    if(region.x1 > x) {
+                    if (region.x1 > x) {
                         region.x1 = x;
                     }
-                    if(region.x2 < x) {
+                    if (region.x2 < x) {
                         region.x2 = x;
                     }
-                    if(region.y1 > y) {
+                    if (region.y1 > y) {
                         region.y1 = y;
                     }
-                    if(region.y2 < y) {
+                    if (region.y2 < y) {
                         region.y2 = y;
                     }
                 }
@@ -472,5 +472,23 @@ export class TileData {
 
     getTiles(copy: boolean = true): number[][] {
         return copy ? this.copy() : this.tiles;
+    }
+
+    /**
+     * @return Returns the count of non-zero tiles.
+     */
+    getTileCount(): number {
+
+        let count = 0;
+
+        for (let x = 0; x < this.width; x++) {
+            for (let y = 0; y < this.height; y++) {
+                if (this.tiles[x][y] > 0) {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 }

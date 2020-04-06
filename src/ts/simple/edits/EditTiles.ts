@@ -1,6 +1,6 @@
 import { Edit } from './Edit';
 import { EditManager } from '../EditManager';
-import { TileLayer } from '../layers/TileLayer';
+import { Layer } from '../layers/Layer';
 
 /**
  * The <i>EditTiles</i> class. TODO: Document.
@@ -13,7 +13,7 @@ export class EditTiles extends Edit {
     tilesToUndo: TileEdit[];
 
     private readonly applyDimensions: boolean;
-    private readonly layer: TileLayer;
+    private readonly layer: Layer;
 
     /**
      * Main constructor.
@@ -23,7 +23,7 @@ export class EditTiles extends Edit {
      * @param applyDimensions
      */
     constructor(
-        layer: TileLayer,
+        layer: Layer,
         tiles: TileEdit[],
         applyDimensions = true) {
 
