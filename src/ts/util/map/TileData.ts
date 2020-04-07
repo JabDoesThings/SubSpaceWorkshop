@@ -353,16 +353,15 @@ export class TileData {
         this.setDirty(true);
     }
 
-    apply(tiles: TileData,
-          area: MapArea = new MapArea(CoordinateType.TILE, 0, 0, 1023, 1023)
-    ): void {
+    apply(tiles: TileData, area: MapArea = null): void {
 
-        if (area.type === CoordinateType.PIXEL) {
+        if (area == null) {
+            let width = Math.min(this.width, tiles.width);
+            let height = Math.min(this.height, tiles.height);
+            area = new MapArea(CoordinateType.TILE, 0, 0, width - 1, height - 1);
+        } else if (area.type === CoordinateType.PIXEL) {
             area = area.asType(CoordinateType.TILE);
         }
-
-        // let width = Math.min(this.width, tiles.width);
-        // let height = Math.min(this.height, tiles.height);
 
         for (let x = area.x1; x <= area.x2; x++) {
             for (let y = area.y1; y <= area.y2; y++) {

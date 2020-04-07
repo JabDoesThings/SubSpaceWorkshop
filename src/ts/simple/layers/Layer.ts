@@ -7,6 +7,7 @@ import { LayerManager } from './LayerManager';
 import { UILayer } from '../ui/LayersPanel';
 import { EditLayerVisible } from '../edits/EditLayerVisible';
 import { TileData } from '../../util/map/TileData';
+import { CoordinateType } from '../../util/map/CoordinateType';
 
 export class Layer extends InheritedObject<Layer> implements Dirtable {
 
@@ -19,11 +20,13 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
 
     bounds: MapArea;
     tiles: TileData;
+    _tileCache: TileData;
     private name: string;
     private visible: boolean;
     private dirty: boolean;
     private locked: boolean;
     private updatingUI: boolean;
+    private cacheDirty: boolean;
 
     /**
      * Main constructor.
@@ -54,6 +57,7 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
         this.name = name;
         this.visible = true;
         this.tiles = new TileData();
+        this._tileCache = new TileData();
 
         this.ui = new UILayer(this.name);
         this.ui.visibilityElement.addEventListener('click', (event) => {
@@ -69,6 +73,8 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
         });
 
         this.updatingUI = false;
+        this.cacheDirty = true;
+        this.dirty = true;
     }
 
     // @Override
@@ -106,12 +112,20 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
             this.ui.addChild(children[index].ui);
         }
 
+            this.ui.setSelected(this === this.manager.active);
+            this.ui.setVisible(this.visible);
+            this.ui.setLocked(this.locked);
+
         this.manager.updateUI();
 
         this.updatingUI = false;
     }
 
     preUpdate(): void {
+
+        if (this.isDirty() || this.isChildrenDirty()) {
+            this.cacheDirty = true;
+        }
 
         this.onPreUpdate();
 
@@ -133,6 +147,43 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
                 children[index].update(delta);
             }
         }
+    }
+
+    processCache(): void {
+
+        this._tileCache.clear(
+            new MapArea(
+                CoordinateType.TILE,
+                0,
+                0,
+                this._tileCache.width - 1,
+                this._tileCache.height - 1
+            )
+        );
+
+        this.onCacheApply();
+
+        if (this.hasChildren()) {
+
+            let children = this.getChildren();
+            for (let index = 0; index < children.length; index++) {
+                let child = children[index];
+                if (child.isCacheDirty()) {
+                    child.processCache();
+                }
+                this._tileCache.apply(child._tileCache);
+            }
+        }
+
+        this.cacheDirty = false;
+    }
+
+    protected onCacheApply(): void {
+        this._tileCache.apply(this.tiles);
+    }
+
+    isCacheDirty(): boolean {
+        return this.cacheDirty;
     }
 
     postUpdate(): void {
@@ -196,6 +247,7 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
      */
     setName(name: string): void {
         this.name = name;
+        this.updateUI();
     }
 
     /**
@@ -218,7 +270,13 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
      * @param flag The flag to set.
      */
     setLocked(flag: boolean): void {
+
+        if (flag === this.locked) {
+            return;
+        }
+
         this.locked = flag;
+        this.updateUI();
     }
 
     isVisible(): boolean {
@@ -233,7 +291,7 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
 
         this.visible = flag;
         this.ui.setVisible(flag);
-        this.manager.updateUI();
+        this.updateUI();
 
         this.setDirty(true);
 
@@ -253,6 +311,7 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
     activate(renderer: MapRenderer): void {
 
         this.onActivate(renderer);
+        this.updateUI();
 
         if (this.hasChildren()) {
             let children = this.getChildren();
@@ -260,6 +319,7 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
                 children[index].activate(renderer);
             }
         }
+
     }
 
     /**
@@ -291,5 +351,22 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
     }
 
     onActivate(renderer: MapRenderer): void {
+    }
+
+    isChildrenDirty(): boolean {
+
+        if (!this.hasChildren()) {
+            return false;
+        }
+
+        let children = this.getChildren();
+        for (let index = 0; index < children.length; index++) {
+            let child = children[index];
+            if (child.isDirty() || child.isChildrenDirty()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

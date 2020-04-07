@@ -218,6 +218,7 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
     panel: LayersPanel;
     private visible: boolean;
     private dirty: boolean;
+    private locked: boolean;
 
     constructor(name: string) {
 
@@ -257,6 +258,7 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
         this.element.appendChild(this.titleLabel);
         this.element.appendChild(this.gripElement);
 
+        this.locked = false;
         this.selected = false;
 
         this.setVisible(true);
@@ -310,6 +312,19 @@ export class UILayer extends InheritedObject<UILayer> implements Inheritable, Di
             this.visibilityIcon.style.opacity = '0';
             this.invisibilityIcon.style.opacity = '1';
         }
+    }
+
+    isLocked(): boolean {
+        return this.locked;
+    }
+
+    setLocked(flag: boolean): void {
+
+        if(this.locked === flag) {
+            return;
+        }
+
+        this.locked = flag;
     }
 
     // @Override

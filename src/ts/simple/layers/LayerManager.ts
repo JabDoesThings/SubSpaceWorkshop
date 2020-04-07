@@ -275,7 +275,7 @@ export class LayerManager {
                 let next = this.layers[index];
                 next.update(delta);
 
-                if (next.tiles.isDirty()) {
+                if (next.isCacheDirty()) {
                     tileDirty = true;
                 }
             }
@@ -405,6 +405,10 @@ export class LayerManager {
                 for (let index = 0; index < layers.length; index++) {
 
                     let next = layers[index];
+                    if (next.isCacheDirty()) {
+                        next.processCache();
+                    }
+
                     if (isVisible(next)) {
                         this._combinedTileData.apply(next.tiles, area);
                     }
@@ -421,6 +425,7 @@ export class LayerManager {
             let region = {x1: 1024, y1: 1024, x2: -1, y2: -1};
 
             let recurseRegion = (layers: Layer[]): void => {
+
                 for (let index = 0; index < layers.length; index++) {
 
                     let next = layers[index];
@@ -456,6 +461,10 @@ export class LayerManager {
                 for (let index = 0; index < layers.length; index++) {
 
                     let next = layers[index];
+                    if (next.isCacheDirty()) {
+                        next.processCache();
+                    }
+
                     if (isVisible(next)) {
                         this._combinedTileData.apply(next.tiles, area);
                     }
