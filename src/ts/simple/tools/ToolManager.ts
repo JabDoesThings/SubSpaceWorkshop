@@ -1,12 +1,13 @@
-import { MapRenderer } from './render/MapRenderer';
-import { PencilTool } from './tools/PencilTool';
-import { Project } from './Project';
-import { MapMouseEvent, MapMouseEventType } from '../common/Renderer';
-import { Tool } from './tools/Tool';
-import { Edit } from './edits/Edit';
-import { LineTool } from './tools/LineTool';
-import { EraserTool } from './tools/EraserTool';
-import { SelectionTool } from './tools/SelectionTool';
+import { MapRenderer } from '../render/MapRenderer';
+import { PencilTool } from './PencilTool';
+import { Project } from '../Project';
+import { MapMouseEvent, MapMouseEventType } from '../../common/Renderer';
+import { Tool } from './Tool';
+import { Edit } from '../edits/Edit';
+import { LineTool } from './LineTool';
+import { EraserTool } from './EraserTool';
+import { SelectionTool } from './SelectionTool';
+import { MoveTool } from './MoveTool';
 
 /**
  * The <i>ToolManager</i> class. TODO: Document.
@@ -31,6 +32,7 @@ export class ToolManager {
         this.tools['eraser'] = new EraserTool();
         this.tools['line'] = new LineTool();
         this.tools['select'] = new SelectionTool();
+        this.tools['move'] = new MoveTool();
 
         let downTool: Tool;
         let downProject: Project;

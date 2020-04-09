@@ -24,7 +24,7 @@ import {
 import { CustomEvent, CustomEventListener } from '../ui/CustomEventListener';
 import { MapSprite } from './MapSprite';
 import * as PIXI from "pixi.js";
-import { ToolManager } from '../ToolManager';
+import { ToolManager } from '../tools/ToolManager';
 import { LayersPanel } from '../ui/LayersPanel';
 import { Editor } from '../Editor';
 
