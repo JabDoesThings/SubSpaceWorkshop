@@ -121,7 +121,7 @@ export class MoveTool extends Tool {
         let edits: Edit[] = [];
         edits.push(new EditSelectionMove(x, y));
 
-        if (x !== 0 || x !== 0) {
+        if (x !== 0 || y !== 0) {
             let point = new MapPoint(CoordinateType.TILE, x, y);
             let tileEdits = tiles.move(project.selections.sections, point);
             edits.push(new EditTiles(this.activeLayer, tileEdits, true, true));
