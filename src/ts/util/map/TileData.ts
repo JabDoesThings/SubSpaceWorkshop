@@ -1,9 +1,10 @@
 import { MapArea } from './MapArea';
 import { LVL } from '../../io/LVLUtils';
 import { CoordinateType } from './CoordinateType';
-import { TileEdit } from '../../simple/edits/EditTiles';
+import { EditTiles, TileEdit } from '../../simple/edits/EditTiles';
 import { Path } from '../Path';
-import { MapSections } from './MapSection';
+import { MapSection, MapSections } from './MapSection';
+import { MapPoint } from './MapPoint';
 
 /**
  * The <i>TileData</i> class. TODO: Document.
@@ -302,6 +303,85 @@ export class TileData {
         }
 
         return changed;
+    }
+
+    public move(mask: MapSection[], offset: MapPoint, ignoreEmpty: boolean = true): TileEdit[] {
+
+        if (mask == null) {
+            throw new Error("The mask given is null or undefined.");
+        }
+
+        if (offset == null) {
+            throw new Error("The offset given is null or undefined.");
+        }
+
+        // Make sure the offset are tile coordinates.
+        if (offset.type !== CoordinateType.TILE) {
+            offset = offset.asType(CoordinateType.TILE);
+        }
+
+        if (mask.length === 0 || (offset.x === 0 && offset.y === 0)) {
+            return [];
+        }
+
+        let tileEdits: TileEdit[] = [];
+        let bounds = MapSection.bounds(mask);
+
+        let sx = bounds.x1, sy = bounds.y1;
+        let dx = bounds.x1 + offset.x, dy = offset.y + bounds.y1;
+        let width = bounds.x2 - bounds.x1 + 1;
+        let height = bounds.y2 - bounds.y1 + 1;
+
+        console.log({sx: sx, sy: sy, dx: dx, dy: dy});
+        console.log({width: width, height: height});
+
+        let tilesToMove: boolean[][] = null;
+        tilesToMove = [];
+        for (let x = 0; x < width; x++) {
+            tilesToMove[x] = [];
+            for (let y = 0; y < height; y++) {
+                tilesToMove[x][y]
+                    = MapSection.isPositive(mask, new MapPoint(CoordinateType.TILE, sx + x, sy + y));
+            }
+        }
+
+        let dx1 = dx;
+        let dy1 = dy;
+        let dx2 = dx + width - 1;
+        let dy2 = dy + height - 1;
+
+        for (let x = 0; x < width; x++) {
+            for (let y = 0; y <= height; y++) {
+
+                if (!tilesToMove[x][y]) {
+                    continue;
+                }
+
+                let _sx = sx + x;
+                let _sy = sy + y;
+                let _dx = dx + x;
+                let _dy = dy + y;
+
+                if (_dx >= 0 && _dx < this.width && _dy >= 0 && _dy < this.height) {
+                    tileEdits.push(
+                        new TileEdit(
+                            _dx,
+                            _dy,
+                            this.tiles[_dx][_dy],
+                            this.tiles[_sx][_sy]
+                        )
+                    );
+                }
+
+                if (this.tiles[_sx][_sy] !== 0 && (_sx < dx1 || _sx > dx2 || _sy < dy1 || _sy > dy2)) {
+                    if (_sx >= 0 && _sx < this.width && _sy >= 0 && _sy < this.height) {
+                        tileEdits.push(new TileEdit(_sx, _sy, this.tiles[_sx][_sy], 0));
+                    }
+                }
+            }
+        }
+
+        return tileEdits;
     }
 
     // @Override

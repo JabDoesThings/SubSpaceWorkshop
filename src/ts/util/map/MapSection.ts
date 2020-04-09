@@ -1,6 +1,7 @@
 import { Dirtable } from '../Dirtable';
 import { MapArea } from './MapArea';
 import { CoordinateType } from './CoordinateType';
+import { MapPoint } from './MapPoint';
 
 /**
  * The <i>MapSections</i> class. TODO: Document.
@@ -23,6 +24,26 @@ export class MapSections implements Dirtable {
         this.sections = [];
 
         this.dirty = true;
+    }
+
+    move(x: number, y: number): void {
+
+        if (this.isEmpty() || x === 0 && y === 0) {
+            return;
+        }
+
+        let sections: MapSection[] = [];
+
+        for (let index = 0; index < this.sections.length; index++) {
+            let result = this.sections[index].move(x, y);
+            if (result != null) {
+                sections.push(result);
+            }
+        }
+
+        this.sections = sections;
+
+        this.setDirty(true);
     }
 
     /**
@@ -207,13 +228,13 @@ export class MapSections implements Dirtable {
     // @Override
     setDirty(flag: boolean): void {
 
-        if(this.dirty === flag) {
+        if (this.dirty === flag) {
             return;
         }
 
         this.dirty = flag;
 
-        if(flag) {
+        if (flag) {
             this.bounds = null;
             this.array = null;
         }
@@ -253,6 +274,54 @@ export class MapSection {
         this.bounds = new MapArea(CoordinateType.TILE, x, y, x + this.width - 1, y + this.height - 1);
     }
 
+    move(x: number, y: number): MapSection {
+
+        let x1 = this.x + x;
+        let y1 = this.y + y;
+        let x2 = x1 + this.width - 1;
+        let y2 = y1 + this.height - 1;
+
+        if (x1 > 1023 || y1 > 1023 || x2 < 0 || y2 < 0) {
+            return null;
+        }
+
+        let chopTop = y1 < 0;
+        let chopLeft = x1 < 0;
+
+        if (x1 < 0) {
+            x1 = 0;
+        }
+        if (y1 < 0) {
+            y1 = 0;
+        }
+        if (x2 > 1023) {
+            x2 = 1023;
+        }
+        if (y2 > 1023) {
+            y2 = 1023;
+        }
+
+        let calcWidth = x2 - x1 + 1;
+        let calcHeight = y2 - y1 + 1;
+
+        let xOffset = chopLeft ? -x1 : 0;
+        let yOffset = chopTop ? -y1 : 0;
+
+        let array: boolean[][] = [];
+        for (let x = 0; x < calcWidth; x++) {
+            array[x] = [];
+            for (let y = 0; y < calcHeight; y++) {
+                array[x][y] = this.array[x + xOffset][y + yOffset];
+            }
+        }
+
+        console.log('x: ' + x + " y: " + y);
+        console.log('calcWidth: ' + calcWidth + " calcHeight: " + calcHeight);
+        console.log(array);
+
+        return new MapSection(x1, y1, array, this.invert);
+    }
+
     test(x: number, y: number): boolean {
         return this.contains(x, y)
             ? (this.invert
@@ -264,6 +333,20 @@ export class MapSection {
 
     contains(x: number, y: number): boolean {
         return this.bounds.contains(x, y);
+    }
+
+    clone(): MapSection {
+
+        // Deep-clone the array.
+        let array: boolean[][] = [];
+        for (let x = 0; x < this.width; x++) {
+            array[x] = [];
+            for (let y = 0; y < this.height; y++) {
+                array[x][y] = this.array[x][y];
+            }
+        }
+
+        return new MapSection(this.x, this.y, array);
     }
 
     /**
@@ -293,6 +376,75 @@ export class MapSection {
         }
 
         return new MapSection(xMin, yMin, array, invert);
+    }
+
+    static isPositive(sections: MapSection[], point: MapPoint): boolean {
+
+        // If there are no sections to check, no space is positive.
+        if (sections.length === 0) {
+            return false;
+        }
+
+        // Make sure the coordinate type is set to tile.
+        if (point.type == CoordinateType.PIXEL) {
+            point = point.asType(CoordinateType.TILE);
+        }
+
+        // Run through the array last-to-first. The first one to contain the tile determines
+        //   if the point is positive space for the sections.
+        for (let index = sections.length - 1; index >= 0; index--) {
+
+            let next = sections[index];
+
+            if (next.contains(point.x, point.y)) {
+                return !next.invert;
+            }
+        }
+
+        // If no sections contains the point, the point is not positive.
+        return false;
+    }
+
+    static bounds(sections: MapSection[]): MapArea {
+        let x1 = 1024, y1 = 1024;
+        let x2 = -1, y2 = -1;
+
+        for (let index = 0; index < sections.length; index++) {
+
+            let next = sections[index];
+            let nx1 = next.x;
+            let ny1 = next.y;
+            let nx2 = next.x + next.width - 1;
+            let ny2 = next.y + next.height - 1;
+
+            if (nx1 < x1) {
+                x1 = nx1;
+            }
+            if (ny1 < y1) {
+                y1 = ny1;
+            }
+            if (nx2 < x1) {
+                x1 = nx2;
+            }
+            if (ny2 < y1) {
+                y1 = ny2;
+            }
+
+            if (nx1 > x2) {
+                x2 = nx1;
+            }
+            if (ny1 > y2) {
+                y2 = ny1;
+            }
+            if (nx2 > x2) {
+                x2 = nx2;
+            }
+            if (ny2 > y2) {
+                y2 = ny2;
+            }
+        }
+
+        return new MapArea(CoordinateType.TILE, x1, y1, x2, y2);
     }
 }
 

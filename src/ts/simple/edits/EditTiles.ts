@@ -14,6 +14,7 @@ export class EditTiles extends Edit {
 
     private readonly applyDimensions: boolean;
     private readonly layer: Layer;
+    private readonly ignoreMask: boolean;
 
     /**
      * Main constructor.
@@ -21,11 +22,13 @@ export class EditTiles extends Edit {
      * @param layer The layer that the edit is on.
      * @param tiles
      * @param applyDimensions
+     * @param ignoreMask
      */
     constructor(
         layer: Layer,
         tiles: TileEdit[],
-        applyDimensions = true) {
+        applyDimensions = true,
+        ignoreMask: boolean = false) {
 
         super();
 
@@ -33,6 +36,7 @@ export class EditTiles extends Edit {
         this.tiles = tiles;
         this.tilesToUndo = null;
         this.applyDimensions = applyDimensions;
+        this.ignoreMask = ignoreMask;
     }
 
     // @Override
@@ -51,7 +55,14 @@ export class EditTiles extends Edit {
             try {
 
                 let mask = history.project.selections;
-                let originalTiles = this.layer.tiles.set(next.x, next.y, next.to, mask, this.applyDimensions);
+                let originalTiles
+                    = this.layer.tiles.set(
+                    next.x,
+                    next.y,
+                    next.to,
+                    this.ignoreMask ? null : mask,
+                    this.applyDimensions
+                );
                 this.tilesToUndo = this.tilesToUndo.concat(originalTiles);
             } catch (e) {
 
@@ -77,7 +88,13 @@ export class EditTiles extends Edit {
 
             try {
                 let mask = history.project.selections;
-                tiles.set(next.x, next.y, next.from, mask, this.applyDimensions);
+                tiles.set(
+                    next.x,
+                    next.y,
+                    next.from,
+                    this.ignoreMask ? null : mask,
+                    this.applyDimensions
+                );
             } catch (e) {
 
                 let str = next != null ? next.toString() : 'null';
@@ -88,7 +105,6 @@ export class EditTiles extends Edit {
 
         this.tilesToUndo = null;
     }
-
 
 }
 
