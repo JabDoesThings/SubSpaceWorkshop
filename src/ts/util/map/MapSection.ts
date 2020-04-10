@@ -105,7 +105,7 @@ export class MapSections implements Dirtable {
             let nextBounds = next.bounds;
             for (let y = nextBounds.y1; y <= nextBounds.y2; y++) {
                 for (let x = nextBounds.x1; x <= nextBounds.x2; x++) {
-                    this.array[x - x1][y - y1] = !next.invert;
+                    this.array[x - x1][y - y1] = !next.negate;
                 }
             }
         }
@@ -250,7 +250,7 @@ export class MapSection {
 
     readonly bounds: MapArea;
     readonly array: boolean[][];
-    readonly invert: boolean;
+    readonly negate: boolean;
     readonly x: number;
     readonly y: number;
     readonly width: number;
@@ -270,8 +270,22 @@ export class MapSection {
         this.array = array;
         this.width = array.length;
         this.height = array[0].length;
-        this.invert = invert;
+        this.negate = invert;
         this.bounds = new MapArea(CoordinateType.TILE, x, y, x + this.width - 1, y + this.height - 1);
+    }
+
+    clone(): MapSection {
+
+        // Deep-clone the array.
+        let array: boolean[][] = [];
+        for (let x = 0; x < this.width; x++) {
+            array[x] = [];
+            for (let y = 0; y < this.height; y++) {
+                array[x][y] = this.array[x][y];
+            }
+        }
+
+        return new MapSection(this.x, this.y, array, this.negate);
     }
 
     move(x: number, y: number): MapSection {
@@ -315,38 +329,21 @@ export class MapSection {
             }
         }
 
-        console.log('x: ' + x + " y: " + y);
-        console.log('calcWidth: ' + calcWidth + " calcHeight: " + calcHeight);
-        console.log(array);
-
-        return new MapSection(x1, y1, array, this.invert);
+        return new MapSection(x1, y1, array, this.negate);
     }
 
-    test(x: number, y: number): boolean {
-        return this.contains(x, y)
-            ? (this.invert
-                    ? !this.array[x - this.bounds.x1][y - this.bounds.y1]
-                    : this.array[x - this.bounds.x1][y - this.bounds.y1]
-            )
-            : false;
+    test(gx: number, gy: number): boolean {
+
+        if (!this.contains(gx, gy)) {
+            return false;
+        }
+
+        let result = this.array[gx - this.bounds.x1][gy - this.bounds.y1];
+        return !this.negate ? result : !result;
     }
 
     contains(x: number, y: number): boolean {
         return this.bounds.contains(x, y);
-    }
-
-    clone(): MapSection {
-
-        // Deep-clone the array.
-        let array: boolean[][] = [];
-        for (let x = 0; x < this.width; x++) {
-            array[x] = [];
-            for (let y = 0; y < this.height; y++) {
-                array[x][y] = this.array[x][y];
-            }
-        }
-
-        return new MapSection(this.x, this.y, array);
     }
 
     /**
@@ -386,32 +383,39 @@ export class MapSection {
         }
 
         // Make sure the coordinate type is set to tile.
-        if (point.type == CoordinateType.PIXEL) {
+        if (point.type !== CoordinateType.TILE) {
             point = point.asType(CoordinateType.TILE);
         }
 
-        // Run through the array last-to-first. The first one to contain the tile determines
-        //   if the point is positive space for the sections.
-        for (let index = sections.length - 1; index >= 0; index--) {
-
+        let result = false;
+        for (let index = 0; index < sections.length; index++) {
             let next = sections[index];
-
             if (next.contains(point.x, point.y)) {
-                return !next.invert;
+                if (next.test(point.x, point.y)) {
+                    result = !next.negate;
+                } else {
+                    result = false;
+                }
             }
         }
 
-        // If no sections contains the point, the point is not positive.
-        return false;
+        return result;
     }
 
-    static bounds(sections: MapSection[]): MapArea {
+    static bounds(sections: MapSection[], positiveOnly: boolean = true): MapArea {
         let x1 = 1024, y1 = 1024;
         let x2 = -1, y2 = -1;
 
         for (let index = 0; index < sections.length; index++) {
 
             let next = sections[index];
+
+            // If only positive space is requested for boundaries, ignore inverted
+            //   sections.
+            if (positiveOnly && next.negate) {
+                continue;
+            }
+
             let nx1 = next.x;
             let ny1 = next.y;
             let nx2 = next.x + next.width - 1;

@@ -129,6 +129,20 @@ export class TileEdit {
      * @param to The ID to set for the tile.
      */
     constructor(x: number, y: number, from: number, to: number) {
+
+        if (x == null) {
+            throw new Error('The x coordinate given is null or undefined.');
+        }
+        if (y == null) {
+            throw new Error('The y coordinate given is null or undefined.');
+        }
+        if (from == null) {
+            throw new Error('The \'from\' tile ID given is null or undefined.');
+        }
+        if (to == null) {
+            throw new Error('The \'to\' tile ID given is null or undefined.');
+        }
+
         this.x = x;
         this.y = y;
         this.from = from;

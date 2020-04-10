@@ -1,7 +1,7 @@
 import { MapArea } from './MapArea';
 import { LVL } from '../../io/LVLUtils';
 import { CoordinateType } from './CoordinateType';
-import { EditTiles, TileEdit } from '../../simple/edits/EditTiles';
+import { TileEdit } from '../../simple/edits/EditTiles';
 import { Path } from '../Path';
 import { MapSection, MapSections } from './MapSection';
 import { MapPoint } from './MapPoint';
@@ -324,59 +324,72 @@ export class TileData {
             return [];
         }
 
-        let tileEdits: TileEdit[] = [];
-        let bounds = MapSection.bounds(mask);
+        let isPositive = (gx: number, gy: number): boolean => {
+            let result = false;
+            for (let index = 0; index < mask.length; index++) {
+                let next = mask[index];
+                if (next.contains(gx, gy)) {
+                    if (next.test(gx, gy)) {
+                        result = !next.negate;
+                    } else {
+                        result = false;
+                    }
+                }
+            }
+            return result;
+        };
 
+        let inBounds = (_x: number, _y: number): boolean => {
+            return _x >= 0 && _x < this.width && _y >= 0 && _y < this.height;
+        };
+
+        let tileEdits: TileEdit[] = [];
+        let bounds = MapSection.bounds(mask, true);
         let sx = bounds.x1, sy = bounds.y1;
         let dx = bounds.x1 + offset.x, dy = offset.y + bounds.y1;
         let width = bounds.x2 - bounds.x1 + 1;
         let height = bounds.y2 - bounds.y1 + 1;
 
-        console.log({sx: sx, sy: sy, dx: dx, dy: dy});
-        console.log({width: width, height: height});
-
-        let tilesToMove: boolean[][] = null;
-        tilesToMove = [];
+        let source: number[][] = [];
         for (let x = 0; x < width; x++) {
-            tilesToMove[x] = [];
+            source[x] = [];
             for (let y = 0; y < height; y++) {
-                tilesToMove[x][y]
-                    = MapSection.isPositive(mask, new MapPoint(CoordinateType.TILE, sx + x, sy + y));
+                let gx = x + sx;
+                let gy = y + sy;
+                if (isPositive(gx, gy)) {
+                    source[x][y] = this.tiles[gx][gy];
+                } else {
+                    source[x][y] = -1;
+                }
             }
         }
 
-        let dx1 = dx;
-        let dy1 = dy;
-        let dx2 = dx + width - 1;
-        let dy2 = dy + height - 1;
-
         for (let x = 0; x < width; x++) {
-            for (let y = 0; y <= height; y++) {
+            for (let y = 0; y < height; y++) {
+                let _sx = sx + x;
+                let _sy = sy + y;
+                let sId = source[x][y];
+                if (sId > 0 && inBounds(_sx, _sy)) {
+                    tileEdits.push(new TileEdit(_sx, _sy, sId, 0));
+                }
+            }
+        }
 
-                if (!tilesToMove[x][y]) {
+        // Go from bottom-right to top-left in order to preserve non-1x1 tiles.
+        for (let x = width - 1; x >= 0; x--) {
+            for (let y = height - 1; y >= 0; y--) {
+
+                let sId = source[x][y];
+                if (sId == -1) {
                     continue;
                 }
 
-                let _sx = sx + x;
-                let _sy = sy + y;
                 let _dx = dx + x;
                 let _dy = dy + y;
 
-                if (_dx >= 0 && _dx < this.width && _dy >= 0 && _dy < this.height) {
-                    tileEdits.push(
-                        new TileEdit(
-                            _dx,
-                            _dy,
-                            this.tiles[_dx][_dy],
-                            this.tiles[_sx][_sy]
-                        )
-                    );
-                }
-
-                if (this.tiles[_sx][_sy] !== 0 && (_sx < dx1 || _sx > dx2 || _sy < dy1 || _sy > dy2)) {
-                    if (_sx >= 0 && _sx < this.width && _sy >= 0 && _sy < this.height) {
-                        tileEdits.push(new TileEdit(_sx, _sy, this.tiles[_sx][_sy], 0));
-                    }
+                if (inBounds(_dx, _dy)) {
+                    let dId = this.tiles[_dx][_dy];
+                    tileEdits.push(new TileEdit(_dx, _dy, dId, sId));
                 }
             }
         }
