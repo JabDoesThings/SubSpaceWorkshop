@@ -5,7 +5,6 @@ import { TabAction, UITabEvent, UITabMenu } from './ui/UI';
 import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 import * as PIXI from "pixi.js";
 import { Layer } from './layers/Layer';
-import { ProjectUtils } from '../io/ProjectUtils';
 import { LVL } from '../io/LVLUtils';
 
 /**
@@ -288,9 +287,11 @@ export class Editor extends CustomEventListener<EditorEvent> {
             }
 
             for (let index = 0; index < _paths.length; index++) {
-                ProjectUtils.read(_paths[index], (project: Project) => {
+                Project.read(_paths[index], (project: Project) => {
                     this.add([project]);
                     this.setActive(this.projects.length - 1);
+                }, (error: Error) => {
+                    throw error;
                 });
             }
         };
@@ -425,7 +426,7 @@ export class Editor extends CustomEventListener<EditorEvent> {
         }
 
         let _export = (_path: string): void => {
-            ProjectUtils.export(project, _path);
+            Project.exportLVL(project, _path);
         };
 
         if (path == null) {

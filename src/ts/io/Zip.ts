@@ -22,15 +22,23 @@ export class Zip {
      * Reads a Zip file from a path.
      *
      * @param path The path to the file to read.
-     * @param onSuccess (Optional) The method to call when the zip is finished reading.
-     * @param onError (Optional) The method to call when the zip fails to read.
+     * @param onSuccess The method to call when the zip is finished reading.
+     * @param onError The method to call when the zip fails to read.
      *
      * @throw Error Thrown if the path given is null or undefined.
      */
-    read(path: Buffer | string, onSuccess: (zip: Zip) => void = null, onError: (e: Error) => void = null) {
+    read(path: Buffer | string, onSuccess: (zip: Zip) => void, onError: (e: Error) => void) {
 
         if (path == null) {
-            throw new Error('The path provided is null or undefined.');
+            throw new Error('The path given is null or undefined.');
+        }
+
+        if (onSuccess == null) {
+            throw new Error('The onSuccess(zip: Zip) function given is null or undefined.')
+        }
+
+        if (onError == null) {
+            throw new Error('The onError(error: Error) function given is null or undefined.')
         }
 
         this.clear();

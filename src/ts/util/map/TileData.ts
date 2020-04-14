@@ -583,4 +583,131 @@ export class TileData {
 
         return count;
     }
+
+    static fromBuffer(buffer: Buffer): TileData {
+
+        let offset = 0;
+
+        let header = '';
+        header += String.fromCharCode(buffer.readUInt8(offset++));
+        header += String.fromCharCode(buffer.readUInt8(offset++));
+        header += String.fromCharCode(buffer.readUInt8(offset++));
+        header += String.fromCharCode(buffer.readUInt8(offset++));
+
+        if (header !== 'STIL') {
+            throw new Error('The TILEDATA buffer given is not a valid buffer.'
+                + ' (Invalid header)');
+        }
+
+        let width = buffer.readUInt16LE(offset);
+        offset += 2;
+
+        if (width > 1024) {
+            throw new Error('The width of the TILEDATA buffer is too big.'
+                + ' (max: 1024, given: ' + width + ')');
+        } else if (width < 0) {
+            throw new Error('The width of the TILEDATA buffer is too small.'
+                + ' (min: 1, given: ' + width + ')');
+        }
+
+        let height = buffer.readUInt16LE(offset);
+        offset += 2;
+
+        if (height > 1024) {
+            throw new Error('The height of the TILEDATA buffer is too big.'
+                + ' (max: 1024, given: ' + height + ')');
+        } else if (height < 0) {
+            throw new Error('The height of the TILEDATA buffer is too small.'
+                + ' (min: 1, given: ' + height + ')');
+        }
+
+        let count = buffer.readUInt32LE(offset);
+        offset += 4;
+
+        // Make sure that the count is not negative.
+        if (count < 0) {
+            throw new Error('The tile-count of the TILEDATA buffer is negative.');
+        }
+
+        // Construct the expanded array to populate with tile data.
+        let data: number[][] = [];
+        for (let x = 0; x < width; x++) {
+            data[x] = [];
+            for (let y = 0; y < height; y++) {
+                data[x][y] = 0;
+            }
+        }
+
+        // If the TILEDATA is not empty, populate the data array.
+        if (count !== 0) {
+
+            for (let index = 0; index < count; index++) {
+
+                let i = buffer.readInt32LE(offset);
+                offset += 4;
+                let tile = (i >> 24 & 0x00ff);
+                let y = (i >> 12) & 0x03FF;
+                let x = i & 0x03FF;
+                data[x][y] = tile;
+            }
+        }
+
+        return new TileData(data);
+    }
+
+    static toBuffer(data: TileData): Buffer {
+
+        let tiles: Tile[] = [];
+
+        // Go through and flatten the raw array into non-zero-based tile profiles.
+        for (let y = 0; y < data.height; y++) {
+            for (let x = 0; x < data.width; x++) {
+                let next = data.tiles[x][y];
+                if (next !== 0) {
+                    tiles.push({x: x, y: y, id: next});
+                }
+            }
+        }
+
+        // (Header) + (Number of tiles) + (Tiles)
+        let buffer = Buffer.alloc(12 + (tiles.length * 4));
+        let offset = 0;
+
+        // Write the header.
+        buffer.writeUInt8('S'.charCodeAt(0), offset++);
+        buffer.writeUInt8('T'.charCodeAt(0), offset++);
+        buffer.writeUInt8('I'.charCodeAt(0), offset++);
+        buffer.writeUInt8('L'.charCodeAt(0), offset++);
+
+        // Width of TileData.
+        buffer.writeUInt16LE(data.width, offset);
+        offset += 2;
+        // Height of TileData.
+        buffer.writeUInt16LE(data.height, offset);
+        offset += 2;
+        // Tile-Count of TileData.
+        buffer.writeUInt32LE(tiles.length, offset);
+        offset += 4;
+
+        // Go through all tile profiles, convert them to values and store them in
+        //   in the buffer.
+        for (let index = 0; index < tiles.length; index++) {
+
+            // Format the next tile to be stored in the buffer.
+            let next = tiles[index];
+            let int = ((next.id & 0x00ff) << 24) | ((next.y & 0x03FF) << 12) | (next.x & 0x03FF);
+
+            // Write the next tile as a integer value.
+            buffer.writeInt32LE(int, offset);
+            offset += 4;
+        }
+
+        return buffer;
+    }
+}
+
+interface Tile {
+    x: number,
+    y: number,
+    id: number
 }
