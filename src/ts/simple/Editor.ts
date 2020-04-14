@@ -6,6 +6,7 @@ import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 import * as PIXI from "pixi.js";
 import { Layer } from './layers/Layer';
 import { ProjectUtils } from '../io/ProjectUtils';
+import { LVL } from '../io/LVLUtils';
 
 /**
  * The <i>Editor</i> class. TODO: Document.
@@ -111,6 +112,34 @@ export class Editor extends CustomEventListener<EditorEvent> {
                 this.renderer.paletteTab.draw();
             } else if (event.menuId === 'open') {
                 this.open();
+            } else if (event.menuId === 'save') {
+
+                if (this.active === -1) {
+                    return;
+                }
+
+                let project = this.projects[this.active];
+                if (project == null) {
+                    return;
+                }
+
+                project.save(false);
+
+            } else if (event.menuId === 'save-as') {
+
+                if (this.active === -1) {
+                    return;
+                }
+
+                let project = this.projects[this.active];
+                if (project == null) {
+                    return;
+                }
+
+                project.save(true);
+
+            } else if (event.menuId === 'import-lvl') {
+                this.importLVL();
             } else if (event.menuId === 'export-lvl') {
                 this.exportLVL();
             }
@@ -259,7 +288,7 @@ export class Editor extends CustomEventListener<EditorEvent> {
             }
 
             for (let index = 0; index < _paths.length; index++) {
-                ProjectUtils.read(_paths[index]).then(project => {
+                ProjectUtils.read(_paths[index], (project: Project) => {
                     this.add([project]);
                     this.setActive(this.projects.length - 1);
                 });
@@ -300,10 +329,98 @@ export class Editor extends CustomEventListener<EditorEvent> {
         }
     }
 
-    private exportLVL(path: string = null) {
+    private importLVL(path: string = null): void {
+        let project = this.projects[this.active];
+
+        let _import = (_path: string): void => {
+
+            let map = LVL.read(_path);
+
+            let addProject: boolean = false;
+            if (project == null) {
+                project = new Project(this.renderer, map.name);
+                addProject = true;
+            }
+
+            let name = addProject ? 'Base Layer' : map.name;
+            let layer = new Layer(project.layers, null, name);
+            layer.tiles = map.tiles;
+            layer.tiles.setDirty(true);
+            project.setTileset(map.tileset);
+
+            project.layers.add(layer, true);
+
+            if (addProject) {
+                this.add([project]);
+                this.setActive(this.projects.length - 1);
+            }
+
+        };
+
+        if (path == null) {
+            const {dialog} = require('electron').remote;
+
+            interface DialogResult {
+                canceled: boolean,
+                filePaths: string[],
+                bookmark: string
+            }
+
+            let promise: Promise<DialogResult> = dialog.showOpenDialog(null, {
+                    title: 'Import LVL',
+                    buttonLabel: 'Import',
+                    filters: [
+                        {name: 'SubSpace Level Map', extensions: ['lvl']}
+                    ],
+                }
+            );
+
+            promise.then((result: DialogResult) => {
+
+                console.log(result);
+
+                if (result.canceled || result.filePaths == null || result.filePaths.length === 0) {
+                    return;
+                }
+
+                _import(result.filePaths[0]);
+            });
+
+            // let promise: Promise<DialogResult> = dialog.showOpenDialog(null, {
+            //         title: 'Import LVL',
+            //         buttonLabel: 'Import',
+            //         filters: [
+            //             {name: 'SubSpace Level Map', extensions: ['lvl']}
+            //         ],
+            //         properties: {
+            //             dontAddToRecent: true
+            //         }
+            //     }
+            // );
+            //
+            // promise.then((result: DialogResult) => {
+            //
+            //     if (result.canceled || result.filePath == null) {
+            //         return;
+            //     }
+            //
+            //     // Ensure the file-name ends with the extension.
+            //     let path = result.filePath;
+            //     if (!path.toLowerCase().endsWith('.lvl')) {
+            //         path += '.lvl';
+            //     }
+            //
+            //     _import(path);
+            // });
+        } else {
+            _import(path);
+        }
+    }
+
+    private exportLVL(path: string = null): void {
 
         let project = this.projects[this.active];
-        if(project == null) {
+        if (project == null) {
             return;
         }
 
@@ -413,7 +530,14 @@ export class MenuManager extends CustomEventListener<MenuEvent> {
 
         this.editor = editor;
 
+        $(document).on('click', '.menu-section', function (event) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        });
+
         $(document).on('click', '.ui-menu', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
             if (this.classList.contains('open')) {
                 this.classList.remove('open');
             } else {
@@ -435,6 +559,10 @@ export class MenuManager extends CustomEventListener<MenuEvent> {
                 menuId: menuOption.getAttribute('menu-id'),
                 forced: false
             });
+        });
+
+        $(document).on('click', () => {
+            $('.ui-menu').removeClass('open');
         });
     }
 

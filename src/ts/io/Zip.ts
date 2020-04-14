@@ -19,13 +19,15 @@ export class Zip {
     }
 
     /**
-     * Loads a Zip file from a path.
+     * Reads a Zip file from a path.
      *
-     * @param path The path to the file to load.
-     * @param onSuccess (Optional) The method to call when the zip is finished loading.
-     * @param onError (Optional) The method to call when the zip fails to load.
+     * @param path The path to the file to read.
+     * @param onSuccess (Optional) The method to call when the zip is finished reading.
+     * @param onError (Optional) The method to call when the zip fails to read.
+     *
+     * @throw Error Thrown if the path given is null or undefined.
      */
-    async load(path: string, onSuccess: (zip: Zip) => void = null, onError: (e: Error) => void = null) {
+    read(path: Buffer | string, onSuccess: (zip: Zip) => void = null, onError: (e: Error) => void = null) {
 
         if (path == null) {
             throw new Error('The path provided is null or undefined.');
@@ -33,56 +35,66 @@ export class Zip {
 
         this.clear();
 
-        try {
-            const zip = fs.createReadStream(path).pipe(unzipper.Parse({forceStream: true}));
-            for await (const entry of zip) {
+        let execute = async () => {
+            try {
+                const zip = fs.createReadStream(path).pipe(unzipper.Parse({forceStream: true}));
+                for await (const entry of zip) {
 
-                if (entry.type === 'Directory') {
-                    continue;
+                    if (entry.type === 'Directory') {
+                        continue;
+                    }
+
+                    let path: string = entry.path;
+                    let promise = entry.buffer();
+                    promise.then((data: any) => {
+                            this.content[path] = data;
+                        },
+                        (reason: any) => {
+                            console.error(reason);
+                        });
                 }
 
-                let path: string = entry.path;
-                let promise = entry.buffer();
-                promise.then((data: any) => {
-                        this.content[path] = data;
-                    },
-                    (reason: any) => {
-                        console.error(reason);
-                    });
+                if (onSuccess != null) {
+                    onSuccess(this);
+                }
+            } catch (e) {
+
+                if (onError != null) {
+                    onError(e);
+                }
+
+                console.error('Failed to read ZIP file: \'' + path + '\'.');
+                console.error(e);
             }
+        };
 
-            if (onSuccess != null) {
-                onSuccess(this);
-            }
-
-        } catch (e) {
-
-            if (onError != null) {
-                onError(e);
-            }
-
-            console.error('Failed to read ZIP file: \'' + path + '\'.');
-            console.error(e);
-        }
+        execute();
     }
 
     /**
-     * Saves a Zip to a file.
+     * Writes a Zip to a file.
      *
-     * @param path The path to the file to save.
-     * @param onSuccess (Optional) The method to call when the zip is finished saving.
-     * @param onError (Optional) The method to call when the zip fails to save.
+     * @param path The path to the file to write.
+     * @param properties (Optional) Zip properties.
+     * @param onSuccess (Optional) The method to call when the zip is finished writing.
+     * @param onError (Optional) The method to call when the zip fails to write.
+     *
+     * @throw Error Thrown if the path given is null or undefined.
      */
-    async save(path: string, onSuccess: () => void = null, onError: (e: Error) => void = null) {
+    write(path: string | Buffer, properties: { [any: string]: any } = null, onSuccess: () => void = null, onError: (e: Error) => void = null) {
 
         if (path == null) {
             throw new Error('The path provided is null or undefined.');
         }
 
+        if (properties == null) {
+            properties = {zlib: {level: 9}};
+        }
+
         try {
 
             let output = fs.createWriteStream(path);
-            let archive = archiver('zip', {zlib: {level: 9}});
+            let archive = archiver('zip', properties);
             archive.pipe(output);
             archive.on('error', function (error: Error) {
 

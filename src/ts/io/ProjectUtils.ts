@@ -4,132 +4,109 @@ import { TileData } from '../util/map/TileData';
 import { Bitmap } from './Bitmap';
 import { LVLMap } from './LVL';
 import { LVL } from './LVLUtils';
-
-const archiver = require('archiver');
-const unzipper = require('unzipper');
-const fs = require('fs');
+import { Zip } from './Zip';
 
 export class ProjectUtils {
 
-    static async read(path: string): Promise<Project> {
+    static read(path: string, onSuccess: (project: Project) => void, onError: (e: Error) => void = null) {
 
         if (path == null) {
             throw new Error('The path provided is null or undefined.');
         }
 
-        let projectJson: any;
-        let project: Project = null;
-        let entries: { [id: string]: ProjectFile } = {};
-        let count = 0;
-        let init = false;
-
-        let finish = (): Project => {
-
-            for (let path in entries) {
-                let entry = entries[path];
-                if (entry.path.toLowerCase() === 'project.json') {
-                    projectJson = JSON.parse(entry.data.toString());
-                    console.log(projectJson);
-                }
-                console.log(entry);
-            }
-
-            if (projectJson == null) {
-                throw new Error('The project.json file is missing.');
-            } else if (projectJson.layers == null) {
-                throw new Error('The project.json file is missing the \'layers\' section.');
-            }
-
-            // @ts-ignore
-            let renderer: MapRenderer = global.editor.renderer;
-            project = new Project(renderer, projectJson.name);
-
-            // Load metadata for the project.
-            if (projectJson.metadata != null) {
-                for (let o in projectJson.metadata) {
-                    let key: string = <string> o;
-                    let value = projectJson.metadata[key];
-                    project.setMetadata(key, value);
-                }
-            }
-
-            // Load all layers in the project.
-            let layers = project.layers;
-            for (let o in projectJson.layers) {
-                let id = <string> o;
-                let next = projectJson.layers[id];
-
-                if (next.name == null) {
-                    throw new Error('The layer \'' + id + '\' does not have a name.');
-                }
-
-                if (next.visible == null) {
-                    throw new Error('The layer \'' + id + '\' does not have the \'visible\' flag.');
-                }
-
-                let layer = new Layer(layers, id, next.name);
-
-                layer.setVisible(next.visible);
-
-                // If the map has tiledata, load it.
-                console.log('tiledata: ' + next.tiledata);
-                if (next.tiledata != null) {
-                    let tiledata = entries[next.tiledata];
-                    console.log('tiledata file: ' + tiledata);
-                    if (tiledata != null) {
-                        try {
-                            layer.tiles = ProjectUtils.readTileData(tiledata.data);
-                        } catch (e) {
-                            console.error('Failed to read \'' + next.path + '\'.');
-                            console.error(e);
-                        }
-                    }
-                }
-
-                layer.setDirty(true);
-
-                // Load metadata for the layer.
-                if (next.metadata != null) {
-                    for (let o in next.metadata) {
-                        let key: string = <string> o;
-                        let value = next.metadata[key];
-                        layer.setMetadata(key, value);
-                    }
-                }
-
-                layers.add(layer);
-            }
-
-            return project;
-        };
-
-        const zip = fs.createReadStream(path).pipe(unzipper.Parse({forceStream: true}));
-        for await (const entry of zip) {
-
-            let path: string = entry.path;
-            let pathLower: string = path.toLowerCase();
-            let type: string = entry.type; // 'Directory' or 'File'
-            let size: number = entry.vars.uncompressedSize; // There is also compressedSize;
-            let promise = entry.buffer();
-
-            let zipEntry = {path: path, data: <Buffer> null};
-
-            promise.then((data: any) => {
-                    zipEntry.data = data;
-                },
-                (reason: any) => {
-                    console.error(reason);
-                });
-
-            entries[path] = zipEntry;
-
-            init = true;
-            count++;
+        if (onSuccess == null) {
+            throw new Error('The onSuccess(project: Project) function given is null or undefined.');
         }
 
-        console.log('FINISH READ PROJECT.');
-        project = finish();
-        return project;
+        let zip = new Zip();
+        zip.read(path, () => {
+
+                let project: Project = null;
+
+                if (!zip.exists('project.json')) {
+                    let error = new Error('The project.json file is missing.');
+                    onError(error);
+                    throw error;
+                }
+
+                let projectJson = JSON.parse(zip.get('project.json').toString());
+                if (projectJson.layers == null) {
+                    let error = new Error('The project.json file is missing the \'layers\' section.');
+                    onError(error);
+                    throw error;
+                }
+
+                // @ts-ignore
+                let renderer: MapRenderer = global.editor.renderer;
+                project = new Project(renderer, projectJson.name);
+
+                // Load metadata for the project.
+                if (projectJson.metadata != null) {
+                    for (let o in projectJson.metadata) {
+                        let key: string = <string> o;
+                        let value = projectJson.metadata[key];
+                        project.setMetadata(key, value);
+                    }
+                }
+
+                // Load all layers in the project.
+                let layers = project.layers;
+                for (let o in projectJson.layers) {
+                    let id = <string> o;
+                    let next = projectJson.layers[id];
+
+                    if (next.name == null) {
+                        let error = new Error('The layer \'' + id + '\' does not have a name.');
+                        onError(error);
+                        throw error;
+                    }
+
+                    if (next.visible == null) {
+                        let error = new Error('The layer \'' + id + '\' does not have the \'visible\' flag.');
+                        onError(error);
+                        throw error;
+                    }
+
+                    let layer = new Layer(layers, id, next.name);
+
+                    layer.setVisible(next.visible);
+
+                    // If the map has tiledata, load it.
+                    if (next.tiledata != null) {
+                        let tiledata: Buffer = <Buffer> zip.get(next.tiledata);
+                        if (tiledata != null) {
+                            try {
+                                layer.tiles = ProjectUtils.readTileData(tiledata);
+                            } catch (e) {
+                                console.error('Failed to read \'' + next.path + '\'.');
+                                console.error(e);
+                            }
+                        }
+                    }
+
+                    layer.setDirty(true);
+
+                    // Load metadata for the layer.
+                    if (next.metadata != null) {
+                        for (let o in next.metadata) {
+                            let key: string = <string> o;
+                            let value = next.metadata[key];
+                            layer.setMetadata(key, value);
+                        }
+                    }
+
+                    layers.add(layer);
+                }
+
+                if (onSuccess != null) {
+                    onSuccess(project);
+                }
+            },
+            (error: Error) => {
+                onError(error);
+            });
+
+        return;
     }
 
     static write(project: Project, path: string = null): void {
@@ -147,15 +124,16 @@ export class ProjectUtils {
                 + ' given are null or undefined.');
         }
 
-        let json = ProjectUtils.writeProjectJSON(project);
+        let zip = new Zip();
 
-        let files: { [name: string]: Buffer } = {};
+        let json = ProjectUtils.writeProjectJSON(project);
+        zip.set('project.json', JSON.stringify(json, null, 2));
 
         // Compile the tileset.
         if (project.tileset != null) {
             try {
                 let source = project.editor.renderer.toCanvas(project.tileset.texture);
-                files['tileset.bmp'] = Bitmap.toBuffer(source, project.tileset.bitCount);
+                zip.set('tileset.bmp', Bitmap.toBuffer(source, project.tileset.bitCount));
             } catch (e) {
                 console.error("Failed to write project tileset to buffer.");
                 console.error(e);
@@ -171,7 +149,7 @@ export class ProjectUtils {
                 if (data != null && data.getTileCount() !== 0) {
                     let id = next.getId() + '.tiledata';
                     try {
-                        files[id] = ProjectUtils.writeTileData(data);
+                        zip.set(id, ProjectUtils.writeTileData(data));
                     } catch (e) {
                         console.error('Failed to compile TILEDATA: ' + id);
                         console.error(e);
@@ -180,28 +158,7 @@ export class ProjectUtils {
             }
         }
 
-        let output = fs.createWriteStream(path);
-        let archive = archiver('zip', {zlib: {level: 9}});
-
-        // good practice to catch this error explicitly
-        archive.on('error', function (error: Error) {
-            throw error;
-        });
-
-        archive.pipe(output);
-
-        archive.append(JSON.stringify(json, null, 2), {
-            name: 'project.json'
-        });
-
-        for (let name in files) {
-            let file: Buffer = files[name];
-            archive.append(file, {
-                name: name
-            });
-        }
-
-        archive.finalize();
+        zip.write(path);
     }
 
     static readTileData(buffer: Buffer): TileData {
