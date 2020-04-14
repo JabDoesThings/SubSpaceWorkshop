@@ -8,16 +8,18 @@ import { UILayer } from '../ui/LayersPanel';
 import { EditLayerVisible } from '../edits/EditLayerVisible';
 import { TileData } from '../../util/map/TileData';
 import { CoordinateType } from '../../util/map/CoordinateType';
+import { Zip } from '../../io/Zip';
 
 export class Layer extends InheritedObject<Layer> implements Dirtable {
 
     static readonly DEFAULT_NAME: string = 'Untitled Layer';
 
-    readonly manager: LayerManager;
     readonly ui: UILayer;
     private readonly metadata: { [id: string]: any };
     private readonly id: string;
+    private readonly type: string;
 
+    protected manager: LayerManager;
     bounds: MapArea;
     tiles: TileData;
     _tileCache: TileData;
@@ -31,13 +33,13 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
     /**
      * Main constructor.
      *
-     * @param manager
+     * @param type The type of Layer.
      * @param id The unique ID of the layer. <br/>
      *   <b>NOTE</b>: Only provide this when loading an existing layer. A
      *   unique ID will generate for new layers.
      * @param name The displayed name of the layer.
      */
-    constructor(manager: LayerManager, id: string, name: string) {
+    constructor(type: string, id: string, name: string) {
 
         super();
 
@@ -46,12 +48,16 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
             id = uuid.v4();
         }
 
+        if (type == null) {
+            type = 'default';
+        }
+
+        this.type = type;
+
         // If a name is not provided, use the default name.
         if (name == null) {
             name = Layer.DEFAULT_NAME;
         }
-
-        this.manager = manager;
 
         this.id = id;
         this.name = name;
@@ -77,14 +83,105 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
         this.dirty = true;
     }
 
+    load(json: { [field: string]: any }, projectZip: Zip): void {
+
+        if (json.name == null) {
+            throw new Error('The layer \'' + this.id + '\' does not have a name.');
+        }
+
+        if (json.visible == null) {
+            throw new Error('The layer \'' + this.id + '\' does not have the \'visible\' flag.');
+        }
+
+        // Load metadata for the layer.
+        if (json.metadata != null) {
+            for (let o in json.metadata) {
+                let key: string = <string> o;
+                let value = json.metadata[key];
+                this.setMetadata(key, value);
+            }
+        }
+
+        this.name = json.name;
+        this.visible = json.visible;
+
+        // If the map has tiledata, load it.
+        if (json.tiledata != null) {
+            let tiledata: Buffer = <Buffer> projectZip.get(json.tiledata);
+            if (tiledata != null) {
+                try {
+                    this.tiles = TileData.fromBuffer(tiledata);
+                } catch (e) {
+                    console.error('Failed to read \'' + json.tiledata + '\'.');
+                    console.error(e);
+                }
+            }
+        }
+
+        try {
+            this.onLoad(json, projectZip);
+        } catch (e) {
+            console.error('Failed to onLoad() layer. (id: ' + this.id + ", name: " + this.name + ")");
+            throw e;
+        }
+
+        this.setDirty(true);
+    }
+
+    save(projectZip: Zip): { [field: string]: any } {
+
+        let json: { [field: string]: any } = {};
+        json.name = this.getName();
+        json.visible = this.isVisible();
+        json.locked = this.isLocked();
+        json.metadata = this.getMetadataTable();
+
+        if (this.type === 'default') {
+            let tileCount = this.tiles.getTileCount();
+            if (tileCount !== 0) {
+                let id = this.getId() + '.tiledata';
+                json.tiledata = id;
+                try {
+                    projectZip.set(id, TileData.toBuffer(this.tiles));
+                } catch (e) {
+                    console.error('Failed to compile TILEDATA: ' + id);
+                    console.error(e);
+                }
+            }
+        }
+
+        try {
+            this.onSave(json, projectZip);
+        } catch (e) {
+            console.error('Failed to onSave() layer. (id: ' + this.id + ", name: " + this.name + ")");
+            throw e;
+        }
+
+        return json;
+    }
+
+    setManager(manager: LayerManager): void {
+
+        this.manager = manager;
+
+        if (this.hasChildren()) {
+            let children = this.getChildren();
+            for (let index = 0; index < children.length; index++) {
+                children[index].setManager(manager);
+            }
+        }
+    }
+
     // @Override
     addChild(object: Layer): void {
+        object.setManager(this.manager);
         super.addChild(object);
         this.updateUI();
     }
 
     // @Override
     removeChild(object: Layer): number {
+        object.setManager(undefined);
         let index = super.removeChild(object);
         this.updateUI();
         return index;
@@ -112,9 +209,9 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
             this.ui.addChild(children[index].ui);
         }
 
-            this.ui.setSelected(this === this.manager.active);
-            this.ui.setVisible(this.visible);
-            this.ui.setLocked(this.locked);
+        this.ui.setSelected(this === this.manager.active);
+        this.ui.setVisible(this.visible);
+        this.ui.setLocked(this.locked);
 
         this.manager.updateUI();
 
@@ -180,10 +277,6 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
 
     protected onCacheApply(): void {
         this._tileCache.apply(this.tiles);
-    }
-
-    isCacheDirty(): boolean {
-        return this.cacheDirty;
     }
 
     postUpdate(): void {
@@ -308,6 +401,14 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
         this.dirty = flag;
     }
 
+    isCacheDirty(): boolean {
+        return this.cacheDirty;
+    }
+
+    setCacheDirty(flag: boolean): void {
+        this.cacheDirty = flag;
+    }
+
     activate(renderer: MapRenderer): void {
 
         this.onActivate(renderer);
@@ -369,4 +470,38 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
 
         return false;
     }
+
+    onLoad(json: { [field: string]: any }, projectZip: Zip): void {
+    }
+
+    onSave(json: { [field: string]: any }, projectZip: Zip): void {
+    }
+
 }
+
+export abstract class LayerLoader {
+
+    static readonly loaders: { [type: string]: LayerLoader } = {};
+
+    abstract onLoad(id: string, json: { [field: string]: any }, projectZip: Zip): Layer;
+
+    static get(type: string): LayerLoader {
+        return LayerLoader.loaders[type];
+    }
+
+    static set(type: string, loader: LayerLoader): void {
+        LayerLoader.loaders[type] = loader;
+    }
+}
+
+export class DefaultLayerLoader extends LayerLoader {
+
+    // @Override
+    onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Layer {
+        let layer = new Layer(json.type, id, json.name);
+        layer.load(json, projectZip);
+        return layer;
+    }
+}
+
+LayerLoader.set('default', new DefaultLayerLoader());

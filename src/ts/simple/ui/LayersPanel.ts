@@ -175,8 +175,7 @@ export class LayersPanel extends UIPanelTab {
             return;
         }
 
-        let layers = project.layers;
-        let layer = new Layer(layers, null, 'Untitled Layer');
+        let layer = new Layer('default', null, 'Untitled Layer');
 
         let edit = new EditLayerAdd(layer, true);
         project.editManager.append([edit]);

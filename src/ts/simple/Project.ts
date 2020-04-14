@@ -13,7 +13,7 @@ import { Background } from '../common/Background';
 import { SelectionRenderer } from './render/SelectionRenderer';
 import { MapRenderer } from './render/MapRenderer';
 import { Zip } from '../io/Zip';
-import { Layer } from './layers/Layer';
+import { Layer, LayerLoader } from './layers/Layer';
 import { Bitmap } from '../io/Bitmap';
 import { TileData } from '../util/map/TileData';
 
@@ -223,49 +223,16 @@ export class Project extends CustomEventListener<CustomEvent> {
                 // Load all layers in the project.
                 let layers = project.layers;
                 for (let o in projectJson.layers) {
+
                     let id = <string> o;
                     let next = projectJson.layers[id];
 
-                    if (next.name == null) {
-                        let error = new Error('The layer \'' + id + '\' does not have a name.');
-                        onError(error);
-                        throw error;
+                    let type = next.type;
+                    if (type == null) {
+                        type = 'default';
                     }
 
-                    if (next.visible == null) {
-                        let error = new Error('The layer \'' + id + '\' does not have the \'visible\' flag.');
-                        onError(error);
-                        throw error;
-                    }
-
-                    let layer = new Layer(layers, id, next.name);
-
-                    layer.setVisible(next.visible);
-
-                    // If the map has tiledata, load it.
-                    if (next.tiledata != null) {
-                        let tiledata: Buffer = <Buffer> zip.get(next.tiledata);
-                        if (tiledata != null) {
-                            try {
-                                layer.tiles = TileData.fromBuffer(tiledata);
-                            } catch (e) {
-                                console.error('Failed to read \'' + next.path + '\'.');
-                                console.error(e);
-                            }
-                        }
-                    }
-
-                    layer.setDirty(true);
-
-                    // Load metadata for the layer.
-                    if (next.metadata != null) {
-                        for (let o in next.metadata) {
-                            let key: string = <string> o;
-                            let value = next.metadata[key];
-                            layer.setMetadata(key, value);
-                        }
-                    }
-
+                    let layer = LayerLoader.get(type).onLoad(id, next, zip);
                     layers.add(layer);
                 }
 
@@ -293,50 +260,20 @@ export class Project extends CustomEventListener<CustomEvent> {
                 + ' given are null or undefined.');
         }
 
-        let writeLayerJSON = (layer: Layer): { [id: string]: any } => {
-
-            let object: { [id: string]: any } = {};
-
-            object.name = layer.getName();
-            object.visible = layer.isVisible();
-            object.locked = layer.isLocked();
-
-            let tileCount = layer.tiles.getTileCount();
-            if (tileCount !== 0) {
-                object.tiledata = layer.getId() + '.tiledata';
-            }
-
-            object.metadata = layer.getMetadataTable();
-
-            return object;
-        };
-
-        let writeProjectJSON = (project: Project): { [id: string]: any } => {
-
-            if (project == null) {
-                throw new Error('The project given is null or undefined.');
-            }
-
-            let object: { [id: string]: any } = {};
-            object.name = project._name;
-            object.layers = {};
-
-            let layers = project.layers.layers;
-            for (let index = 0; index < layers.length; index++) {
-                let next = layers[index];
-                let id = next.getId();
-                object.layers[id] = writeLayerJSON(next);
-            }
-
-            object.metadata = project.getMetadataTable();
-
-            return object;
-        };
-
         let zip = new Zip();
 
-        let json = writeProjectJSON(project);
-        zip.set('project.json', JSON.stringify(json, null, 2));
+        let json: { [id: string]: any } = {};
+        json.name = project._name;
+        json.layers = {};
+
+        let layers = project.layers.layers;
+        for (let index = 0; index < layers.length; index++) {
+            let next = layers[index];
+            let id = next.getId();
+            json.layers[id] = next.save(zip);
+        }
+
+        json.metadata = project.getMetadataTable();
 
         // Compile the tileset.
         if (project.tileset != null) {
@@ -349,24 +286,7 @@ export class Project extends CustomEventListener<CustomEvent> {
             }
         }
 
-        // Compile the layers.
-        let layers = project.layers.layers;
-        if (layers.length !== 0) {
-            for (let index = 0; index < layers.length; index++) {
-                let next = layers[index];
-                let data = next.tiles;
-                if (data != null && data.getTileCount() !== 0) {
-                    let id = next.getId() + '.tiledata';
-                    try {
-                        zip.set(id, TileData.toBuffer(data));
-                    } catch (e) {
-                        console.error('Failed to compile TILEDATA: ' + id);
-                        console.error(e);
-                    }
-                }
-            }
-        }
-
+        zip.set('project.json', JSON.stringify(json, null, 2));
         zip.write(path);
     }
 

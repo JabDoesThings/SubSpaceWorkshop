@@ -38,7 +38,7 @@ export class LayerManager {
         this._combinedTileData = new TileData();
         this._combinedTileRenderer = new TileRenderer(project, this._combinedTileData);
 
-        this.drawTileLayer = new Layer(this, 'drawTileLayer', 'drawTileLayer');
+        this.drawTileLayer = new Layer('default', 'drawTileLayer', 'drawTileLayer');
         this._drawTileRenderer = new TileRenderer(project, this.drawTileLayer.tiles);
 
         this.updatingUI = false;
@@ -77,6 +77,7 @@ export class LayerManager {
      */
     add(layer: Layer, setActive: boolean = true): void {
 
+        layer.setManager(this);
         this.layers.push(layer);
 
         if (setActive) {
@@ -122,6 +123,8 @@ export class LayerManager {
             throw new Error('Invalid index to set layer. (' + index + " given)");
         }
 
+        layer.setManager(this);
+
         if (index > this.layers.length - 1) {
             this.add(layer, setActive);
             return;
@@ -156,6 +159,8 @@ export class LayerManager {
      *   registered, -1 is returned.
      */
     remove(layer: Layer): number {
+
+        layer.setManager(undefined);
 
         let isActiveRemoved = this.active === layer;
         let _index = -1;
@@ -203,6 +208,7 @@ export class LayerManager {
             let next = this.layers[index];
 
             if (!overrideLocked && next.isLocked()) {
+                next.setManager(this);
                 toCopy.push(next);
                 continue;
             }

@@ -103,7 +103,7 @@ export class Editor extends CustomEventListener<EditorEvent> {
                 // project.setTileset(map.tileset);
                 // project.atlas.getTextureAtlas('tiles').setTexture(map.tileset.texture);
 
-                let baseLayer = new Layer(project.layers, null, 'Base Layer');
+                let baseLayer = new Layer('default', null, 'Base Layer');
                 project.layers.add(baseLayer);
 
                 this.add([project]);
@@ -344,7 +344,7 @@ export class Editor extends CustomEventListener<EditorEvent> {
             }
 
             let name = addProject ? 'Base Layer' : map.name;
-            let layer = new Layer(project.layers, null, name);
+            let layer = new Layer('default', null, name);
             layer.tiles = map.tiles;
             layer.tiles.setDirty(true);
             project.setTileset(map.tileset);
