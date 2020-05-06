@@ -6,7 +6,7 @@ import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
 import { ProjectAtlas } from './render/ProjectAtlas';
 import { EditManager } from './EditManager';
 import { LayerManager } from './layers/LayerManager';
-import { MapSections } from '../util/map/MapSection';
+import { MapSection, MapSections } from '../util/map/MapSection';
 import { LVLMap, LVLTileSet } from '../io/LVL';
 import { LVL } from '../io/LVLUtils';
 import { Background } from '../common/Background';
@@ -16,6 +16,8 @@ import { Zip } from '../io/Zip';
 import { Layer, LayerLoader } from './layers/Layer';
 import { Bitmap } from '../io/Bitmap';
 import { TileData } from '../util/map/TileData';
+import { CoordinateType } from '../util/map/CoordinateType';
+import { MapPoint } from '../util/map/MapPoint';
 
 /**
  * The <i>Project</i> class. TODO: Document.
@@ -144,6 +146,34 @@ export class Project extends CustomEventListener<CustomEvent> {
         this.selectionGroup.setDirty(false);
         this.atlas.setDirty(false);
         this.selections.setDirty(false);
+    }
+
+    sliceSelection(name: string = 'Sliced Layer') {
+
+        const selectedLayer = this.layers.getActive();
+        if (selectedLayer == null) {
+            return;
+        }
+
+        const sections = this.selections.sections;
+        if (sections == null || sections.length === 0) {
+            return;
+        }
+
+        const bounds = this.selections.getBounds();
+        const sliceLayer = new Layer(null, null, name);
+
+        for (let y = bounds.y1; y <= bounds.y2; y++) {
+            for (let x = bounds.x1; x <= bounds.x2; x++) {
+                if (MapSection.isPositive(sections, new MapPoint(CoordinateType.TILE, x, y))) {
+                    const id = selectedLayer.getTile(x, y);
+                    sliceLayer.tiles.set(x, y, id);
+                    selectedLayer.tiles.set(x, y, 0);
+                }
+            }
+        }
+
+        this.layers.add(sliceLayer, true);
     }
 
     activate(): void {
