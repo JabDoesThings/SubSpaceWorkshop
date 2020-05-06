@@ -24,6 +24,10 @@ export class LVL {
 
     static read(path: string): LVLMap {
 
+        if(path == null) {
+            throw new Error("The path given is null or undefined.");
+        }
+
         let tileSet: LVLTileSet;
         let elvlData: ELVLCollection;
         let buffer = fs.readFileSync(path);
@@ -64,8 +68,17 @@ export class LVL {
             tileCount++;
         }
 
-        let split = path.split("/");
-        let name = split[split.length - 1].split('.')[0];
+        let name: string;
+
+        if (path.indexOf('/') !== -1) {
+            let split = path.split("/");
+            name = split[split.length - 1].split('.')[0];
+        } else if (path.indexOf('\\') !== -1) {
+            let split = path.split("\\");
+            name = split[split.length - 1].split('.')[0];
+        } else {
+            name = 'untitled';
+        }
 
         return new LVLMap(name, new TileData(tiles), tileSet, elvlData);
     }
