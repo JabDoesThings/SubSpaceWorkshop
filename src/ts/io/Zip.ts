@@ -1,3 +1,5 @@
+import uuid = require('uuid');
+
 const archiver = require('archiver');
 const unzipper = require('unzipper');
 const fs = require('fs');
@@ -34,11 +36,11 @@ export class Zip {
         }
 
         if (onSuccess == null) {
-            throw new Error('The onSuccess(zip: Zip) function given is null or undefined.')
+            throw new Error('The onSuccess(zip: Zip) function given is null or undefined.');
         }
 
         if (onError == null) {
-            throw new Error('The onError(error: Error) function given is null or undefined.')
+            throw new Error('The onError(error: Error) function given is null or undefined.');
         }
 
         this.clear();
@@ -77,6 +79,66 @@ export class Zip {
         };
 
         execute();
+    }
+
+    toBuffer(
+        properties: { [any: string]: any } = null,
+        onSuccess: (buffer: Buffer) => void = null,
+        onError: (e: Error) => void = null
+    ): void {
+
+        if (properties == null) {
+            properties = {zlib: {level: 9}};
+        }
+
+        let tempFile = process.env.TEMP  + '/' + uuid.v4() + '.zip';
+
+        try {
+
+            let output = fs.createWriteStream(tempFile);
+            let archive = archiver('zip', properties);
+
+            archive.on('error', function (error: Error) {
+                if (onError != null) {
+                    onError(error);
+                }
+                throw error;
+            });
+
+            archive.pipe(output);
+
+            for (let filePath in this.content) {
+                let file = this.content[filePath];
+                archive.append(file, {name: filePath});
+            }
+
+            // listen for all archive data to be written
+            // 'close' event is fired only when a file descriptor is involved
+            output.on('close', function () {
+
+                console.log(archive);
+                console.log(archive.pointer() + ' total bytes');
+                console.log('archiver has been finalized and the output file descriptor has closed.');
+
+                let buffer = fs.readFileSync(tempFile);
+                fs.unlink(tempFile, () => {
+                });
+
+                onSuccess(buffer);
+            });
+
+            archive.finalize();
+
+        } catch (e) {
+
+            if (onError != null) {
+                onError(e);
+            }
+
+            console.error('Failed to write ZIP file: \'' + tempFile + '\'.');
+            console.error(e);
+        }
+
     }
 
     /**
@@ -119,6 +181,10 @@ export class Zip {
             }
 
             archive.finalize();
+
+            if (onSuccess != null) {
+                onSuccess();
+            }
 
         } catch (e) {
 
