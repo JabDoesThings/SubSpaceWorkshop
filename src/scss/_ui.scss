@@ -485,6 +485,8 @@ $tooltip_border_color: $color8;
 .ui-layer-container {
   position: relative;
   padding: 7px;
+  overflow-y: auto;
+  height: calc(100% - 33px);
 
   .ui-layer-spacer {
     display: block;
