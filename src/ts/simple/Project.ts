@@ -236,6 +236,10 @@ export class Project extends CustomEventListener<CustomEvent> {
                     layers.add(layer);
                 }
 
+                if (zip.exists('tileset.bmp')) {
+                    project.setTileset(LVL.readTileset(<Buffer> zip.get('tileset.bmp')));
+                }
+
                 if (onSuccess != null) {
                     onSuccess(project);
                 }
