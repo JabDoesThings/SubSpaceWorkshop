@@ -12,6 +12,7 @@ const fs = require('fs');
 export class Zip {
 
     private readonly content: { [path: string]: Buffer | string };
+    processed: boolean = false;
 
     /**
      * Main constructor.
@@ -44,35 +45,67 @@ export class Zip {
         }
 
         this.clear();
+        this.processed = false;
 
         let execute = async () => {
             try {
-                const zip = fs.createReadStream(path).pipe(unzipper.Parse({forceStream: true}));
-                for await (const entry of zip) {
-
-                    if (entry.type === 'Directory') {
-                        continue;
+                if (typeof path === 'string') {
+                    const zip = fs.createReadStream(path).pipe(unzipper.Parse({forceStream: true}));
+                    for await (const entry of zip) {
+                        if (entry.type === 'Directory') {
+                            continue;
+                        }
+                        let path: string = entry.path;
+                        let promise = entry.buffer();
+                        promise.then((data: any) => {
+                                this.content[path] = data;
+                            },
+                            (reason: any) => {
+                                console.error(reason);
+                            });
                     }
-
-                    let path: string = entry.path;
-                    let promise = entry.buffer();
-                    promise.then((data: any) => {
-                            this.content[path] = data;
-                        },
-                        (reason: any) => {
-                            console.error(reason);
-                        });
-                }
-
-                if (onSuccess != null) {
-                    onSuccess(this);
+                    this.processed = true;
+                    if (onSuccess != null) {
+                        onSuccess(this);
+                    }
+                } else {
+                    await unzipper.Open.buffer(path).then((zip: any) => {
+                        try {
+                            let len = zip.files.length - 1;
+                            for (let index in zip.files) {
+                                let entry = zip.files[index];
+                                if (entry.type === 'Directory') {
+                                    continue;
+                                }
+                                let path: string = entry.path;
+                                let promise = entry.buffer();
+                                promise.then((data: any) => {
+                                        this.content[path] = data;
+                                        len--;
+                                        if (len < 0) {
+                                            this.processed = true;
+                                            if (onSuccess != null) {
+                                                try {
+                                                    onSuccess(this);
+                                                } catch (e) {
+                                                    console.error(e);
+                                                }
+                                            }
+                                        }
+                                    },
+                                    (reason: any) => {
+                                        console.error(reason);
+                                    });
+                            }
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    });
                 }
             } catch (e) {
-
                 if (onError != null) {
                     onError(e);
                 }
-
                 console.error('Failed to read ZIP file: \'' + path + '\'.');
                 console.error(e);
             }
@@ -91,7 +124,7 @@ export class Zip {
             properties = {zlib: {level: 9}};
         }
 
-        let tempFile = process.env.TEMP  + '/' + uuid.v4() + '.zip';
+        let tempFile = process.env.TEMP + '/' + uuid.v4() + '.zip';
 
         try {
 

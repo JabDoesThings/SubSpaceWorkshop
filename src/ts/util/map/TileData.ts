@@ -17,7 +17,7 @@ export class TileData {
     readonly height: number;
     readonly tiles: number[][];
     readonly dirtyAreas: MapArea[];
-
+    private _bounds: MapArea;
     private dirty: boolean;
 
     /**
@@ -82,6 +82,42 @@ export class TileData {
         this.tiles = tiles;
         this.dirtyAreas = [];
         this.setAreaDirty(0, 0, 1023, 1023);
+    }
+
+    getBounds(): MapArea {
+        if (!this._bounds) {
+            let x1 = this.width;
+            let y1 = this.height;
+            let x2 = -1;
+            let y2 = -1;
+            let foundTile = false;
+            for (let y = 0; y < this.height; y++) {
+                for (let x = 0; x < this.width; x++) {
+                    const tile = this.tiles[x][y];
+                    if (tile !== 0) {
+                        if (x < x1) {
+                            x1 = x;
+                        }
+                        if (x > x2) {
+                            x2 = x;
+                        }
+                        if (y < y1) {
+                            y1 = y;
+                        }
+                        if (y > y2) {
+                            y2 = y;
+                        }
+                        foundTile = true;
+                    }
+                }
+            }
+            if (foundTile) {
+                this._bounds = new MapArea(CoordinateType.TILE, x1, y1, x2, y2);
+            } else {
+                this._bounds = new MapArea(CoordinateType.TILE, 0, 0, this.width - 1, this.height - 1);
+            }
+        }
+        return this._bounds;
     }
 
     /**
@@ -410,6 +446,7 @@ export class TileData {
             this.dirty = flag;
 
             if (flag) {
+                this._bounds = undefined;
                 if (area != null) {
                     this.dirtyAreas.push(area);
                 }

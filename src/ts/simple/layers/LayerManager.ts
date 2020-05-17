@@ -265,7 +265,11 @@ export class LayerManager {
     preUpdate(): void {
         if (this.layers.length !== 0) {
             for (let index = 0; index < this.layers.length; index++) {
-                this.layers[index].preUpdate();
+                const layer = this.layers[index];
+                layer.preUpdate();
+                if(layer.isDirty()) {
+                    this.project.renderer.radar.setDirty(true);
+                }
             }
         }
 
@@ -318,19 +322,19 @@ export class LayerManager {
      *   are available, -1 is returned.
      */
     getTile(x: number, y: number): number {
-
         if (this.layers.length === 0) {
             return -1;
         }
-
         for (let index = this.layers.length - 1; index >= 0; index--) {
-
-            let tileId = this.layers[index].getTile(x, y);
+            const layer = this.layers[index];
+            if (!layer.isVisible()) {
+                continue;
+            }
+            let tileId = layer.getTile(x, y);
             if (tileId > 0) {
                 return tileId;
             }
         }
-
         return -1;
     }
 

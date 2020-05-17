@@ -2,6 +2,8 @@ import { Editor } from './simple/Editor';
 import * as PIXI from "pixi.js";
 import { ProjectAtlas, TextureAtlas } from './simple/render/ProjectAtlas';
 import { MapSprite } from './simple/render/MapSprite';
+import { Library } from './simple/data/library/Library';
+import { Sprite } from './simple/data/library/Sprite';
 
 export let DEFAULT_ATLAS = new ProjectAtlas();
 
@@ -155,5 +157,23 @@ export let start = function () {
     });
 
     loader.load();
-};
 
+    // let library = new Library(null, 'test');
+    // library.set(new Sprite(null, 'test'));
+    // library.toBuffer((buffer) => {
+    //     const fs = require('fs');
+    //
+    //     let dir = process.env.HOMEDRIVE + process.env.HOMEPATH + '/SubSpaceWorkshop/';
+    //
+    //     if (!fs.existsSync(dir)) {
+    //         fs.mkdirSync(dir);
+    //     }
+    //
+    //     let libDir = dir + '/Libraries/';
+    //     if (!fs.existsSync(libDir)) {
+    //         fs.mkdirSync(libDir);
+    //     }
+    //
+    //     fs.writeFileSync(libDir + 'test.sswl', buffer);
+    // });
+};

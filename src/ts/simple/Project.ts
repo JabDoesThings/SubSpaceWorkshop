@@ -18,6 +18,10 @@ import { Bitmap } from '../io/Bitmap';
 import { TileData } from '../util/map/TileData';
 import { CoordinateType } from '../util/map/CoordinateType';
 import { MapPoint } from '../util/map/MapPoint';
+import { EditLayerRemove } from './edits/EditLayerRemove';
+import { EditSelectionClear } from './edits/EditSelectionClear';
+import { EditSelectionAdd } from './edits/EditSelectionAdd';
+import { Library } from './data/library/Library';
 
 /**
  * The <i>Project</i> class. TODO: Document.
@@ -28,6 +32,7 @@ export class Project extends CustomEventListener<CustomEvent> {
 
     private readonly metadata: { [id: string]: any };
 
+    library: Library;
     editor: Editor;
     editManager: EditManager;
     selectionGroup: SelectionGroup;
@@ -77,6 +82,22 @@ export class Project extends CustomEventListener<CustomEvent> {
         this.selectionGroup = new SelectionGroup();
         this.selectionGroup.setSelection(SelectionSlot.PRIMARY, new Selection(SelectionType.TILE, 1));
         this.selectionGroup.setSelection(SelectionSlot.SECONDARY, new Selection(SelectionType.TILE, 2));
+    }
+
+    /**
+     * @return {Library} Returns the project's default library.
+     */
+    getLibrary(): Library {
+        return this.library;
+    }
+
+    /**
+     * Sets the default library for the project.
+     *
+     * @param library {Library} The library to set.
+     */
+    setLibrary(library: Library) {
+        this.library = library;
     }
 
     saveAs(): void {
@@ -148,10 +169,87 @@ export class Project extends CustomEventListener<CustomEvent> {
         this.selections.setDirty(false);
     }
 
-    sliceSelection(name: string = 'Sliced Layer') {
+    deleteSelectedLayer() {
+        const selectedLayer = this.layers.getActive();
+        if (selectedLayer == null || !selectedLayer.isVisible()) {
+            return;
+        }
+
+        const edit = new EditLayerRemove(selectedLayer);
+        this.editManager.append([edit]);
+        this.editManager.push();
+    }
+
+    selectAllTiles() {
+        const selectedLayer = this.layers.getActive();
+        if (selectedLayer == null || !selectedLayer.isVisible()) {
+            return;
+        }
+
+        const bounds = selectedLayer.getBounds();
+        const edits = [
+            new EditSelectionClear(),
+            new EditSelectionAdd([MapSection.box(bounds.x1, bounds.y1, bounds.x2, bounds.y2)])
+        ];
+        this.editManager.append(edits);
+        this.editManager.push();
+    }
+
+    mergeLayerDown() {
+
+        // TODO: Write as Edit.
 
         const selectedLayer = this.layers.getActive();
-        if (selectedLayer == null) {
+        if (selectedLayer == null || !selectedLayer.isVisible()) {
+            return;
+        }
+
+        let layerBelow;
+
+        if (selectedLayer.hasParent()) {
+            const children = selectedLayer.getParent().getChildren();
+            for (let index = children.length - 1; index >= 0; index--) {
+                const child = children[index];
+                if (child === selectedLayer) {
+                    // If the selected layer is at the bottom of the stack, then there's nothing to merge.
+                    if (index === 0) {
+                        return;
+                    }
+                    layerBelow = children[index - 1];
+                    selectedLayer.getParent().removeChild(selectedLayer);
+                    break;
+                }
+            }
+            if (!layerBelow) {
+                return;
+            }
+        } else {
+            const layers = this.layers.layers;
+            for (let index = layers.length - 1; index >= 0; index--) {
+                const layer = layers[index];
+                if (layer === selectedLayer) {
+                    // If the selected layer is at the bottom of the stack, then there's nothing to merge.
+                    if (index === 0) {
+                        return;
+                    }
+                    layerBelow = layers[index - 1];
+                    this.layers.remove(layer);
+                    break;
+                }
+            }
+            if (!layerBelow) {
+                return;
+            }
+        }
+        layerBelow.merge(selectedLayer);
+    }
+
+    sliceSelection(name: string = 'Sliced Layer') {
+
+        // TODO: Write as Edit.
+
+        const selectedLayer = this.layers.getActive();
+        if (selectedLayer == null || !selectedLayer.isVisible()) {
             return;
         }
 
@@ -205,7 +303,7 @@ export class Project extends CustomEventListener<CustomEvent> {
         return this.metadata;
     }
 
-    static read(path: string, onSuccess: (project: Project) => void, onError: (e: Error) => void): void {
+    static async read(path: string, onSuccess: (project: Project) => void, onError: (e: Error) => void) {
 
         if (path == null) {
             throw new Error('The path provided is null or undefined.');
@@ -220,7 +318,7 @@ export class Project extends CustomEventListener<CustomEvent> {
         }
 
         let zip = new Zip();
-        zip.read(path, () => {
+        zip.read(path, async () => {
 
                 let project: Project = null;
 
@@ -270,6 +368,29 @@ export class Project extends CustomEventListener<CustomEvent> {
                     project.setTileset(LVL.readTileset(<Buffer> zip.get('tileset.bmp')));
                 }
 
+                if (zip.exists('library.sswl')) {
+                    await Library.read(zip.get('library.sswl'), library => {
+                            project.setLibrary(library);
+                        },
+                        (error: Error) => {
+                            throw error;
+                        });
+                    // const libZip = new Zip();
+                    // libZip.read(zip.get('library.sswl'), () => {
+                    //         if (!libZip.exists('library.json')) {
+                    //             throw new Error('library.json does not exist in library.');
+                    //         }
+                    //         let libJson = JSON.parse(<string> libZip.get('library.json'));
+                    //
+                    //         let library = Library.read()
+                    //     },
+                    //     (e) => {
+                    //         throw e;
+                    //     });
+                } else {
+                    project.setLibrary(new Library(null, 'Project Library'));
+                }
+
                 if (onSuccess != null) {
                     onSuccess(project);
                 }
@@ -279,7 +400,7 @@ export class Project extends CustomEventListener<CustomEvent> {
             });
     }
 
-    static write(project: Project, path: string = null): void {
+    static async write(project: Project, path: string = null) {
 
         if (project == null) {
             throw new Error('The project given is null or undefined.');
@@ -321,7 +442,16 @@ export class Project extends CustomEventListener<CustomEvent> {
         }
 
         zip.set('project.json', JSON.stringify(json, null, 2));
-        zip.write(path);
+
+        const library = project.getLibrary();
+        if (library) {
+            await library.toBuffer((buffer) => {
+                zip.set('library.sswl', buffer);
+                zip.write(path);
+            });
+        } else {
+            zip.write(path);
+        }
     }
 
     static exportLVL(project: Project, path: string): void {

@@ -489,6 +489,8 @@ export class Editor extends CustomEventListener<EditorEvent> {
         }
 
         this.active = index;
+        // @ts-ignore
+        global.activeProject = this.projects[this.active];
 
         if (index == -1) {
             this.tabMenu.deselect();

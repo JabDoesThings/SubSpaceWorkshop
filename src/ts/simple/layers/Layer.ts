@@ -160,6 +160,15 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
         return json;
     }
 
+    merge(other: Layer): void {
+        this.tiles.apply(other.tiles);
+        this.getChildren().forEach(child => {
+            this.addChild(child);
+        });
+        this.setDirty(true);
+        this.setCacheDirty(true);
+    }
+
     setManager(manager: LayerManager): void {
 
         this.manager = manager;
@@ -427,7 +436,7 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
      * @return Returns the minimum and maximum coordinates populated by the layer.
      */
     getBounds(): MapArea {
-        return;
+        return this._tileCache.getBounds();
     }
 
     getMetadata(id: string): any {
