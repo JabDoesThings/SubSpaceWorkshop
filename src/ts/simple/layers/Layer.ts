@@ -10,507 +10,500 @@ import { TileData } from '../../util/map/TileData';
 import { CoordinateType } from '../../util/map/CoordinateType';
 import { Zip } from '../../io/Zip';
 
+/**
+ * The <i>Layer</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class Layer extends InheritedObject<Layer> implements Dirtable {
 
-    static readonly DEFAULT_NAME: string = 'Untitled Layer';
+  static readonly DEFAULT_NAME: string = 'Untitled Layer';
 
-    readonly ui: UILayer;
-    private readonly metadata: { [id: string]: any };
-    private readonly id: string;
-    private readonly type: string;
+  readonly ui: UILayer;
+  private readonly metadata: { [id: string]: any };
+  private readonly id: string;
+  private readonly type: string;
 
-    protected manager: LayerManager;
-    bounds: MapArea;
-    tiles: TileData;
-    _tileCache: TileData;
-    private name: string;
-    private visible: boolean;
-    private dirty: boolean;
-    private locked: boolean;
-    private updatingUI: boolean;
-    private cacheDirty: boolean;
+  protected manager: LayerManager;
+  bounds: MapArea;
+  tiles: TileData;
+  _tileCache: TileData;
+  private name: string;
+  private visible: boolean;
+  private dirty: boolean;
+  private locked: boolean;
+  private updatingUI: boolean;
+  private cacheDirty: boolean;
 
-    /**
-     * Main constructor.
-     *
-     * @param type The type of Layer.
-     * @param id The unique ID of the layer. <br/>
-     *   <b>NOTE</b>: Only provide this when loading an existing layer. A
-     *   unique ID will generate for new layers.
-     * @param name The displayed name of the layer.
-     */
-    constructor(type: string, id: string, name: string) {
-
-        super();
-
-        // If the ID given is null or undefined, generate a unique one.
-        if (id == null) {
-            id = uuid.v4();
-        }
-
-        if (type == null) {
-            type = 'default';
-        }
-
-        this.type = type;
-
-        // If a name is not provided, use the default name.
-        if (name == null) {
-            name = Layer.DEFAULT_NAME;
-        }
-
-        this.id = id;
-        this.name = name;
-        this.visible = true;
-        this.tiles = new TileData();
-        this._tileCache = new TileData();
-
-        this.ui = new UILayer(this.name);
-        this.ui.visibilityElement.addEventListener('click', (event) => {
-
-            let edit = new EditLayerVisible(this, !this.visible);
-            let editManager = this.manager.project.editManager;
-            editManager.append([edit]);
-            editManager.push();
-        });
-
-        this.ui.element.addEventListener('click', (event) => {
-            this.manager.setActive(this);
-        });
-
-        this.updatingUI = false;
-        this.cacheDirty = true;
-        this.dirty = true;
+  /**
+   * @constructor
+   *
+   * @param {string} type The type of Layer.
+   * @param {string} id The unique ID of the layer. <br/>
+   *   <b>NOTE</b>: Only provide this when loading an existing layer. A
+   *   unique ID will generate for new layers.
+   * @param {string} name The displayed name of the layer.
+   */
+  constructor(type: string, id: string, name: string) {
+    super();
+    // If the ID given is null or undefined, generate a unique one.
+    if (id == null) {
+      id = uuid.v4();
     }
+    if (type == null) {
+      type = 'default';
+    }
+    this.type = type;
+    // If a name is not provided, use the default name.
+    if (name == null) {
+      name = Layer.DEFAULT_NAME;
+    }
+    this.id = id;
+    this.name = name;
+    this.visible = true;
+    this.tiles = new TileData();
+    this._tileCache = new TileData();
+    this.ui = new UILayer(this.name);
+    this.ui.visibilityElement.addEventListener('click', () => {
+      const edit = new EditLayerVisible(this, !this.visible);
+      const editManager = this.manager.project.editManager;
+      editManager.append([edit]);
+      editManager.push();
+    });
 
-    load(json: { [field: string]: any }, projectZip: Zip): void {
+    this.ui.element.addEventListener('click', () => {
+      this.manager.setActive(this);
+    });
 
-        if (json.name == null) {
-            throw new Error('The layer \'' + this.id + '\' does not have a name.');
-        }
+    this.updatingUI = false;
+    this.cacheDirty = true;
+    this.dirty = true;
+  }
 
-        if (json.visible == null) {
-            throw new Error('The layer \'' + this.id + '\' does not have the \'visible\' flag.');
-        }
-
-        // Load metadata for the layer.
-        if (json.metadata != null) {
-            for (let o in json.metadata) {
-                let key: string = <string> o;
-                let value = json.metadata[key];
-                this.setMetadata(key, value);
-            }
-        }
-
-        this.name = json.name;
-        this.visible = json.visible;
-
-        // If the map has tiledata, load it.
-        if (json.tiledata != null) {
-            let tiledata: Buffer = <Buffer> projectZip.get(json.tiledata);
-            if (tiledata != null) {
-                try {
-                    this.tiles = TileData.fromBuffer(tiledata);
-                } catch (e) {
-                    console.error('Failed to read \'' + json.tiledata + '\'.');
-                    console.error(e);
-                }
-            }
-        }
-
+  load(json: { [field: string]: any }, projectZip: Zip): void {
+    if (json.name == null) {
+      throw new Error('The layer \'' + this.id + '\' does not have a name.');
+    }
+    if (json.visible == null) {
+      throw new Error('The layer \'' + this.id + '\' does not have the \'visible\' flag.');
+    }
+    // Load metadata for the layer.
+    if (json.metadata != null) {
+      for (let o in json.metadata) {
+        const key: string = <string> o;
+        const value = json.metadata[key];
+        this.setMetadata(key, value);
+      }
+    }
+    this.name = json.name;
+    this.visible = json.visible;
+    // If the map has tile-data, load it.
+    if (json.tiledata != null) {
+      const tileData: Buffer = <Buffer> projectZip.get(json.tiledata);
+      if (tileData != null) {
         try {
-            this.onLoad(json, projectZip);
+          this.tiles = TileData.fromBuffer(tileData);
         } catch (e) {
-            console.error('Failed to onLoad() layer. (id: ' + this.id + ", name: " + this.name + ")");
-            throw e;
+          console.error(`Failed to read '${json.tiledata}'.`);
+          console.error(e);
         }
-
-        this.setDirty(true);
+      }
     }
+    try {
+      this.onLoad(json, projectZip);
+    } catch (e) {
+      console.error(`Failed to onLoad() layer. (id: ${this.id}, name: ${this.name})`);
+      throw e;
+    }
+    this.setDirty(true);
+  }
 
-    save(projectZip: Zip): { [field: string]: any } {
+  save(projectZip: Zip): { [field: string]: any } {
+    const json: { [field: string]: any } = {};
+    json.name = this.getName();
+    json.visible = this.isVisible();
+    json.locked = this.isLocked();
+    json.metadata = this.getMetadataTable();
 
-        let json: { [field: string]: any } = {};
-        json.name = this.getName();
-        json.visible = this.isVisible();
-        json.locked = this.isLocked();
-        json.metadata = this.getMetadataTable();
-
-        if (this.type === 'default') {
-            let tileCount = this.tiles.getTileCount();
-            if (tileCount !== 0) {
-                let id = this.getId() + '.tiledata';
-                json.tiledata = id;
-                try {
-                    projectZip.set(id, TileData.toBuffer(this.tiles));
-                } catch (e) {
-                    console.error('Failed to compile TILEDATA: ' + id);
-                    console.error(e);
-                }
-            }
-        }
-
+    if (this.type === 'default') {
+      let tileCount = this.tiles.getTileCount();
+      if (tileCount !== 0) {
+        const id = `${this.getId()}.tiledata`;
+        json.tiledata = id;
         try {
-            this.onSave(json, projectZip);
+          projectZip.set(id, TileData.toBuffer(this.tiles));
         } catch (e) {
-            console.error('Failed to onSave() layer. (id: ' + this.id + ", name: " + this.name + ")");
-            throw e;
+          console.error(`Failed to compile TILEDATA: ${id}`);
+          console.error(e);
         }
-
-        return json;
+      }
     }
 
-    merge(other: Layer): void {
-        this.tiles.apply(other.tiles);
-        this.getChildren().forEach(child => {
-            this.addChild(child);
-        });
-        this.setDirty(true);
-        this.setCacheDirty(true);
+    try {
+      this.onSave(json, projectZip);
+    } catch (e) {
+      console.error(`Failed to onSave() layer. (id: ${this.id}, name: ${this.name})`);
+      throw e;
     }
+    return json;
+  }
 
-    setManager(manager: LayerManager): void {
+  merge(other: Layer): void {
+    this.tiles.apply(other.tiles);
+    this.getChildren().forEach(child => {
+      this.addChild(child);
+    });
+    this.setDirty(true);
+    this.setCacheDirty(true);
+  }
 
-        this.manager = manager;
+  setManager(manager: LayerManager): void {
+    this.manager = manager;
+    if (this.hasChildren()) {
+      const children = this.getChildren();
+      for (let index = 0; index < children.length; index++) {
+        children[index].setManager(manager);
+      }
+    }
+  }
 
-        if (this.hasChildren()) {
-            let children = this.getChildren();
-            for (let index = 0; index < children.length; index++) {
-                children[index].setManager(manager);
-            }
+  /** @override */
+  addChild(object: Layer): void {
+    object.setManager(this.manager);
+    super.addChild(object);
+    this.updateUI();
+  }
+
+  /** @override */
+  removeChild(object: Layer): number {
+    object.setManager(undefined);
+    const index = super.removeChild(object);
+    this.updateUI();
+    return index;
+  }
+
+  /** @override */
+  removeChildren(): Layer[] {
+    const copy = super.removeChildren();
+    this.updateUI();
+    return copy;
+  }
+
+  private updateUI(): void {
+    if (this.updatingUI) {
+      return;
+    }
+    this.updatingUI = true;
+    this.ui.removeChildren();
+    const children = this.getChildren();
+    for (let index = children.length - 1; index >= 0; index--) {
+      this.ui.addChild(children[index].ui);
+    }
+    this.ui.setSelected(this === this.manager.active);
+    this.ui.setVisible(this.visible);
+    this.ui.setLocked(this.locked);
+    this.manager.updateUI();
+    this.updatingUI = false;
+  }
+
+  preUpdate(): void {
+    if (this.isDirty() || this.isChildrenDirty()) {
+      this.cacheDirty = true;
+    }
+    this.onPreUpdate();
+    if (this.hasChildren()) {
+      const children = this.getChildren();
+      for (let index = 0; index < children.length; index++) {
+        children[index].preUpdate();
+      }
+    }
+  }
+
+  update(delta: number): void {
+    this.onUpdate(delta);
+    if (this.hasChildren()) {
+      const children = this.getChildren();
+      for (let index = 0; index < children.length; index++) {
+        children[index].update(delta);
+      }
+    }
+  }
+
+  processCache(): void {
+    this._tileCache.clear(
+      new MapArea(
+        CoordinateType.TILE,
+        0,
+        0,
+        this._tileCache.width - 1,
+        this._tileCache.height - 1
+      )
+    );
+
+    this.onCacheApply();
+    if (this.hasChildren()) {
+      const children = this.getChildren();
+      for (let index = 0; index < children.length; index++) {
+        const child = children[index];
+        if (child.isCacheDirty()) {
+          child.processCache();
         }
+        this._tileCache.apply(child._tileCache);
+      }
     }
+    this.cacheDirty = false;
+  }
 
-    // @Override
-    addChild(object: Layer): void {
-        object.setManager(this.manager);
-        super.addChild(object);
-        this.updateUI();
+  protected onCacheApply(): void {
+    this._tileCache.apply(this.tiles);
+  }
+
+  postUpdate(): void {
+    this.onPostUpdate();
+    if (this.hasChildren()) {
+      const children = this.getChildren();
+      for (let index = 0; index < children.length; index++) {
+        children[index].postUpdate();
+      }
     }
-
-    // @Override
-    removeChild(object: Layer): number {
-        object.setManager(undefined);
-        let index = super.removeChild(object);
-        this.updateUI();
-        return index;
+    if (this.tiles != null) {
+      this.tiles.setDirty(false);
     }
+    this.setDirty(false);
+  }
 
-    // @Override
-    removeChildren(): Layer[] {
-        let copy = super.removeChildren();
-        this.updateUI();
-        return copy;
-    }
-
-    private updateUI(): void {
-
-        if (this.updatingUI) {
-            return;
+  /**
+   * @param {number} x The 'X' coordinate of the tile.
+   * @param {number} y The 'Y' coordinate of the tile.
+   *
+   * @return {number} Returns the ID on the layer (child-layer if applicable). If no tile data
+   *   are available, -1 is returned.
+   */
+  getTile(x: number, y: number): number {
+    // Check the children first as they are on-top.
+    if (this.hasChildren()) {
+      const children = this.getChildren();
+      for (let index = children.length - 1; index >= 0; index--) {
+        const tileId = children[index].getTile(x, y);
+        if (tileId > 0) {
+          return tileId;
         }
-
-        this.updatingUI = true;
-
-        this.ui.removeChildren();
-
-        let children = this.getChildren();
-        for (let index = children.length - 1; index >= 0; index--) {
-            this.ui.addChild(children[index].ui);
-        }
-
-        this.ui.setSelected(this === this.manager.active);
-        this.ui.setVisible(this.visible);
-        this.ui.setLocked(this.locked);
-
-        this.manager.updateUI();
-
-        this.updatingUI = false;
+      }
     }
-
-    preUpdate(): void {
-
-        if (this.isDirty() || this.isChildrenDirty()) {
-            this.cacheDirty = true;
-        }
-
-        this.onPreUpdate();
-
-        if (this.hasChildren()) {
-            let children = this.getChildren();
-            for (let index = 0; index < children.length; index++) {
-                children[index].preUpdate();
-            }
-        }
+    // Check if the layer is a TileLayer and check here.
+    if (this.tiles != null && x < this.tiles.width && y < this.tiles.height) {
+      return this.tiles.get(x, y);
     }
+    // If the tile is out of the boundaries of the tile data, return -1.
+    return -1;
+  }
 
-    update(delta: number): void {
+  /**
+   * @return {string} Returns the displayed name of the layer.
+   */
+  getName(): string {
+    return this.name;
+  }
 
-        this.onUpdate(delta);
+  /**
+   * Sets the displayed name of the layer.
+   *
+   * @param {string} name The name to set.
+   */
+  setName(name: string): void {
+    this.name = name;
+    this.updateUI();
+  }
 
-        if (this.hasChildren()) {
-            let children = this.getChildren();
-            for (let index = 0; index < children.length; index++) {
-                children[index].update(delta);
-            }
-        }
+  /** @return {string} Returns the unique ID of the layer. */
+  getId(): string {
+    return this.id;
+  }
+
+  /** @return Returns true if the layer is locked. */
+  isLocked(): boolean {
+    return this.locked;
+  }
+
+  /**
+   * Sets whether or not the layer is locked.
+   *
+   * @param {boolean} flag The flag to set.
+   */
+  setLocked(flag: boolean): void {
+    if (flag === this.locked) {
+      return;
     }
+    this.locked = flag;
+    this.updateUI();
+  }
 
-    processCache(): void {
+  /** @return {boolean} */
+  isVisible(): boolean {
+    return this.visible;
+  }
 
-        this._tileCache.clear(
-            new MapArea(
-                CoordinateType.TILE,
-                0,
-                0,
-                this._tileCache.width - 1,
-                this._tileCache.height - 1
-            )
-        );
-
-        this.onCacheApply();
-
-        if (this.hasChildren()) {
-
-            let children = this.getChildren();
-            for (let index = 0; index < children.length; index++) {
-                let child = children[index];
-                if (child.isCacheDirty()) {
-                    child.processCache();
-                }
-                this._tileCache.apply(child._tileCache);
-            }
-        }
-
-        this.cacheDirty = false;
+  /**
+   *
+   * @param {boolean} flag
+   */
+  setVisible(flag: boolean): void {
+    if (this.visible === flag) {
+      return;
     }
+    this.visible = flag;
+    this.ui.setVisible(flag);
+    this.updateUI();
+    this.setDirty(true);
+    this.manager.combineTileLayers(true);
+  }
 
-    protected onCacheApply(): void {
-        this._tileCache.apply(this.tiles);
+  /** @override */
+  isDirty(): boolean {
+    return this.dirty || (this.tiles != null && this.tiles.isDirty());
+  }
+
+  /** @override */
+  setDirty(flag: boolean): void {
+    this.dirty = flag;
+  }
+
+  /** @return {boolean} */
+  isCacheDirty(): boolean {
+    return this.cacheDirty;
+  }
+
+  /**
+   * @param {boolean} flag
+   */
+  setCacheDirty(flag: boolean): void {
+    this.cacheDirty = flag;
+  }
+
+  /**
+   * @param {MapRenderer} renderer
+   */
+  activate(renderer: MapRenderer): void {
+    this.onActivate(renderer);
+    this.updateUI();
+    if (this.hasChildren()) {
+      const children = this.getChildren();
+      for (let index = 0; index < children.length; index++) {
+        children[index].activate(renderer);
+      }
     }
+  }
 
-    postUpdate(): void {
+  /** @return {MapArea} Returns the minimum and maximum coordinates populated by the layer. */
+  getBounds(): MapArea {
+    return this._tileCache.getBounds();
+  }
 
-        this.onPostUpdate();
+  /**
+   * @param {string} id
+   * @return {any}
+   */
+  getMetadata(id: string): any {
+    return this.metadata[id];
+  }
 
-        if (this.hasChildren()) {
-            let children = this.getChildren();
-            for (let index = 0; index < children.length; index++) {
-                children[index].postUpdate();
-            }
-        }
+  /**
+   * @param {string} id
+   * @param {any} value
+   */
+  setMetadata(id: string, value: any): void {
+    this.metadata[id] = value;
+  }
 
-        if (this.tiles != null) {
-            this.tiles.setDirty(false);
-        }
+  /** @return {[id: string]: any} */
+  getMetadataTable(): { [id: string]: any } {
+    return this.metadata;
+  }
 
-        this.setDirty(false);
+  protected onPreUpdate(): void {
+  }
+
+  protected onUpdate(delta: number): void {
+  }
+
+  protected onPostUpdate(): void {
+  }
+
+  /**
+   * @param {MapRenderer} renderer
+   */
+  onActivate(renderer: MapRenderer): void {
+  }
+
+  /** @return {boolean} */
+  isChildrenDirty(): boolean {
+    if (!this.hasChildren()) {
+      return false;
     }
-
-    /**
-     * @param x The 'X' coordinate of the tile.
-     * @param y The 'Y' coordinate of the tile.
-     *
-     * @return Returns the ID on the layer (child-layer if applicable). If no tile data
-     *   are available, -1 is returned.
-     */
-    getTile(x: number, y: number): number {
-
-        // Check the children first as they are on-top.
-        if (this.hasChildren()) {
-            let children = this.getChildren();
-            for (let index = children.length - 1; index >= 0; index--) {
-                let tileId = children[index].getTile(x, y);
-                if (tileId > 0) {
-                    return tileId;
-                }
-            }
-        }
-
-        // Check if the layer is a TileLayer and check here.
-        if (this.tiles != null && x < this.tiles.width && y < this.tiles.height) {
-            return this.tiles.get(x, y);
-        }
-
-        // If the tile is out of the boundaries of the tile data, return -1.
-        return -1;
+    const children = this.getChildren();
+    for (let index = 0; index < children.length; index++) {
+      const child = children[index];
+      if (child.isDirty() || child.isChildrenDirty()) {
+        return true;
+      }
     }
+    return false;
+  }
 
-    /**
-     * @return Returns the displayed name of the layer.
-     */
-    getName(): string {
-        return this.name;
-    }
+  onLoad(json: { [field: string]: any }, projectZip: Zip): void {
+  }
 
-    /**
-     * Sets the displayed name of the layer.
-     *
-     * @param name The name to set.
-     */
-    setName(name: string): void {
-        this.name = name;
-        this.updateUI();
-    }
-
-    /**
-     * @return Returns the unique ID of the layer.
-     */
-    getId(): string {
-        return this.id;
-    }
-
-    /**
-     * @return Returns true if the layer is locked.
-     */
-    isLocked(): boolean {
-        return this.locked;
-    }
-
-    /**
-     * Sets whether or not the layer is locked.
-     *
-     * @param flag The flag to set.
-     */
-    setLocked(flag: boolean): void {
-
-        if (flag === this.locked) {
-            return;
-        }
-
-        this.locked = flag;
-        this.updateUI();
-    }
-
-    isVisible(): boolean {
-        return this.visible;
-    }
-
-    setVisible(flag: boolean): void {
-
-        if (this.visible === flag) {
-            return;
-        }
-
-        this.visible = flag;
-        this.ui.setVisible(flag);
-        this.updateUI();
-
-        this.setDirty(true);
-
-        this.manager.combineTileLayers(true);
-    }
-
-    // @Override
-    isDirty(): boolean {
-        return this.dirty || (this.tiles != null && this.tiles.isDirty());
-    }
-
-    // @Override
-    setDirty(flag: boolean): void {
-        this.dirty = flag;
-    }
-
-    isCacheDirty(): boolean {
-        return this.cacheDirty;
-    }
-
-    setCacheDirty(flag: boolean): void {
-        this.cacheDirty = flag;
-    }
-
-    activate(renderer: MapRenderer): void {
-
-        this.onActivate(renderer);
-        this.updateUI();
-
-        if (this.hasChildren()) {
-            let children = this.getChildren();
-            for (let index = 0; index < children.length; index++) {
-                children[index].activate(renderer);
-            }
-        }
-
-    }
-
-    /**
-     * @return Returns the minimum and maximum coordinates populated by the layer.
-     */
-    getBounds(): MapArea {
-        return this._tileCache.getBounds();
-    }
-
-    getMetadata(id: string): any {
-        return this.metadata[id];
-    }
-
-    setMetadata(id: string, value: any): void {
-        this.metadata[id] = value;
-    }
-
-    getMetadataTable(): { [id: string]: any } {
-        return this.metadata;
-    }
-
-    protected onPreUpdate(): void {
-    }
-
-    protected onUpdate(delta: number): void {
-    }
-
-    protected onPostUpdate(): void {
-    }
-
-    onActivate(renderer: MapRenderer): void {
-    }
-
-    isChildrenDirty(): boolean {
-
-        if (!this.hasChildren()) {
-            return false;
-        }
-
-        let children = this.getChildren();
-        for (let index = 0; index < children.length; index++) {
-            let child = children[index];
-            if (child.isDirty() || child.isChildrenDirty()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    onLoad(json: { [field: string]: any }, projectZip: Zip): void {
-    }
-
-    onSave(json: { [field: string]: any }, projectZip: Zip): void {
-    }
-
+  onSave(json: { [field: string]: any }, projectZip: Zip): void {
+  }
 }
 
+/**
+ * The <i>LayerLoader</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export abstract class LayerLoader {
 
-    static readonly loaders: { [type: string]: LayerLoader } = {};
+  static readonly loaders: { [type: string]: LayerLoader } = {};
 
-    abstract onLoad(id: string, json: { [field: string]: any }, projectZip: Zip): Layer;
+  /**
+   * @param {string} id
+   * @param {[field: string]: any} json
+   * @param {Zip} projectZip
+   */
+  abstract onLoad(id: string, json: { [field: string]: any }, projectZip: Zip): Layer;
 
-    static get(type: string): LayerLoader {
-        return LayerLoader.loaders[type];
-    }
+  /**
+   * @param {string} type The type that the layer loader identifies as.
+   *
+   * @return {LayerLoader} Returns the layer loader that is identified as the given type.
+   */
+  static get(type: string): LayerLoader {
+    return LayerLoader.loaders[type];
+  }
 
-    static set(type: string, loader: LayerLoader): void {
-        LayerLoader.loaders[type] = loader;
-    }
+  /**
+   * @param {string} type type The type that the layer loader identifies as.
+   * @param {LayerLoader} loader The layer loader to set.
+   */
+  static set(type: string, loader: LayerLoader): void {
+    LayerLoader.loaders[type] = loader;
+  }
 }
 
+/**
+ * The <i>DefaultLayerLoader</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export class DefaultLayerLoader extends LayerLoader {
 
-    // @Override
-    onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Layer {
-        let layer = new Layer(json.type, id, json.name);
-        layer.load(json, projectZip);
-        return layer;
-    }
+  /** @override */
+  onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Layer {
+    let layer = new Layer(json.type, id, json.name);
+    layer.load(json, projectZip);
+    return layer;
+  }
 }
 
 LayerLoader.set('default', new DefaultLayerLoader());

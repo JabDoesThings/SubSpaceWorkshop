@@ -7,24 +7,20 @@ import { Dirtable } from './Dirtable';
  */
 export abstract class DirtyObject implements Dirtable {
 
-    private dirty: boolean;
+  private dirty: boolean;
 
-    /**
-     * Main constructor.
-     */
-    protected constructor() {
-        this.dirty = false;
-    }
+  /** @constructor */
+  protected constructor() {
+    this.dirty = false;
+  }
 
-    // @Override
-    isDirty(): boolean {
-        return this.dirty;
-    }
+  /** @override */
+  isDirty(): boolean {
+    return this.dirty;
+  }
 
-    // @Override
-    setDirty(flag: boolean): void {
-        this.dirty = flag;
-    }
-
+  /** @override */
+  setDirty(flag: boolean): void {
+    this.dirty = flag;
+  }
 }
-

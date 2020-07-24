@@ -5,14 +5,19 @@
  */
 export interface Updatable {
 
-    /**
-     * Call this to update the object.
-     */
-    update(delta: number): void;
+  /**
+   * Call this to update the object.
+   *
+   * @param {number} delta
+   */
+  update(delta: number): void;
 
-    /**
-     * Fired when the object updates.
-     */
-    onUpdate(delta: number): boolean;
-
+  /**
+   * Fired when the object updates.
+   *
+   * @param {number} delta
+   *
+   * @return {boolean}
+   */
+  onUpdate(delta: number): boolean;
 }

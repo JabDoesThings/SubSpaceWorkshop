@@ -5,31 +5,34 @@
  */
 export class SeededRandom {
 
-    private seed: number;
+  private seed: number;
 
-    constructor(seed: number) {
-        this.seed = seed;
-    }
+  /**
+   * @constructor
+   *
+   * @param {number} seed
+   */
+  constructor(seed: number) {
+    this.seed = seed;
+  }
 
-    private next(min: number, max: number): number {
-        max = max || 0;
-        min = min || 0;
+  private next(min: number, max: number): number {
+    max = max || 0;
+    min = min || 0;
+    this.seed = (this.seed * 9301 + 49297) % 233280;
+    const rnd = this.seed / 233280;
+    return min + rnd * (max - min);
+  }
 
-        this.seed = (this.seed * 9301 + 49297) % 233280;
-        var rnd = this.seed / 233280;
+  public nextInt(min: number, max: number): number {
+    return Math.round(this.next(min, max));
+  }
 
-        return min + rnd * (max - min);
-    }
+  public nextDouble(): number {
+    return this.next(0, 1);
+  }
 
-    public nextInt(min: number, max: number): number {
-        return Math.round(this.next(min, max));
-    }
-
-    public nextDouble(): number {
-        return this.next(0, 1);
-    }
-
-    public pick(collection: any[]): any {
-        return collection[this.nextInt(0, collection.length - 1)];
-    }
+  public pick(collection: any[]): any {
+    return collection[this.nextInt(0, collection.length - 1)];
+  }
 }

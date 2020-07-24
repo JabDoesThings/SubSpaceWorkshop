@@ -8,37 +8,35 @@ import { LibraryAsset, LibraryAssetLoader } from './Library';
  */
 export class Sprite extends LibraryAsset {
 
-    /**
-     * Main constructor.
-     *
-     * @param id
-     * @param name
-     */
-    constructor(id: string = null, name: string) {
-        super('sprite', id, name);
-    }
+  /**
+   * @constructor
+   *
+   * @param {string} id
+   * @param {string} name
+   */
+  constructor(id: string = null, name: string) {
+    super('sprite', id, name);
+  }
 
-    // @Override
-    protected onLoad(json: { [field: string]: any }, libraryZip: Zip): void {
+  /** @override */
+  protected onLoad(json: { [field: string]: any }, libraryZip: Zip): void {
+  }
 
-    }
+  /** @override */
+  protected onSave(json: { [field: string]: any }, libraryZip: Zip): void {
+  }
 
-    // @Override
-    protected onSave(json: { [field: string]: any }, libraryZip: Zip): void {
+  /** @override */
+  protected onPreUpdate(): void {
+  }
 
-    }
+  /** @override */
+  protected onUpdate(): void {
+  }
 
-    // @Override
-    protected onPreUpdate(): void {
-    }
-
-    // @Override
-    protected onUpdate(): void {
-    }
-
-    // @Override
-    protected onPostUpdate(): void {
-    }
+  /** @override */
+  protected onPostUpdate(): void {
+  }
 }
 
 /**
@@ -48,12 +46,12 @@ export class Sprite extends LibraryAsset {
  */
 export class SpriteLoader extends LibraryAssetLoader {
 
-    // @Override
-    onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Sprite {
-        let asset = new Sprite(id, json.name);
-        asset.load(json, projectZip);
-        return asset;
-    }
+  /** @override */
+  onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Sprite {
+    let asset = new Sprite(id, json.name);
+    asset.load(json, projectZip);
+    return asset;
+  }
 }
 
 LibraryAssetLoader.set('sprite', new SpriteLoader());

@@ -8,68 +8,62 @@ import { UniqueObject } from './UniqueObject';
  */
 export abstract class UpdatedObject extends UniqueObject implements Dirtable {
 
-    private dirty: boolean;
+  private dirty: boolean;
+  private dirtyUpdate: boolean;
 
-    private dirtyUpdate: boolean;
+  /**
+   * @constructor
+   *
+   * @param {string} name
+   * @param {string} id
+   */
+  protected constructor(name: string = null, id: string = null) {
+    super(name, id);
+    this.dirty = false;
+    this.dirtyUpdate = true;
+  }
 
-    /**
-     * Main constructor.
-     */
-    protected constructor(name: string = null, id: string = null) {
+  /** @override */
+  isDirty(): boolean {
+    return this.dirty;
+  }
 
-        super(name, id);
+  /** @override */
+  setDirty(flag: boolean): void {
+    this.dirty = flag;
+  }
 
-        this.dirty = false;
-        this.dirtyUpdate = true;
-
+  /**
+   * Call this to update the object.
+   *
+   * <p><b>NOTE:</b> The object will only update when it is dirty.
+   *
+   * @param {number} delta
+   */
+  public update(delta: number): void {
+    // Update the object only if it is dirty.
+    if (!this.requireDirtyToUpdate() || this.isDirty()) {
+      const result: boolean = this.onUpdate(delta);
+      if (this.requireDirtyToUpdate()) {
+        // Reset the dirty state of the object after updating successfully.
+        this.setDirty(!result);
+      }
     }
+  }
 
-    // @Override
-    isDirty(): boolean {
-        return this.dirty;
-    }
+  public requireDirtyToUpdate(): boolean {
+    return this.dirtyUpdate;
+  }
 
-    // @Override
-    setDirty(flag: boolean): void {
-        this.dirty = flag;
-    }
+  public setRequireDirtyToUpdate(flag: boolean): void {
+    this.dirtyUpdate = flag;
+  }
 
-    /**
-     * Call this to update the object.
-     *
-     * <p><b>NOTE:</b> The object will only update when it is dirty.
-     */
-    public update(delta: number): void {
-
-        // Update the object only if it is dirty.
-        if (!this.requireDirtyToUpdate() || this.isDirty()) {
-
-            let result: boolean = this.onUpdate(delta);
-
-            if (this.requireDirtyToUpdate()) {
-
-                // Reset the dirty state of the object after updating successfully.
-                this.setDirty(!result);
-
-            }
-
-        }
-
-    }
-
-    public requireDirtyToUpdate(): boolean {
-        return this.dirtyUpdate;
-    }
-
-    public setRequireDirtyToUpdate(flag: boolean): void {
-        this.dirtyUpdate = flag;
-    }
-
-    /**
-     * Fired when the object updates from being dirty.
-     *
-     * @return Return 'true' if the update is successful.
-     */
-    protected abstract onUpdate(delta: number): boolean;
+  /**
+   * Fired when the object updates from being dirty.
+   *
+   * @return {boolean} Return 'true' if the update is successful.
+   */
+  protected abstract onUpdate(delta: number): boolean;
 
 }

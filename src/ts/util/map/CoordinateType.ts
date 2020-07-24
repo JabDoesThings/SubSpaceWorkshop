@@ -4,6 +4,6 @@
  * @author Jab
  */
 export enum CoordinateType {
-    PIXEL = 'pixel',
-    TILE = 'tile'
+  PIXEL = 'pixel',
+  TILE = 'tile'
 }

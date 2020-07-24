@@ -7,51 +7,48 @@ import { Dirtable } from '../../util/Dirtable';
  */
 export class SelectionGroup implements Dirtable {
 
-    selections: { [slot: number]: Selection };
-    private dirty: boolean;
+  selections: { [slot: number]: Selection };
+  private dirty: boolean;
 
-    constructor() {
+  /** @constructor */
+  constructor() {
+    this.selections = {};
+    this.setDirty(true);
+  }
 
-        this.selections = {};
+  setSelection(slot: number, selection: Selection): void {
+    console.log(`setSelection(slot: ${slot}, selection: `, selection, "}");
+    this.selections[slot] = selection;
+    this.setDirty(true);
+  }
 
-        this.setDirty(true);
+  getSelection(slot: number): Selection {
+    return this.selections[slot];
+  }
+
+  getSelectionId(slot: number) {
+    const selection = this.selections[slot];
+    if (selection != null) {
+      return selection.id;
     }
+    return null;
+  }
 
-    setSelection(slot: number, selection: Selection): void {
-        console.log('setSelection(slot: ' + slot + ", selection: ", selection, "}");
-        this.selections[slot] = selection;
-        this.setDirty(true);
+  clear(): void {
+    for (let key in this.selections) {
+      this.selections[key] = undefined;
     }
+  }
 
-    getSelection(slot: number): Selection {
-        return this.selections[slot];
-    }
+  /** @override */
+  isDirty(): boolean {
+    return this.dirty;
+  }
 
-    getSelectionId(slot: number) {
-
-        let selection = this.selections[slot];
-        if (selection != null) {
-            return selection.id;
-        }
-
-        return null;
-    }
-
-    clear(): void {
-        for (let key in this.selections) {
-            this.selections[key] = undefined;
-        }
-    }
-
-    // @Override
-    isDirty(): boolean {
-        return this.dirty;
-    }
-
-    // @Override
-    setDirty(flag: boolean): void {
-        this.dirty = flag;
-    }
+  /** @override */
+  setDirty(flag: boolean): void {
+    this.dirty = flag;
+  }
 }
 
 /**
@@ -61,13 +58,19 @@ export class SelectionGroup implements Dirtable {
  */
 export class Selection {
 
-    type: string;
-    id: number | string;
+  type: string;
+  id: number | string;
 
-    constructor(type: string, id: number | string) {
-        this.type = type;
-        this.id = id;
-    }
+  /**
+   * @constructor
+   *
+   * @param {string} type
+   * @param {number | string} id
+   */
+  constructor(type: string, id: number | string) {
+    this.type = type;
+    this.id = id;
+  }
 }
 
 /**
@@ -76,11 +79,11 @@ export class Selection {
  * @author Jab
  */
 export enum SelectionType {
-    TILE = 'tile',
-    IMAGE = 'image',
-    MAP_OBJECT = 'map_object',
-    SCREEN_OBJECT = 'screen_object',
-    REGION = 'region'
+  TILE = 'tile',
+  IMAGE = 'image',
+  MAP_OBJECT = 'map_object',
+  SCREEN_OBJECT = 'screen_object',
+  REGION = 'region'
 }
 
 /**
@@ -89,7 +92,7 @@ export enum SelectionType {
  * @author Jab
  */
 export enum SelectionSlot {
-    PRIMARY = 0,
-    MIDDLE = 1,
-    SECONDARY = 2
+  PRIMARY = 0,
+  MIDDLE = 1,
+  SECONDARY = 2
 }

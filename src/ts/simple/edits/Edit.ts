@@ -7,25 +7,21 @@ import { EditManager } from '../EditManager';
  */
 export abstract class Edit {
 
+  /** @constructor */
+  protected constructor() {
+  }
 
-    /**
-     * Main constructor.
-     *
-     */
-    protected constructor() {
-    }
+  /**
+   * Redoes the edit.
+   *
+   * @param {EditManager} history The history of the project.
+   */
+  abstract do(history: EditManager): void;
 
-    /**
-     * Redoes the edit.
-     *
-     * @param history The history of the project.
-     */
-    abstract do(history: EditManager): void;
-
-    /**
-     * Undoes the edit.
-     *
-     * @param history The history of the project.
-     */
-    abstract undo(history: EditManager): void;
+  /**
+   * Undoes the edit.
+   *
+   * @param {EditManager} history The history of the project.
+   */
+  abstract undo(history: EditManager): void;
 }

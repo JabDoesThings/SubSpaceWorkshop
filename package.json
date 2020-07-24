@@ -3,12 +3,7 @@
   "version": "1.0.0",
   "description": "None",
   "main": "main.js",
-  "scripts": {
-    "start": "electron .",
-    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds",
-    "package-win": "electron-packager . electron-tutorial-app --overwrite --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Electron Tutorial App\" -ignore=src/",
-    "package-linux": "electron-packager . electron-tutorial-app --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/png/1024x1024.png --prune=true --out=release-builds"
-  },
+  "scripts": {},
   "devDependencies": {
     "@microsoft/tsdoc": "^0.12.10",
     "@types/fs-extra": "^8.0.0",
@@ -17,9 +12,13 @@
     "@types/node-fetch": "^2.3.7",
     "@types/xml2js": "^0.4.4",
     "@types/xmldom": "^0.1.29",
+    "@typescript-eslint/eslint-plugin": "^3.6.1",
+    "@typescript-eslint/parser": "^3.6.1",
     "electron": "latest",
     "electron-builder": "^21.2.0",
     "electron-devtools-installer": "latest",
+    "eslint": "^7.4.0",
+    "eslint-config-google": "^0.14.0",
     "grunt": "^1.0.4",
     "grunt-contrib-cssmin": "latest",
     "grunt-contrib-sass": "latest",
@@ -28,9 +27,12 @@
     "grunt-postcss": "latest",
     "grunt-ts": "latest",
     "retyped-stats-tsd-ambient": "0.0.0-0",
-    "tslint": "^3.2.1",
-    "typescript": "3.2.4",
-    "uuid": "^3.4.0"
+    "tslint": "latest",
+    "tslint-config-standard": "^9.0.0",
+    "tslint-eslint-rules": "^5.4.0",
+    "uuid": "^3.4.0",
+    "sass": "^1.26.10",
+    "typescript": "^3.9.6"
   },
   "dependencies": {
     "@material/animation": "^3.1.0",
@@ -46,17 +48,24 @@
     "fs-extra": "^8.1.0",
     "glsl-atmosphere": "^2.0.0",
     "highlight.js": "^9.12",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.1",
     "jquery-ui": "^1.12.1",
     "node": "^12.6.0",
     "node-fetch": "^2.6.0",
     "pixi-tilemap": "^2.0.6",
     "pixi.js": "^5.2.1",
     "stats.js": "latest",
-    "suncalc": "^1.8.0",
-    "three": "^0.106.2",
+    "three": "^0.118.3",
     "unzipper": "^0.10.10",
     "yaml": "^1.6.0",
     "zlib": "^1.0.5"
-  }
+  },
+  "staticFiles": {
+    "staticPath": "public",
+    "watcherGlob": "**"
+  },
+  "keywords": [
+    "typescript",
+    "javascript"
+  ]
 }

@@ -5,36 +5,34 @@
  */
 export interface Unique {
 
-    /**
-     * Simplified method for comparing two DataObjects by their respective ID's.
-     *
-     * @param other The other DataObject to compare.
-     *
-     * @return Returns 'true' if the DataObject's ID equals this ID.
-     */
-    equals(other: Unique): boolean;
+  /**
+   * Simplified method for comparing two DataObjects by their respective ID's.
+   *
+   * @param {Unique} other The other DataObject to compare.
+   *
+   * @return {boolean} Returns 'true' if the DataObject's ID equals this ID.
+   */
+  equals(other: Unique): boolean;
 
-    /**
-     * @return Returns the decorative name of the object.
-     */
-    getName(): string;
+  /** @return {string} Returns the decorative name of the object. */
+  getName(): string;
 
-    /**
-     * Sets the decorative name of the object.
-     *
-     * @param name The name to set.
-     */
-    setName(name: string): void;
+  /**
+   * Sets the decorative name of the object.
+   *
+   * @param {string} name The name to set.
+   */
+  setName(name: string): void;
 
-    /**
-     * @return Returns the internal ID of the object.
-     */
-    getId(): string;
+  /**
+   * @return {string} Returns the internal ID of the object.
+   */
+  getId(): string;
 
-    /**
-     * Sets the internal ID of the object.
-     *
-     * @param id The ID to set.
-     */
-    setId(id: string): void;
+  /**
+   * Sets the internal ID of the object.
+   *
+   * @param {string} id The ID to set.
+   */
+  setId(id: string): void;
 }

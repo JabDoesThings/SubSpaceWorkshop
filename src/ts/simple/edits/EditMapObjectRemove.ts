@@ -1,5 +1,5 @@
 import { CompiledLVZMapObject, LVZPackage } from '../../io/LVZ';
-import { EditManager} from '../EditManager';
+import { EditManager } from '../EditManager';
 import { EditMapObject } from './EditMapObject';
 
 /**
@@ -9,24 +9,24 @@ import { EditMapObject } from './EditMapObject';
  */
 export class EditMapObjectRemove extends EditMapObject {
 
-    /**
-     * Main constructor.
-     *
-     * @param layer
-     * @param lvzPackage
-     * @param object
-     */
-    constructor(layer: string, lvzPackage: LVZPackage, object: CompiledLVZMapObject) {
-        super(layer, lvzPackage, object);
-    }
+  /**
+   * @constructor
+   *
+   * @param {string} layer
+   * @param {LVZPackage} lvzPackage
+   * @param {CompiledLVZMapObject} object
+   */
+  constructor(layer: string, lvzPackage: LVZPackage, object: CompiledLVZMapObject) {
+    super(layer, lvzPackage, object);
+  }
 
-    // @Override
-    do(history: EditManager): void {
-        this.lvzPackage.removeMapObject(this.object);
-    }
+  /** @override */
+  do(history: EditManager): void {
+    this.lvzPackage.removeMapObject(this.object);
+  }
 
-    // @Override
-    undo(history: EditManager): void {
-        this.lvzPackage.addMapObject(this.object);
-    }
+  /** @override */
+  undo(history: EditManager): void {
+    this.lvzPackage.addMapObject(this.object);
+  }
 }

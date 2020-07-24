@@ -1,8 +1,10 @@
-import * as PIXI from "pixi.js";
+// eslint no-unused-vars: "off"
+
+import * as PIXI from 'pixi.js';
 import { MapRenderer } from '../simple/render/MapRenderer';
-import { Renderer } from './Renderer';
 import { SeededRandom } from '../util/SeededRandom';
-import { Project } from '../simple/Project';
+import type { Project } from '../simple/Project';
+import type { Renderer } from './Renderer';
 
 /**
  * The <i>Background</i> class. TODO: Document.
@@ -10,135 +12,142 @@ import { Project } from '../simple/Project';
  * @author Jab
  */
 export class Background extends PIXI.Container {
+  view: Renderer;
+  project: Project;
+  g: PIXI.Graphics;
+  texLayer: BackgroundObjectLayer;
+  random: SeededRandom;
+  private readonly layer1: StarFieldLayer;
+  private readonly layer2: StarFieldLayer;
+  private lw: number;
+  private lh: number;
+  private dirty: boolean = true;
 
-    view: Renderer;
-    g: PIXI.Graphics;
+  /**
+   * @constructor
+   *
+   * @param {Project} project
+   * @param {Renderer} view
+   * @param {number} seed
+   */
+  constructor(project: Project, view: Renderer, seed: number) {
+    super();
 
-    private layer1: StarFieldLayer;
-    private layer2: StarFieldLayer;
-    texLayer: BackgroundObjectLayer;
-    private lw: number;
-    private lh: number;
-    random: SeededRandom;
-    seed: number;
-    project: Project;
-    private dirty: boolean;
+    this.project = project;
+    this.view = view;
+    this.random = new SeededRandom(seed);
 
-    constructor(project: Project, view: Renderer, seed: number) {
+    this.filters = [];
+    this.filterArea = view.app.screen;
 
-        super();
+    this.g = new PIXI.Graphics();
+    this.lw = -1;
+    this.lh = -1;
 
-        this.project = project;
-        this.view = view;
-        this.setSeed(seed);
+    this.layer1 = new StarFieldLayer(this, 0x606060, 8);
+    this.layer2 = new StarFieldLayer(this, 0xB8B8B8, 6);
+    this.texLayer = new BackgroundObjectLayer(this);
 
-        this.filters = [];
-        this.filterArea = view.app.screen;
+    this.addChild(this.layer1);
+    this.addChild(this.layer2);
+    this.addChild(this.texLayer);
 
-        this.g = new PIXI.Graphics();
-        this.lw = -1;
-        this.lh = -1;
+    this.draw();
+  }
 
-        this.dirty = true;
+  /**
+   * Draws the background.
+   */
+  draw(): void {
+    this.removeChildren();
+    this.layer1.plotAndDraw();
+    this.layer2.plotAndDraw();
+    this.texLayer.draw();
+    this.dirty = false;
+  }
 
-        this.draw();
+  /**
+   * Updates the background.
+   */
+  update(): void {
+    if (this.dirty) {
+      this.draw();
     }
 
-    draw(): void {
+    const camera = this.view.camera;
 
-        this.removeChildren();
+    const screen = this.view.app.screen;
+    if (screen.width != this.lw || screen.height != this.lh) {
+      this.g.clear();
+      this.g.beginFill(0x000000);
+      this.g.drawRect(0, 0, screen.width, screen.height);
+      this.g.endFill();
 
-        this.random = new SeededRandom(this.seed);
-
-        this.layer1 = new StarFieldLayer(this, 0x606060, 8);
-        this.layer2 = new StarFieldLayer(this, 0xB8B8B8, 6);
-        this.texLayer = new BackgroundObjectLayer(this);
-
-        // this.addChild(this.g);
-        this.addChild(this.layer1);
-        this.addChild(this.layer2);
-        this.addChild(this.texLayer);
-
-        this.dirty = false;
+      this.lw = screen.width;
+      this.lh = screen.height;
     }
 
-    update(): void {
+    const scale = camera.position.scale;
 
-        if (this.dirty) {
-            this.draw();
-        }
+    let alpha = 1;
+    if (scale >= 0.25 && scale <= 0.5) {
+      alpha = (scale - 0.25) * 4;
+      if (alpha > 1) {
+        alpha = 1;
+      } else if (alpha < 0) {
+        alpha = 0;
+      }
+    } else if (scale < 0.25) {
+      alpha = 0;
+    }
+    this.alpha = alpha;
 
-        let camera = this.view.camera;
-
-        let screen = this.view.app.screen;
-        if (screen.width != this.lw || screen.height != this.lh) {
-
-            this.g.clear();
-            this.g.beginFill(0x000000);
-            this.g.drawRect(0, 0, screen.width, screen.height);
-            this.g.endFill();
-
-            this.lw = screen.width;
-            this.lh = screen.height;
-        }
-
-        let scale = camera.position.scale;
-
-        let alpha = 1;
-        if (scale >= 0.25 && scale <= 0.5) {
-            alpha = (scale - 0.25) * 4;
-            if (alpha > 1) {
-                alpha = 1;
-            } else if (alpha < 0) {
-                alpha = 0;
-            }
-        } else if (scale < 0.25) {
-            alpha = 0;
-        }
-        this.alpha = alpha;
-
-        if (this.alpha == 0) {
-            return;
-        }
-
-        if (camera.isDirty()) {
-
-            this.texLayer.update();
-            let cpos = camera.position;
-            let scale = cpos.scale;
-            let invScale = 1 / scale;
-            let sw2 = invScale * (this.view.app.screen.width / 2.0);
-            let sh2 = invScale * (this.view.app.screen.height / 2.0);
-            let cx = (cpos.x * 16);
-            let cy = (cpos.y * 16);
-
-            this.layer1.x = (sw2 + (-(cx / this.layer1._scale))) * scale;
-            this.layer1.y = (sh2 + (-(cy / this.layer1._scale))) * scale;
-            this.layer1.scale.x = scale;
-            this.layer1.scale.y = scale;
-
-            this.layer2.x = (sw2 + (-(cx / this.layer2._scale))) * scale;
-            this.layer2.y = (sh2 + (-(cy / this.layer2._scale))) * scale;
-            this.layer2.scale.x = scale;
-            this.layer2.scale.y = scale;
-        }
-
-        this.dirty = false;
+    if (this.alpha == 0) {
+      return;
     }
 
-    setSeed(seed: number) {
-        this.seed = seed;
-        this.random = new SeededRandom(seed);
+    if (camera.isDirty()) {
+      this.texLayer.update();
+      const cpos = camera.position;
+      const scale = cpos.scale;
+      const invScale = 1 / scale;
+      const sw2 = invScale * (this.view.app.screen.width / 2.0);
+      const sh2 = invScale * (this.view.app.screen.height / 2.0);
+      const cx = (cpos.x * 16);
+      const cy = (cpos.y * 16);
+
+      this.layer1.x = (sw2 + (-(cx / this.layer1._scale))) * scale;
+      this.layer1.y = (sh2 + (-(cy / this.layer1._scale))) * scale;
+      this.layer1.scale.x = scale;
+      this.layer1.scale.y = scale;
+
+      this.layer2.x = (sw2 + (-(cx / this.layer2._scale))) * scale;
+      this.layer2.y = (sh2 + (-(cy / this.layer2._scale))) * scale;
+      this.layer2.scale.x = scale;
+      this.layer2.scale.y = scale;
     }
 
-    isDirty(): boolean {
-        return this.dirty;
-    }
+    this.dirty = false;
+  }
 
-    // @Override
-    setDirty(flag: boolean): void {
-        this.dirty = flag;
-    }
+  /**
+   * Sets the seed for the background to generate background objects & stars.
+   *
+   * @param {number} seed The seed to set.
+   */
+  setSeed(seed: number) {
+    this.random = new SeededRandom(seed);
+  }
+
+  /** @override */
+  isDirty(): boolean {
+    return this.dirty;
+  }
+
+  /** @override */
+  setDirty(flag: boolean): void {
+    this.dirty = flag;
+  }
 }
 
 /**
@@ -147,135 +156,129 @@ export class Background extends PIXI.Container {
  * @author Jab
  */
 export class BackgroundObjectLayer extends PIXI.Container {
+  private background: Background;
 
-    private background: Background;
+  _scale: number;
 
-    _scale: number;
+  /**
+   * @constructor
+   *
+   * @param {Background} background
+   */
+  constructor(background: Background) {
+    super();
+    this.background = background;
+    this._scale = 2;
+    this.filters = [MapRenderer.chromaFilter];
+    this.filterArea = this.background.view.app.screen;
+  }
 
-    constructor(background: Background) {
+  /** Updates the background. */
+  update(): void {
+    const camera = this.background.view.camera;
+    if (camera.isDirty()) {
+      const cpos = camera.position;
+      const cx = (cpos.x * 16) / this._scale;
+      const cy = (cpos.y * 16) / this._scale;
+      const scale = cpos.scale;
+      const invScale = 1 / scale;
 
-        super();
+      const screen = this.background.view.app.screen;
+      const sw = screen.width;
+      const sh = screen.height;
 
-        this.background = background;
+      const sw2 = (sw / 2.0) * invScale;
+      const sh2 = (sh / 2.0) * invScale;
 
-        this._scale = 2;
+      for (const key in this.children) {
+        if (!Object.prototype.hasOwnProperty.call(this.children, key)) {
+          continue;
+        }
 
-        this.draw();
+        const next = this.children[key];
 
-        this.filters = [MapRenderer.chromaFilter];
-        this.filterArea = this.background.view.app.screen;
+        // @ts-ignore
+        const _x = next._x;
+        // @ts-ignore
+        const _y = next._y;
+
+        next.x = sw2 + (-cx) + _x;
+        next.y = sh2 + (-cy) + _y;
+        next.x *= scale;
+        next.y *= scale;
+        next.scale.x = scale;
+        next.scale.y = scale;
+      }
+    }
+  }
+
+  /** Draws the background. */
+  draw(): void {
+    this.removeChildren();
+
+    const outerRange = 1024;
+    const minX = -outerRange * 4;
+    const minY = -outerRange * 4;
+    const maxX = 32768 / this._scale;
+    const maxY = 32768 / this._scale;
+    const dx = maxX - minX;
+    const dy = maxY - minY;
+    const random = this.background.random;
+    const atlas = this.background.project.atlas;
+    const bgs: PIXI.Texture[] = [];
+    const stars: PIXI.Texture[] = [];
+
+    const textures = atlas.getTextureAtlases();
+    for (const key in textures) {
+      if (key.toLowerCase().startsWith('bg')) {
+        bgs.push(textures[key].texture);
+      } else if (key.toLowerCase().startsWith('star')) {
+        stars.push(textures[key].texture);
+      }
     }
 
-    update(): void {
-        let camera = this.background.view.camera;
-        if (camera.isDirty()) {
+    for (let index = 0; index < 256; index++) {
+      const textureId = Math.floor(random.nextDouble() * stars.length);
+      const texture = stars[textureId];
+      if (texture == null || !texture.valid) {
+        continue;
+      }
 
-            let cpos = camera.position;
-            let cx = (cpos.x * 16) / this._scale;
-            let cy = (cpos.y * 16) / this._scale;
-            let scale = cpos.scale;
-            let invScale = 1 / scale;
+      const sprite = new PIXI.Sprite(texture);
+      sprite.filters = [MapRenderer.chromaFilter];
+      sprite.filterArea = this.background.view.app.screen;
+      sprite.x = Math.floor(minX + (random.nextDouble() * dx));
+      sprite.y = Math.floor(minY + (random.nextDouble() * dy));
 
-            let screen = this.background.view.app.screen;
-            let sw = screen.width;
-            let sh = screen.height;
+      // @ts-ignore
+      sprite._x = sprite.x;
+      // @ts-ignore
+      sprite._y = sprite.y;
 
-            let sw2 = (sw / 2.0) * invScale;
-            let sh2 = (sh / 2.0) * invScale;
-
-            for (let key in this.children) {
-
-                let next = this.children[key];
-
-                // @ts-ignore
-                let _x = next._x;
-                // @ts-ignore
-                let _y = next._y;
-
-                next.x = sw2 + (-cx) + _x;
-                next.y = sh2 + (-cy) + _y;
-                next.x *= scale;
-                next.y *= scale;
-                next.scale.x = scale;
-                next.scale.y = scale;
-            }
-        }
+      this.addChild(sprite);
     }
 
-    draw(): void {
+    for (let index = 0; index < 32; index++) {
+      const textureId = Math.floor(random.nextDouble() * bgs.length);
+      const texture = bgs[textureId];
+      if (texture == null || !texture.valid) {
+        continue;
+      }
 
-        this.removeChildren();
+      const sprite = new PIXI.Sprite(texture);
+      sprite.filters = [MapRenderer.chromaFilter];
+      sprite.filterArea = this.background.view.app.screen;
+      sprite.x = Math.floor(minX + (random.nextDouble() * dx));
+      sprite.y = Math.floor(minY + (random.nextDouble() * dy));
 
-        let outerRange = 1024;
+      // @ts-ignore
+      sprite._x = sprite.x;
+      // @ts-ignore
+      sprite._y = sprite.y;
 
-        let minX = -outerRange * 4;
-        let minY = -outerRange * 4;
-        let maxX = 32768 / this._scale;
-        let maxY = 32768 / this._scale;
-        let dx = maxX - minX;
-        let dy = maxY - minY;
-
-        let random = this.background.random;
-
-        let atlas = this.background.project.atlas;
-
-        let bgs: PIXI.Texture[] = [];
-        let stars: PIXI.Texture[] = [];
-
-        let textures = atlas.getTextureAtlases();
-        for (let key in textures) {
-            if (key.toLowerCase().startsWith('bg')) {
-                bgs.push(textures[key].texture);
-            } else if (key.toLowerCase().startsWith('star')) {
-                stars.push(textures[key].texture);
-            }
-        }
-
-        for (let index = 0; index < 256; index++) {
-
-            let textureId = Math.floor(random.nextDouble() * stars.length);
-            let texture = stars[textureId];
-            if (texture == null || !texture.valid) {
-                continue;
-            }
-
-
-            let sprite = new PIXI.Sprite(texture);
-            sprite.filters = [MapRenderer.chromaFilter];
-            sprite.filterArea = this.background.view.app.screen;
-            sprite.x = Math.floor(minX + (random.nextDouble() * dx));
-            sprite.y = Math.floor(minY + (random.nextDouble() * dy));
-
-            // @ts-ignore
-            sprite._x = sprite.x;
-            // @ts-ignore
-            sprite._y = sprite.y;
-
-            this.addChild(sprite);
-        }
-
-        for (let index = 0; index < 32; index++) {
-
-            let textureId = Math.floor(random.nextDouble() * bgs.length);
-            let texture = bgs[textureId];
-            if (texture == null || !texture.valid) {
-                continue;
-            }
-
-            let sprite = new PIXI.Sprite(texture);
-            sprite.filters = [MapRenderer.chromaFilter];
-            sprite.filterArea = this.background.view.app.screen;
-            sprite.x = Math.floor(minX + (random.nextDouble() * dx));
-            sprite.y = Math.floor(minY + (random.nextDouble() * dy));
-
-            // @ts-ignore
-            sprite._x = sprite.x;
-            // @ts-ignore
-            sprite._y = sprite.y;
-
-            this.addChild(sprite);
-        }
+      this.addChild(sprite);
     }
+  }
 }
 
 /**
@@ -284,78 +287,54 @@ export class BackgroundObjectLayer extends PIXI.Container {
  * @author Jab
  */
 export class StarFieldLayer extends PIXI.Container {
+  _color: number;
+  _scale: number;
 
-    _color: number;
-    _scale: number;
+  private background: Background;
 
-    private background: Background;
-    private points: number[][];
+  /**
+   * @constructor
+   *
+   * @param {Background} background
+   * @param {number} color
+   * @param {number} scale
+   */
+  constructor(background: Background, color: number, scale: number) {
+    super();
 
-    constructor(background: Background, color: number, scale: number) {
+    this.background = background;
+    this._color = color;
+    this._scale = scale;
+    this.filters = [MapRenderer.chromaFilter];
+    this.filterArea = this.background.view.app.screen;
+  }
 
-        super();
+  plotAndDraw() {
+    const points = [];
+    const outerRange = 1024;
 
-        this.background = background;
-        this._color = color;
-        this._scale = scale;
+    const minX = -outerRange * 4;
+    const minY = -outerRange * 4;
+    const maxX = 32768 / this._scale;
+    const maxY = 32768 / this._scale;
+    const dx = maxX - minX;
+    const dy = maxY - minY;
 
-        this.filters = [MapRenderer.chromaFilter];
-        this.filterArea = this.background.view.app.screen;
-
-        this.plot();
-
-        this.draw();
+    for (let index = 0; index < 32768; index++) {
+      const x = Math.floor(minX + (Math.random() * dx));
+      const y = Math.floor(minY + (Math.random() * dy));
+      points.push([x, y]);
     }
 
-    private plot() {
-        this.points = [];
-        let outerRange = 1024;
-
-        let minX = -outerRange * 4;
-        let minY = -outerRange * 4;
-        let maxX = 32768 / this._scale;
-        let maxY = 32768 / this._scale;
-        let dx = maxX - minX;
-        let dy = maxY - minY;
-
-        for (let index = 0; index < 32768; index++) {
-            let x = Math.floor(minX + (Math.random() * dx));
-            let y = Math.floor(minY + (Math.random() * dy));
-            this.points.push([x, y]);
-        }
+    this.removeChildren();
+    const g = new PIXI.Graphics();
+    g.beginFill(this._color);
+    for (let index = 0; index < points.length; index++) {
+      const next = points[index];
+      // Draw each pixel for the star.
+      g.drawRect(next[0], next[1], 1, 1);
     }
-
-    draw(): void {
-
-        this.removeChildren();
-
-        let outerRange = 1024;
-
-        let g = new PIXI.Graphics();
-
-        g.beginFill(this._color);
-        for (let index = 0; index < this.points.length; index++) {
-            let next = this.points[index];
-            g.drawRect(next[0], next[1], 1, 1);
-        }
-        g.endFill();
-
-        this.addChild(g);
-    }
+    g.endFill();
+    this.addChild(g);
+  }
 }
-
-// BackgroundObjectLayer.backgroundTextures = [];
-//
-// for (let index = 1; index <= 14; index++) {
-//     let ext = index < 10 ? "0" + index : "" + index;
-//     let path = "assets/media/bg" + ext + ".png";
-//     BackgroundObjectLayer.backgroundTextures[index] = PIXI.Texture.from(path);
-// }
-//
-// BackgroundObjectLayer.starTextures = [];
-//
-// for (let index = 1; index <= 7; index++) {
-//     let ext = index < 10 ? "0" + index : "" + index;
-//     let path = "assets/media/star" + ext + ".png";
-//     BackgroundObjectLayer.starTextures[index] = PIXI.Texture.from(path);
-// }

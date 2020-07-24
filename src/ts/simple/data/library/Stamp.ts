@@ -8,35 +8,35 @@ import { LibraryAsset, LibraryAssetLoader } from './Library';
  */
 export class Stamp extends LibraryAsset {
 
-    /**
-     * Main constructor.
-     *
-     * @param id
-     * @param name
-     */
-    constructor(id: string = null, name: string) {
-        super('stamp', id, name);
-    }
+  /**
+   * @constructor
+   *
+   * @param {string} id
+   * @param {string} name
+   */
+  constructor(id: string = null, name: string) {
+    super('stamp', id, name);
+  }
 
-    // @Override
-    protected onLoad(json: { [field: string]: any }, libraryZip: Zip): void {
-    }
+  /** @override */
+  protected onLoad(json: { [field: string]: any }, libraryZip: Zip): void {
+  }
 
-    // @Override
-    protected onSave(json: { [field: string]: any }, libraryZip: Zip): void {
-    }
+  /** @override */
+  protected onSave(json: { [field: string]: any }, libraryZip: Zip): void {
+  }
 
-    // @Override
-    protected onPreUpdate(): void {
-    }
+  /** @override */
+  protected onPreUpdate(): void {
+  }
 
-    // @Override
-    protected onUpdate(): void {
-    }
+  /** @override */
+  protected onUpdate(): void {
+  }
 
-    // @Override
-    protected onPostUpdate(): void {
-    }
+  /** @override */
+  protected onPostUpdate(): void {
+  }
 }
 
 /**
@@ -46,12 +46,12 @@ export class Stamp extends LibraryAsset {
  */
 export class StampLoader extends LibraryAssetLoader {
 
-    // @Override
-    onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Stamp {
-        let asset = new Stamp(id, json.name);
-        asset.load(json, projectZip);
-        return asset;
-    }
+  /** @override */
+  onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Stamp {
+    let asset = new Stamp(id, json.name);
+    asset.load(json, projectZip);
+    return asset;
+  }
 }
 
 LibraryAssetLoader.set('stamp', new StampLoader());

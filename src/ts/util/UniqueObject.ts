@@ -8,49 +8,48 @@ import { Unique } from './Unique';
  */
 export abstract class UniqueObject implements Unique {
 
-    private id: string;
-    private name: string;
+  private id: string;
+  private name: string;
 
-    /**
-     * Main constructor.
-     *
-     * @param name The decorative name of the object.
-     * @param id The internal ID of the object. If not provided, a UUID V4 is generated.
-     */
-    protected constructor(name: string, id: string = null) {
-        this.name = name;
-        if (id == null) {
-            this.id = uuid.v4();
-        } else {
-            this.id = id;
-        }
+  /**
+   * Main constructor.
+   *
+   * @param {string} name The decorative name of the object.
+   * @param {string} id The internal ID of the object. If not provided, a UUID V4 is generated.
+   */
+  protected constructor(name: string, id: string = null) {
+    this.name = name;
+    if (id == null) {
+      this.id = uuid.v4();
+    } else {
+      this.id = id;
     }
+  }
 
-    // @Override
-    public equals(other: Unique): boolean {
-        return other != null
-            && other instanceof UniqueObject
-            && other.getId() === this.getId();
-    }
+  /** @override */
+  public equals(other: Unique): boolean {
+    return other != null
+      && other instanceof UniqueObject
+      && other.getId() === this.getId();
+  }
 
-    // @Override
-    public getName(): string {
-        return this.name;
-    }
+  /** @override */
+  public getName(): string {
+    return this.name;
+  }
 
-    // @Override
-    public setName(name: string): void {
-        this.name = name;
-    }
+  /** @override */
+  public setName(name: string): void {
+    this.name = name;
+  }
 
-    // @Override
-    public getId(): string {
-        return this.id;
-    }
+  /** @override */
+  public getId(): string {
+    return this.id;
+  }
 
-    // @Override
-    public setId(id: string): void {
-        this.id = id;
-    }
+  /** @override */
+  public setId(id: string): void {
+    this.id = id;
+  }
 }
-

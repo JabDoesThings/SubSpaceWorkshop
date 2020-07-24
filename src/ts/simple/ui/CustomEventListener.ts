@@ -1,4 +1,3 @@
-
 /**
  * The <i>UIEventListener</i> abstract class. TODO: Document.
  *
@@ -6,77 +5,72 @@
  */
 export abstract class CustomEventListener<E extends CustomEvent> {
 
-    private listeners: ((event: E) => void | boolean)[];
-    private dispatching: boolean;
+  private listeners: ((event: E) => void | boolean)[];
+  private dispatching: boolean;
 
-    /**
-     * Main constructor.
-     */
-    protected constructor() {
-        this.listeners = [];
+  /** @constructor */
+  protected constructor() {
+    this.listeners = [];
+    this.dispatching = false;
+  }
+
+  /**
+   * Dispatches a event.
+   *
+   * @param {E} event The event to pass.
+   * @param {boolean} ignoreCancelled If true, the event will not check for cancellation.
+   *
+   * @return {boolean} Returns true if the event is cancelled.
+   */
+  dispatch(event: E, ignoreCancelled: boolean = false): boolean {
+    if (this.dispatching) {
+      return false;
+    }
+    if (event.forced) {
+      ignoreCancelled = true;
+    }
+    this.dispatching = true;
+    for (let index = 0; index < this.listeners.length; index++) {
+      if (ignoreCancelled) {
+        this.listeners[index](event);
+      } else if (this.listeners[index](event)) {
         this.dispatching = false;
+        return true;
+      }
     }
+    this.dispatching = false;
+    return false;
+  }
 
-    /**
-     * Dispatches a event.
-     *
-     * @param event The event to pass.
-     * @param ignoreCancelled If true, the event will not check for cancellation.
-     *
-     * @return Returns true if the event is cancelled.
-     */
-    dispatch(event: E, ignoreCancelled: boolean = false): boolean {
+  /**
+   * Adds a callback to be invoked when an event is dispatched.
+   *
+   * @param {(event: E)=>void|boolean} callback
+   */
+  addEventListener(callback: (event: E) => void | boolean): void {
+    this.listeners.push(callback);
+  }
 
-        if (this.dispatching) {
-            return false;
-        }
-
-        if (event.forced) {
-            ignoreCancelled = true;
-        }
-
-        this.dispatching = true;
-
-        for (let index = 0; index < this.listeners.length; index++) {
-            if (ignoreCancelled) {
-                this.listeners[index](event);
-            } else if (this.listeners[index](event)) {
-                this.dispatching = false;
-                return true;
-            }
-        }
-
-        this.dispatching = false;
-
-        return false;
+  /**
+   * Removes a callback to be invoked when an event is dispatched.
+   *
+   * @param {(event: E)=>void|boolean} callback
+   */
+  removeEventListener(callback: (event: E) => (void | boolean)) {
+    const newArray: ((event: E) => void | boolean)[] = [];
+    for (let index = 0; index < this.listeners.length; index++) {
+      const next = this.listeners[index];
+      if (next === callback) {
+        continue;
+      }
+      newArray.push(next);
     }
+    this.listeners = newArray;
+  }
 
-    /**
-     * Adds a callback to be invoked when an event is dispatched.
-     *
-     * @param callback
-     */
-    addEventListener(callback: (event: E) => void | boolean): void {
-        this.listeners.push(callback);
-    }
-
-    removeEventListener(callback: (event: E) => (void | boolean)) {
-        let newArray: ((event: E) => void | boolean)[] = [];
-
-        for (let index = 0; index < this.listeners.length; index++) {
-            let next = this.listeners[index];
-            if (next === callback) {
-                continue;
-            }
-            newArray.push(next);
-        }
-
-        this.listeners = newArray;
-    }
-
-    clearEventListeners(): void {
-        this.listeners = [];
-    }
+  clearEventListeners(): void {
+    this.listeners = [];
+  }
 }
 
 /**
@@ -85,6 +79,6 @@ export abstract class CustomEventListener<E extends CustomEvent> {
  * @author Jab
  */
 export interface CustomEvent {
-    eventType: string,
-    forced: boolean
+  eventType: string;
+  forced: boolean;
 }

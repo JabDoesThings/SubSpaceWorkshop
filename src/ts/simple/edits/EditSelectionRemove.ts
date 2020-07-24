@@ -1,44 +1,42 @@
 import { Edit } from './Edit';
 import { EditManager } from '../EditManager';
-import { MapSection, MapSections } from '../../util/map/MapSection';
+import { MapSection } from '../../util/map/MapSection';
 
 export class EditSelectionRemove extends Edit {
 
-    private readonly selections: MapSection[];
+  private readonly selections: MapSection[];
+  private done: boolean;
 
-    private done: boolean;
+  /**
+   * @constructor
+   *
+   * @param {MapSection[]} selections
+   */
+  constructor(selections: MapSection[]) {
+    super();
+    this.selections = selections;
+    this.done = false;
+  }
 
-    constructor(selections: MapSection[]) {
-
-        super();
-
-        this.selections = selections;
-        this.done = false;
+  /** @override */
+  do(history: EditManager): void {
+    if (this.done) {
+      throw new Error('The selection is already removed.');
     }
-
-    do(history: EditManager): void {
-
-        if (this.done) {
-            throw new Error("The selection is already removed.");
-        }
-
-        for (let index = 0; index < this.selections.length; index++) {
-            history.project.selections.remove(this.selections[index]);
-        }
-
-        this.done = true;
+    for (let index = 0; index < this.selections.length; index++) {
+      history.project.selections.remove(this.selections[index]);
     }
+    this.done = true;
+  }
 
-    undo(history: EditManager): void {
-
-        if (!this.done) {
-            throw new Error("The selection is not removed.");
-        }
-
-        for (let index = this.selections.length - 1; index >= 0; index--) {
-            history.project.selections.add(this.selections[index]);
-        }
-
-        this.done = false;
+  /** @override */
+  undo(history: EditManager): void {
+    if (!this.done) {
+      throw new Error('The selection is not removed.');
     }
+    for (let index = this.selections.length - 1; index >= 0; index--) {
+      history.project.selections.add(this.selections[index]);
+    }
+    this.done = false;
+  }
 }

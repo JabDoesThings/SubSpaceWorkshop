@@ -9,9 +9,9 @@ import { MapRenderer } from './MapRenderer';
  * @author Jab
  */
 interface TileEntry {
-    index: number,
-    x: number,
-    y: number
+  index: number;
+  x: number;
+  y: number;
 }
 
 /**
@@ -21,161 +21,145 @@ interface TileEntry {
  */
 export class ELVLRegionRender {
 
-    private entries: TileEntry[];
+  private entries: TileEntry[];
 
-    private region: ELVLRegion;
+  private region: ELVLRegion;
 
-    container: PIXI.Container;
+  container: PIXI.Container;
 
-    private bounds: PIXI.Rectangle;
-    private view: MapRenderer;
+  private bounds: PIXI.Rectangle;
+  private view: MapRenderer;
 
-    /**
-     * Main constructor.
-     *
-     * @param region The region to render.
-     */
-    constructor(view: MapRenderer, region: ELVLRegion) {
+  /**
+   * Main constructor.
+   *
+   * @param {MapRenderer} view
+   * @param {ELVLRegion} region The region to render.
+   */
+  constructor(view: MapRenderer, region: ELVLRegion) {
+    this.view = view;
+    this.region = region;
+    this.entries = [];
+    this.container = new PIXI.Container();
+    this.container.cacheAsBitmap = true;
+    this.bounds = new PIXI.Rectangle(0, 0, 0, 0);
+    this.compile();
+  }
 
-        this.view = view;
-        this.region = region;
+  update(): void {
+    const camera = this.view.camera;
 
-        this.entries = [];
+    if (camera.isDirty()) {
+      const cpos = camera.position;
+      const cx = cpos.x * 16;
+      const cy = cpos.y * 16;
+      const scale = cpos.scale;
+      const invScale = 1 / scale;
+      const sw = this.view.app.screen.width;
+      const sh = this.view.app.screen.height;
+      const sw2 = (sw / 2) * invScale;
+      const sh2 = (sh / 2) * invScale;
 
-        this.container = new PIXI.Container();
-        this.container.cacheAsBitmap = true;
-        this.bounds = new PIXI.Rectangle(0, 0, 0, 0);
+      const x1 = this.bounds.x;
+      const y1 = this.bounds.y;
+      const cx1 = cx - sw2;
+      const cy1 = cy - sh2;
 
-        this.compile();
+      this.container.x = Math.floor(x1 - cx1) * scale;
+      this.container.y = Math.floor(y1 - cy1) * scale;
+      this.container.scale.x = scale;
+      this.container.scale.y = scale;
     }
+  }
 
-    private compile(): void {
+  private compile(): void {
+    const tileData = this.region.tileData;
+    const tiles = tileData.tiles;
 
-        let tileData = this.region.tileData;
-        let tiles = tileData.tiles;
+    let minX = 999999;
+    let minY = 999999;
+    let maxX = -999999;
+    let maxY = -999999;
 
-        let minX = 999999;
-        let minY = 999999;
-        let maxX = -999999;
-        let maxY = -999999;
+    this.entries = [];
 
-        this.entries = [];
-
-        for (let y = 0; y < 1024; y++) {
-            for (let x = 0; x < 1024; x++) {
-                if (tiles[x][y]) {
-
-                    let entry = {
-                        x: x,
-                        y: y,
-                        index: this.entries.length
-                    };
-
-                    this.entries.push(entry);
-
-                    if (x < minX) {
-                        minX = x;
-                    }
-                    if (x > maxX) {
-                        maxX = x;
-                    }
-                    if (y < minY) {
-                        minY = y;
-                    }
-                    if (y > maxY) {
-                        maxY = y;
-                    }
-                }
-            }
+    for (let y = 0; y < 1024; y++) {
+      for (let x = 0; x < 1024; x++) {
+        if (tiles[x][y]) {
+          const entry = {
+            x: x,
+            y: y,
+            index: this.entries.length
+          };
+          this.entries.push(entry);
+          if (x < minX) {
+            minX = x;
+          }
+          if (x > maxX) {
+            maxX = x;
+          }
+          if (y < minY) {
+            minY = y;
+          }
+          if (y > maxY) {
+            maxY = y;
+          }
         }
+      }
+    }
 
-        if (this.entries.length != 0) {
+    if (this.entries.length != 0) {
+      this.bounds.x = minX;
+      this.bounds.y = minY;
+      this.bounds.width = maxX - minX;
+      this.bounds.height = maxY - minY;
+    } else {
+      this.bounds.x = 0;
+      this.bounds.y = 0;
+      this.bounds.width = 0;
+      this.bounds.height = 0;
+    }
 
-            this.bounds.x = minX;
-            this.bounds.y = minY;
-            this.bounds.width = maxX - minX;
-            this.bounds.height = maxY - minY;
+    this.draw();
+  }
 
-            // this.bounds.x = 0;
-            // this.bounds.y = 0;
-            // this.bounds.width = 1024;
-            // this.bounds.height = 1024;
+  private draw() {
+    this.container.removeChildren();
+    const x1 = this.bounds.x;
+    const y1 = this.bounds.y;
+    const c = this.region.color;
+    const color = (255 & 0xFF) << 24 | (c[0] & 0xFF) << 16 | (c[1] & 0xFF) << 8 | (c[2] & 0xFF);
+    let index = 0;
+    while (index < this.entries.length) {
+      const g = new PIXI.Graphics();
+      let gIndex = 0;
 
-        } else {
-            this.bounds.x = 0;
-            this.bounds.y = 0;
-            this.bounds.width = 0;
-            this.bounds.height = 0;
+      while (gIndex < 0x1000) {
+        const next = this.entries[index++];
+        g.beginFill(color);
+        g.drawRect(-x1 + (next.x * 16), -y1 + (next.y * 16), 16, 16);
+        g.endFill();
+        gIndex++;
+        if (index == this.entries.length) {
+          break;
         }
-
-        this.draw();
+      }
+      this.container.addChild(g);
     }
+  }
 
-    update(): void {
-        let camera = this.view.camera;
+  /** @return {ELVLRegion} Returns the ELVLRegion rendered. */
+  getRegion(): ELVLRegion {
+    return this.region;
+  }
 
-        if (camera.isDirty()) {
-
-            let cpos = camera.position;
-            let cx = cpos.x * 16;
-            let cy = cpos.y * 16;
-            let scale = cpos.scale;
-            let invScale = 1 / scale;
-            let sw = this.view.app.screen.width;
-            let sh = this.view.app.screen.height;
-            let sw2 = (sw / 2) * invScale;
-            let sh2 = (sh / 2) * invScale;
-
-            let x1 = this.bounds.x;
-            let y1 = this.bounds.y;
-            let cx1 = cx - sw2;
-            let cy1 = cy - sh2;
-
-            this.container.x = Math.floor(x1 - cx1) * scale;
-            this.container.y = Math.floor(y1 - cy1) * scale;
-            this.container.scale.x = scale;
-            this.container.scale.y = scale;
-        }
+  /**
+   * @param {ELVLRegion} region
+   */
+  setRegion(region: ELVLRegion): void {
+    if (this.region === region) {
+      return;
     }
-
-    /**
-     * @return Returns the ELVLRegion rendered.
-     */
-    getRegion(): ELVLRegion {
-        return this.region;
-    }
-
-    private draw() {
-
-        this.container.removeChildren();
-
-        let x1 = this.bounds.x, y1 = this.bounds.y;
-
-        let c = this.region.color;
-        let color = (255 & 0xFF) << 24 | (c[0] & 0xFF) << 16 | (c[1] & 0xFF) << 8 | (c[2] & 0xFF);
-
-        let index = 0;
-        while (index < this.entries.length) {
-
-            let gIndex = 0;
-            let g = new PIXI.Graphics();
-
-            while (gIndex < 0x1000) {
-
-                let next = this.entries[index++];
-
-                g.beginFill(color);
-                g.drawRect(-x1 + (next.x * 16), -y1 + (next.y * 16), 16, 16);
-                g.endFill();
-
-                gIndex++;
-
-                if (index == this.entries.length) {
-                    break;
-                }
-            }
-
-            this.container.addChild(g);
-        }
-    }
+    this.region = region;
+  }
 }

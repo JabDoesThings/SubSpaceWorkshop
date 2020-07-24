@@ -10,38 +10,34 @@ import { Zip } from '../../io/Zip';
  */
 export class WallTileLayer extends GeneratedLayer {
 
-    private wallTileData: TileData[];
-    private idToValueMap: {[id: string]: number};
-    private valueToIdMap: {[value: number]: string};
+  private wallTileData: TileData[];
+  private idToValueMap: { [id: string]: number };
+  private valueToIdMap: { [value: number]: string };
 
-    /**
-     * Main constructor.
-     *
-     * @param manager
-     * @param id
-     * @param name
-     */
-    constructor(manager: LayerManager, id: string, name: string) {
-        super('walltile', id, name);
-    }
+  /**
+   * @constructor
+   *
+   * @param {LayerManager} manager
+   * @param {string} id
+   * @param {string} name
+   */
+  constructor(manager: LayerManager, id: string, name: string) {
+    super('walltile', id, name);
+  }
 
-    // @Override
-    onLoad(json: { [p: string]: any }, projectZip: Zip): void {
+  /** @override */
+  onLoad(json: { [p: string]: any }, projectZip: Zip): void {
+  }
 
-    }
+  /** @override */
+  onSave(json: { [p: string]: any }, projectZip: Zip): void {
+  }
 
-    // @Override
-    onSave(json: { [p: string]: any }, projectZip: Zip): void {
+  /** @override */
+  protected onGenerate(): void {
+  }
 
-    }
-
-    // @Override
-    protected onGenerate(): void {
-
-    }
-
-    // @Override
-    protected onCacheApply(): void {
-
-    }
+  /** @override */
+  protected onCacheApply(): void {
+  }
 }

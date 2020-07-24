@@ -1,17 +1,18 @@
 {
-  "version": "3.2.4",
+  "version": "3.9.6",
   "compilerOptions": {
-    "compileOnSave": true,
-    "target": "es5",
+    "strict": false,
     "module": "commonjs",
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "allowJs": true,
     "sourceMap": false,
     "emitDecoratorMetadata": false,
     "experimentalDecorators": false,
-    "moduleName": "window",
     "outDir": "staged/js/",
-    "rootDir": "src/ts/",
-    "noImplicitAny": true,
+    "rootDir": "src",
     "moduleResolution": "node",
+    "noImplicitAny": true,
     "typeRoots": [
       "node_modules/@types",
       "node_modules/three/src/Three.d.ts",
@@ -19,9 +20,15 @@
       "node_modules/pixi.js/pixi.js.d.ts",
       "node_modules/pixi-tilemap/dist/pixi-tilemap.d.ts",
       "node_modules/@types/stats/index.d.ts"
-    ]
+    ],
+    "strictNullChecks": false
   },
   "files": [
     "src/ts/main.ts"
+  ],
+  "lib": [
+    "es6",
+    "dom"
   ]
+
 }

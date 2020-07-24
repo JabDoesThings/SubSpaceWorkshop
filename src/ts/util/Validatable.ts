@@ -4,5 +4,5 @@
  * @author Jab
  */
 export interface Validatable {
-    validate(): void;
+  validate(): void;
 }
