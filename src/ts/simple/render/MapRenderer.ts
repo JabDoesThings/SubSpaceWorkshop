@@ -1,6 +1,5 @@
 import * as PIXI from "pixi.js";
 import { MapGrid } from './MapGrid';
-import { MapRadar } from './MapRadar';
 import { PalettePanel } from '../ui/PalettePanel';
 import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Renderer';
 import { Radar } from '../../common/Radar';
@@ -61,7 +60,7 @@ export class MapRenderer extends Renderer {
   public constructor(editor: Editor) {
     super();
     this.editor = editor;
-    this.radar = new MapRadar(this);
+    this.radar = new Radar(this);
     this.layers = new LayerCluster();
     this.mapLayers = new LayerCluster();
     this.screenLayers = new LayerCluster();

@@ -4,6 +4,22 @@ import { Vector2 } from 'three';
 import { PathMode } from '../util/Path';
 import type { Renderer } from './Renderer';
 import type { Dirtable } from '../util/Dirtable';
+import { MapRenderer } from '../simple/render/MapRenderer';
+import { Editor } from '../simple/Editor';
+import { HSVtoRGB, RGBtoHSV } from '../util/ColorUtils';
+
+const hsv216 = RGBtoHSV(75, 50, 37);
+const hsv217 = RGBtoHSV(75, 50, 37);
+const hsv218 = RGBtoHSV(75, 50, 37);
+const hsv219 = RGBtoHSV(75, 75, 75);
+const hsv220 = RGBtoHSV(113, 0, 102);
+const hsvMisc = RGBtoHSV(238, 238, 238);
+const rgb216 = HSVtoRGB(hsv216.h, hsv216.s, hsv216.v < 0.5 ? 0.5 : hsv216.v);
+const rgb217 = HSVtoRGB(hsv217.h, hsv217.s, hsv217.v < 0.5 ? 0.5 : hsv217.v);
+const rgb218 = HSVtoRGB(hsv218.h, hsv218.s, hsv218.v < 0.5 ? 0.5 : hsv218.v);
+const rgb219 = HSVtoRGB(hsv219.h, hsv219.s, hsv219.v < 0.5 ? 0.5 : hsv219.v);
+const rgb220 = HSVtoRGB(hsv220.h, hsv220.s, hsv220.v < 0.5 ? 0.5 : hsv220.v);
+const rgbMisc = HSVtoRGB(hsvMisc.h, hsvMisc.s, hsvMisc.v < 0.5 ? 0.5 : hsvMisc.v);
 
 /**
  * The <i>Radar</i> class. TODO: Document.
@@ -13,10 +29,11 @@ import type { Dirtable } from '../util/Dirtable';
 export class Radar implements Dirtable {
   lock: boolean;
   protected readonly view: Renderer;
+  protected readonly imgData: ImageData = new ImageData(1024, 1024);
   protected readonly drawCanvas: HTMLCanvasElement;
   protected readonly drawCtx: CanvasRenderingContext2D;
-  private readonly canvas: HTMLCanvasElement;
-  private readonly ctx: CanvasRenderingContext2D;
+  protected readonly canvas: HTMLCanvasElement;
+  protected readonly ctx: CanvasRenderingContext2D;
   private readonly largeSize: number;
   private readonly smallSize: number;
   private dirty: boolean = true;
@@ -35,6 +52,8 @@ export class Radar implements Dirtable {
       throw new Error('Failed to create HTMLCanvasElement.');
     }
     this.ctx = <CanvasRenderingContext2D> this.canvas.getContext('2d');
+    this.ctx.imageSmoothingEnabled = true;
+    this.ctx.imageSmoothingQuality = 'high';
 
     this.drawCanvas = <HTMLCanvasElement> document.createElement("canvas");
     if (!this.drawCanvas) {
@@ -108,7 +127,7 @@ export class Radar implements Dirtable {
   /** Updates the radar. */
   update(): void {
     // TODO: Probably need to hook back up. -Jab
-    const alt = false; // this.isAltPressed();
+    const alt = this.isAltPressed();
     const screenHeight = this.view.app.screen.height;
     const largeSize = Math.min(this.largeSize, screenHeight - 24);
 
@@ -133,7 +152,7 @@ export class Radar implements Dirtable {
     }
 
     if (this.isDirty()) {
-      this.draw().finally(() => {
+      this.draw().then(() => {
         this.apply();
       });
       this.setDirty(false);
@@ -145,6 +164,8 @@ export class Radar implements Dirtable {
     const screenHeight = this.view.app.screen.height;
     const largeSize = Math.min(this.largeSize, screenHeight - 24);
     const size = this.large ? largeSize : this.smallSize;
+
+    this.drawCtx.putImageData(this.imgData, 0, 0);
     this.ctx.drawImage(this.drawCanvas, 0, 0, 1024, 1024, 0, 0, size, size);
   }
 
@@ -182,8 +203,90 @@ export class Radar implements Dirtable {
     this.dirty = flag;
   }
 
-  /** @abstract */
   async draw() {
-    console.log('draw()');
+    const project = (<MapRenderer> this.view).project;
+    if (project == null) {
+      return;
+    }
+
+    // const timeStart = new Date().getTime();
+
+    const setColor = (x: number, y: number, r: number, g: number, b: number, a: number = 255) => {
+      const index = 4 * (x + y * this.imgData.width);
+      this.imgData.data[index] = r;
+      this.imgData.data[index + 1] = g;
+      this.imgData.data[index + 2] = b;
+      this.imgData.data[index + 3] = a;
+    };
+
+    const fillRect = (x: number, y: number, w: number, h: number, r: number = 0, g: number = 0, b: number = 0, a: number = 255) => {
+      for (let _y = y; _y <= y + h; _y++) {
+        for (let _x = x; _x <= x + w; _x++) {
+          setColor(_x, _y, r, g, b, a);
+        }
+      }
+    };
+
+    // Clear the radar to its clear color.
+    fillRect(0, 0, 1024, 1024);
+
+    const tileset = project.tileset;
+    const layers = project.layers;
+
+    for (let y = 0; y < 1024; y++) {
+      for (let x = 0; x < 1024; x++) {
+        const tileId = layers.getTile(x, y);
+        if (tileId > 0) {
+          let color = {r: 0, g: 0, b: 0};
+
+          let dim = 1;
+          switch (tileId) {
+            case 216:
+              color = rgb216;
+              break;
+            case 217:
+              dim = 2;
+              color = rgb217;
+              break;
+            case 218:
+              color = rgb218;
+              break;
+            case 219:
+              color = rgb219;
+              dim = 6;
+              break;
+            case 220:
+              color = rgb220;
+              dim = 5;
+              break;
+            default:
+              if (tileset != null) {
+                let tColor = tileset.tileColor[tileId];
+                if (!tColor) {
+                  tColor = tileset.defaultTileColor;
+                }
+                color = {r: tColor[0], g: tColor[1], b: tColor[2]};
+              } else {
+                color = rgbMisc;
+              }
+              break;
+          }
+          setColor(x, y, color.r, color.g, color.b);
+        }
+      }
+    }
+
+    // console.log(`Radar drawn. Took ${new Date().getTime() - timeStart}ms.`);
+  }
+
+  isAltPressed(): boolean {
+    // @ts-ignore
+    let editor: Editor = global.editor;
+    // Make sure that selection tools do not get interrupted by the alt function of the radar.
+    let activeTool = editor.renderer.toolManager.getActive();
+    if (activeTool != null && activeTool.isSelector) {
+      return false;
+    }
+    return editor.isAltPressed();
   }
 }

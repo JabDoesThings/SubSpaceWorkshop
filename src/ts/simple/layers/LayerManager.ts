@@ -282,21 +282,23 @@ export class LayerManager {
    *   are available, -1 is returned.
    */
   getTile(x: number, y: number): number {
-    // if (this.layers.length === 0) {
-    //   return -1;
-    // }
-    // for (let index = this.layers.length - 1; index >= 0; index--) {
-    //   const layer = this.layers[index];
-    //   if (!layer.isVisible()) {
-    //     continue;
-    //   }
-    //   const tileId = layer.getTile(x, y);
-    //   if (tileId > 0) {
-    //     return tileId;
-    //   }
-    // }
-    // return -1;
+    if (this.layers.length === 0) {
+      return -1;
+    }
+    for (let index = this.layers.length - 1; index >= 0; index--) {
+      const layer = this.layers[index];
+      if (!layer.isVisible()) {
+        continue;
+      }
+      const tileId = layer.getTile(x, y);
+      if (tileId > 0) {
+        return tileId;
+      }
+    }
+    return -1;
+  }
 
+  getCachedTile(x: number, y: number): number {
     return this._combinedTileData.get(x, y);
   }
 

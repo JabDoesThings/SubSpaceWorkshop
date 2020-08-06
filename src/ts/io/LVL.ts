@@ -4,6 +4,7 @@ import { LVL } from './LVLUtils';
 import { ELVLCollection } from './ELVL';
 import { TileData } from '../util/map/TileData';
 import { MapArea } from '../util/map/MapArea';
+import { HSVtoRGB, RGBtoHSV } from '../util/ColorUtils';
 
 /**
  * The <i>LVLMap</i> class. TODO: Document.
@@ -71,9 +72,11 @@ export class LVLTileSet implements Dirtable {
 
   private readonly tiles: PIXI.Texture[];
   private readonly tileCoordinates: number[][];
-  readonly tileColor: string[];
+  readonly tileColor: number[][];
+  readonly defaultTileColor: number[] = [170, 170, 170];
 
   texture: PIXI.Texture;
+  canvas: HTMLCanvasElement;
   borderTile: PIXI.Texture;
   bitCount: number;
 
@@ -86,9 +89,17 @@ export class LVLTileSet implements Dirtable {
    */
   constructor(canvasOrTexture: HTMLCanvasElement | PIXI.Texture) {
     if (canvasOrTexture instanceof HTMLCanvasElement) {
+      this.canvas = canvasOrTexture;
       this.texture = PIXI.Texture.from(canvasOrTexture.toDataURL());
     } else {
       this.texture = canvasOrTexture;
+      this.canvas = document.createElement('canvas');
+      this.canvas.width = 304;
+      this.canvas.height = 160;
+      const ctx = this.canvas.getContext('2d');
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      // @ts-ignore
+      ctx.drawImage(canvasOrTexture.baseTexture.resource.source, 0, 0);
     }
 
     this.bitCount = 24;
@@ -102,52 +113,57 @@ export class LVLTileSet implements Dirtable {
       }
     }
 
-    for (let y = 0; y < 4; y++) {
+    for (let y = 0; y < 10; y++) {
       for (let x = 0; x < 19; x++) {
         this.tileCoordinates.push([16 * x, 16 * y]);
       }
     }
 
     this.tileColor = [];
-    this.tileColor.push('black');
-    for (let y = 0; y < 4; y++) {
+    this.tileColor.push([0, 0, 0]);
+    for (let y = 0; y < 10; y++) {
       for (let x = 0; x < 19; x++) {
-        // TODO: Re-implement. -Jab
-        //
-        // let imgData = ctx.getImageData(x * 16, y * 16, 16, 16).data;
-        //
-        // let pixelCount = 0;
-        // let ar = 0;
-        // let ag = 0;
-        // let ab = 0;
-        //
-        // let offset = 0;
-        // for (let py = 0; py < 16; py++) {
-        //     for (let px = 0; px < 16; px++) {
-        //         let r = imgData[offset];
-        //         let g = imgData[offset + 1];
-        //         let b = imgData[offset + 2];
-        //
-        //         if (r !== 0 && g !== 0 && b !== 0) {
-        //             pixelCount++;
-        //             ar += r;
-        //             ag += g;
-        //             ab += b;
-        //         }
-        //
-        //         offset += 4;
-        //     }
-        // }
-        // let color = '#aaaaaa';
-        // if (pixelCount != 0) {
-        //     ar /= pixelCount;
-        //     ag /= pixelCount;
-        //     ab /= pixelCount;
-        //     color = 'rgb(' + ar + ',' + ag + ',' + ab + ')';
-        // }
-        // this.tileColor.push(color);
 
-        this.tileColor.push('#aaaaaa');
+        const ctx = this.canvas.getContext('2d');
+        let imgData = ctx.getImageData(x * 16, y * 16, 16, 16).data;
+
+        let pixelCount = 0;
+        let ar = 0;
+        let ag = 0;
+        let ab = 0;
+
+        let offset = 0;
+        for (let py = 0; py < 16; py++) {
+          for (let px = 0; px < 16; px++) {
+            let r = imgData[offset];
+            let g = imgData[offset + 1];
+            let b = imgData[offset + 2];
+            if (r !== 0 && g !== 0 && b !== 0) {
+              pixelCount++;
+              ar += r;
+              ag += g;
+              ab += b;
+            }
+            offset += 4;
+          }
+        }
+        const color = [0, 0, 0];
+        if (pixelCount != 0) {
+          color[0] = ar / pixelCount;
+          color[1] = ag / pixelCount;
+          color[2] = ab / pixelCount;
+        }
+        let finalColor;
+        if(pixelCount !== 0) {
+          const hsv = RGBtoHSV(color[0], color[1], color[2]);
+          if (hsv.v < 0.5) {
+            hsv.v = 0.5;
+          }
+          finalColor = HSVtoRGB(hsv.h, hsv.s, hsv.v);
+        } else {
+          finalColor = {r: 0, g: 0, b: 0};
+        }
+        this.tileColor.push([finalColor.r, finalColor.g, finalColor.b]);
       }
     }
     this.borderTile = new PIXI.Texture(this.texture.baseTexture, new PIXI.Rectangle(0, 16, 16, 16));
