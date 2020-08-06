@@ -334,8 +334,10 @@ export class Project extends CustomEventListener<CustomEvent> {
             type = 'default';
           }
           const layer = LayerLoader.get(type).onLoad(id, next, zip);
-          layers.add(layer);
+          layers.add(layer, false, false);
         }
+        // await layers.combineTileLayers(true);
+        layers.setActive(layers.layers[layers.layers.length - 1]);
 
         if (zip.exists('tileset.bmp')) {
           project.setTileset(LVL.readTileset(<Buffer> zip.get('tileset.bmp')));

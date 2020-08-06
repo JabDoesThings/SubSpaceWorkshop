@@ -48,11 +48,11 @@ export class Background extends PIXI.Container {
     this.layer2 = new StarFieldLayer(this, 0xB8B8B8, 6);
     this.texLayer = new BackgroundObjectLayer(this);
 
+    this.draw();
+
     this.addChild(this.layer1);
     this.addChild(this.layer2);
     this.addChild(this.texLayer);
-
-    this.draw();
   }
 
   /**

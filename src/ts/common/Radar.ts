@@ -184,5 +184,6 @@ export class Radar implements Dirtable {
 
   /** @abstract */
   async draw() {
+    console.log('draw()');
   }
 }

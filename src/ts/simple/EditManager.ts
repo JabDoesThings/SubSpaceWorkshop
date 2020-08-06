@@ -65,6 +65,7 @@ export class EditManager {
     }
   }
 
+
   reset(): void {
     for (let index = this.editsToPush.length - 1; index >= 0; index--) {
       const next = this.editsToPush[index];

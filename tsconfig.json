@@ -9,8 +9,8 @@
     "sourceMap": false,
     "emitDecoratorMetadata": false,
     "experimentalDecorators": false,
-    "outDir": "staged/js/",
-    "rootDir": "src",
+    "outDir": "assets/js/",
+    "rootDir": "src/ts/",
     "moduleResolution": "node",
     "noImplicitAny": true,
     "typeRoots": [

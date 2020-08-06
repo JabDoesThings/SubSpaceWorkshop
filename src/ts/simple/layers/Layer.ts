@@ -500,6 +500,7 @@ export class DefaultLayerLoader extends LayerLoader {
 
   /** @override */
   onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Layer {
+    console.log(`# Reading layer: ${json.name} (${id})`);
     let layer = new Layer(json.type, id, json.name);
     layer.load(json, projectZip);
     return layer;

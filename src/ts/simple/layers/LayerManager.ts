@@ -62,14 +62,17 @@ export class LayerManager {
    *
    * @param {Layer} layer The layer to add.
    * @param {boolean} setActive
+   * @param {boolean} combine
    */
-  add(layer: Layer, setActive: boolean = true): void {
+  add(layer: Layer, setActive: boolean = true, combine: boolean = true): void {
     layer.setManager(this);
     this.layers.push(layer);
     if (setActive) {
       this.active = layer;
     }
-    this.combineTileLayers(true);
+    if (combine) {
+      this.combineTileLayers(true);
+    }
     this.updateUI();
   }
 
@@ -244,9 +247,11 @@ export class LayerManager {
     if (this.layers.length !== 0) {
       for (let index = 0; index < this.layers.length; index++) {
         const next = this.layers[index];
-        next.update(delta);
-        if (next.isCacheDirty()) {
-          tileDirty = true;
+        if (next.isVisible()) {
+          next.update(delta);
+          if (next.isCacheDirty()) {
+            tileDirty = true;
+          }
         }
       }
     }
@@ -277,20 +282,22 @@ export class LayerManager {
    *   are available, -1 is returned.
    */
   getTile(x: number, y: number): number {
-    if (this.layers.length === 0) {
-      return -1;
-    }
-    for (let index = this.layers.length - 1; index >= 0; index--) {
-      const layer = this.layers[index];
-      if (!layer.isVisible()) {
-        continue;
-      }
-      const tileId = layer.getTile(x, y);
-      if (tileId > 0) {
-        return tileId;
-      }
-    }
-    return -1;
+    // if (this.layers.length === 0) {
+    //   return -1;
+    // }
+    // for (let index = this.layers.length - 1; index >= 0; index--) {
+    //   const layer = this.layers[index];
+    //   if (!layer.isVisible()) {
+    //     continue;
+    //   }
+    //   const tileId = layer.getTile(x, y);
+    //   if (tileId > 0) {
+    //     return tileId;
+    //   }
+    // }
+    // return -1;
+
+    return this._combinedTileData.get(x, y);
   }
 
   /** @override */
@@ -327,7 +334,7 @@ export class LayerManager {
     return this.active;
   }
 
-  combineTileLayers(clear: boolean = false): void {
+  async combineTileLayers(clear: boolean = false) {
     const isVisible = (layer: Layer): boolean => {
       if (!layer.isVisible()) {
         return false;

@@ -199,23 +199,54 @@ export class MapArea {
     if (type === CoordinateType.TILE) {
       if (this.type === CoordinateType.TILE) {
         return new MapArea(CoordinateType.TILE, x1, y1, x2, y2);
+      } else if (this.type === CoordinateType.CHUNK) {
+        return new MapArea(CoordinateType.TILE, x1 << 6, y1 << 6, x2 << 6, y2 << 6);
       } else {
-        x1 = Math.floor(x1 / 16);
-        y1 = Math.floor(y1 / 16);
-        x2 = Math.floor(x2 / 16);
-        y2 = Math.floor(y2 / 16);
-        return new MapArea(CoordinateType.TILE, x1, y1, x2, y2);
+        return new MapArea(CoordinateType.TILE, x1 >> 4, y1 >> 4, x2 >> 4, y2 >> 4);
       }
     } else if (type === CoordinateType.PIXEL) {
       if (this.type === CoordinateType.TILE) {
-        x1 *= 16;
-        y1 *= 16;
-        x2 *= 16;
-        y2 *= 16;
-        return new MapArea(CoordinateType.PIXEL, x1, y1, x2, y2);
+        return new MapArea(CoordinateType.PIXEL, x1 << 4, y1 << 4, x2 << 4, y2 << 4);
+      } else if (this.type === CoordinateType.CHUNK) {
+        return new MapArea(CoordinateType.PIXEL, x1 << 10, y1 << 10, x2 << 10, y2 << 10);
       } else {
         return new MapArea(CoordinateType.PIXEL, x1, y1, x2, y2);
+      }
+    } else if (type === CoordinateType.CHUNK) {
+      if (this.type === CoordinateType.TILE) {
+        return new MapArea(CoordinateType.CHUNK, x1 >> 6, y1 >> 6, x2 >> 6, y2 >> 6);
+      } else if (this.type === CoordinateType.CHUNK) {
+        return new MapArea(CoordinateType.CHUNK, x1, y1, x2, y2);
+      } else {
+        return new MapArea(CoordinateType.CHUNK, x1 >> 10, y1 >> 10, x2 >> 10, y2 >> 10);
       }
     }
   }
 }
+
+// const test = () => {
+//   const print = (areas: MapArea[]) => {
+//     areas.forEach(area => {
+//       console.log(`\tMapArea{type: ${area.type}, {x1: ${area.x1}, y1: ${area.y1}, x2: ${area.x2}, y2: ${area.y2}}`);
+//     });
+//   };
+//   let area: MapArea;
+//   let area2: MapArea;
+//   let area3: MapArea;
+//   console.log('# TEST 1');
+//   area = new MapArea(CoordinateType.CHUNK, 1, 1, 2, 2);
+//   area2 = area.asType(CoordinateType.TILE);
+//   area3 = area.asType(CoordinateType.PIXEL);
+//   print([area, area2, area3]);
+//   console.log('\n# TEST 2');
+//   area = new MapArea(CoordinateType.TILE, 64, 64, 128, 128);
+//   area2 = area.asType(CoordinateType.CHUNK);
+//   area3 = area.asType(CoordinateType.PIXEL);
+//   print([area, area2, area3]);
+//   console.log('\n# TEST 3');
+//   area = new MapArea(CoordinateType.PIXEL, 1024, 1024, 2048, 2048);
+//   area2 = area.asType(CoordinateType.CHUNK);
+//   area3 = area.asType(CoordinateType.TILE);
+//   print([area, area2, area3]);
+// };
+// test();

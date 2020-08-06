@@ -21,5 +21,6 @@ const main = require("./assets/js/main.js");
 
 // Start application.
 $(function () {
+  console.log('### START ###');
   main.start();
 });
