@@ -433,6 +433,20 @@ export class LVL {
   }
 }
 
+export const toTilesetCoords = (mx: number, my: number): { x: number, y: number } => {
+  if (mx < 0) {
+    mx = 0;
+  } else if (mx > 303) {
+    mx = 303;
+  }
+  if (my < 0) {
+    my = 0;
+  } else if (my > 159) {
+    my = 159;
+  }
+  return {x: mx >> 4, y: my >> 4};
+};
+
 // Create dimension array to reference for tools.
 for (let index = 0; index < 256; index++) {
   LVL.TILE_DIMENSIONS[index] = new Array(2);

@@ -154,12 +154,9 @@ export class LVLTileSet implements Dirtable {
           color[2] = ab / pixelCount;
         }
         let finalColor;
-        if(pixelCount !== 0) {
+        if (pixelCount !== 0) {
           const hsv = RGBtoHSV(color[0], color[1], color[2]);
-          if (hsv.v < 0.5) {
-            hsv.v = 0.5;
-          }
-          finalColor = HSVtoRGB(hsv.h, hsv.s, hsv.v);
+          finalColor = HSVtoRGB(hsv.h, hsv.s, hsv.v < 0.25 ? 0.25 : hsv.v);
         } else {
           finalColor = {r: 0, g: 0, b: 0};
         }

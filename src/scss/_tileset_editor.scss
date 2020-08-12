@@ -1,0 +1,161 @@
+@import 'color';
+
+.inner-window {
+  position: absolute;
+  z-index: 10;
+
+  .title {
+    display: block;
+    width: 100%;
+    height: 20px;
+    user-select: none;
+    background-color: $color4;
+    cursor: grab;
+
+    label {
+      display: inline-block;
+      margin-left: 5px;
+      line-height: 20px;
+
+      color: #eee;
+      font-size: 12px;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  .menu-bar {
+    position: relative;
+    width: calc(100% - 12px);
+    height: 19px;
+    padding-left: 6px;
+    padding-right: 6px;
+
+    line-height: 16px;
+    background-color: $color4;
+
+    user-select: none;
+    -webkit-user-drag: none;
+
+    border-top: 1px solid $color3;
+
+    .icon-menu {
+      display: inline-block;
+
+      width: 14px;
+      height: 12px;
+      margin: 0;
+      padding: 0;
+
+      border: 1px black;
+      font-size: 12px;
+      -webkit-user-drag: none;
+      cursor: pointer;
+
+      i {
+        position: relative;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        color: $color8;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      &:hover {
+        i {
+          color: $color7;
+        }
+      }
+    }
+
+    .text-menu {
+
+    }
+  }
+
+  .content {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: calc(100% - 32px);
+    height: calc(100% - 32px - 24px);
+    padding: 16px;
+    background-color: $color3;
+  }
+}
+
+#tileset-editor {
+  display: inline-block;
+  position: absolute;
+
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 336px;
+  height: 360px;
+
+  background-color: $color3;
+  box-shadow: 0 0 2px 2px rgba(0, 0, 0, .5);
+
+  .canvas-container {
+    display: inline-block;
+  }
+
+  #tileset-editor-view {
+    display: inline-block;
+    position: relative;
+    box-shadow: 0 0 1px 1px rgba(0, 0, 0, .5);
+  }
+
+  #tileset-editor-selection-view {
+    display: inline-block;
+    position: absolute;
+    top: 192px;
+    left: 16px;
+    box-shadow: 0 0 1px 1px rgba(0, 0, 0, .5);
+  }
+
+  .button-container.vertical {
+    display: inline-block;
+    position: absolute;
+    top: 192px;
+    left: 224px;
+
+    .button {
+      display: block;
+      width: 96px;
+      height: 24px;
+      user-select: none;
+      background-color: $color4;
+      padding: 0;
+      margin-bottom: 2px;
+
+      text-align: center;
+      cursor: pointer;
+
+      border: 1px solid $color1;
+
+      label {
+        display: inline-block;
+        margin-left: 5px;
+        line-height: 25px;
+        color: #eee;
+        font-size: 12px;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      &:hover {
+        background-color: $color5;
+        border: 1px solid $color3;
+      }
+    }
+  }
+}

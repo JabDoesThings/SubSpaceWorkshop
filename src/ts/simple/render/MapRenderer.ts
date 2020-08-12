@@ -26,6 +26,8 @@ import {
   UITool,
   UITooltip
 } from '../ui/UI';
+import { RenderMode } from './RenderMode';
+import GlassBlur from './GlassBlur';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -37,6 +39,8 @@ export class MapRenderer extends Renderer {
   readonly layers: LayerCluster;
   readonly mapLayers: LayerCluster;
   readonly screenLayers: LayerCluster;
+
+  mode: RenderMode = RenderMode.NORMAL;
 
   grid: MapGrid;
   project: Project;
@@ -51,6 +55,8 @@ export class MapRenderer extends Renderer {
   screen: ScreenManager;
   toolManager: ToolManager;
   editor: Editor;
+
+  glassBlur: GlassBlur;
 
   /**
    * @constructor
@@ -192,6 +198,8 @@ export class MapRenderer extends Renderer {
     const vp = container.getElementsByClassName('viewport').item(0);
     vp.appendChild(this.toolbarLeft.element);
     updateViewport();
+
+    this.glassBlur = new GlassBlur(this);
   }
 
   /** @override */
@@ -266,8 +274,10 @@ export class MapRenderer extends Renderer {
       return;
     }
 
+    this.glassBlur.onUpdate();
     this.project.update(delta);
     const background = this.project.background;
+
     if (this.camera.isDirty()) {
       if (background.visible) {
         background.update();
@@ -319,6 +329,7 @@ export class MapRenderer extends Renderer {
       this.screenLayers.clear();
       this.layersTab.clear();
       project.activate();
+
       console.log(`Active project: ${this.project._name}`);
     }
 
@@ -330,7 +341,17 @@ export class MapRenderer extends Renderer {
       this.radar.apply();
     });
 
+    this.glassBlur.apply(this.mapLayers.layers[2]);
+
     this.camera.setDirty(true);
+  }
+
+  setGlassBlur(flag: boolean) {
+    if (flag) {
+      this.glassBlur.enable();
+    } else {
+      this.glassBlur.disable();
+    }
   }
 }
 

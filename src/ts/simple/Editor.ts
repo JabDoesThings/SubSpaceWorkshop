@@ -6,6 +6,7 @@ import { UITabMenu } from './ui/UI';
 import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 import { Layer } from './layers/Layer';
 import { LVL } from '../io/LVLUtils';
+import TilesetEditor from './ui/TilesetEditor';
 
 /**
  * The <i>Editor</i> class. TODO: Document.
@@ -18,6 +19,7 @@ export class Editor extends CustomEventListener<EditorEvent> {
   renderer: MapRenderer;
   tabMenu: UITabMenu;
   active: number;
+  tilesetEditor: TilesetEditor;
   private _shiftListener: KeyListener;
   private _controlListener: KeyListener;
   private _altListener: KeyListener;
@@ -120,6 +122,8 @@ export class Editor extends CustomEventListener<EditorEvent> {
     });
     this.add(projects);
     this.setActive(this.projects.length - 1);
+
+    this.tilesetEditor = new TilesetEditor(this);
   }
 
   /**
@@ -429,6 +433,13 @@ export class Editor extends CustomEventListener<EditorEvent> {
 
   isAltPressed(): boolean {
     return this._altListener.isDown;
+  }
+
+  getActiveProject() {
+    if (this.active === -1) {
+      return null;
+    }
+    return this.projects[this.active];
   }
 }
 
