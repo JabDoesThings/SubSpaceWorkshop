@@ -1,6 +1,8 @@
 import TileEditor from '../TileEditor';
 import TileEdit from '../TileEdit';
 import { TileEditorEvent } from '../TileEditorEvents';
+import { MathUtils } from 'three';
+import lerp = MathUtils.lerp;
 
 export abstract class TileEditTool {
 
@@ -11,10 +13,6 @@ export abstract class TileEditTool {
   private _type: string;
 
   private _penDown: boolean = false;
-
-  /** @constructor */
-  protected constructor() {
-  }
 
   penStart(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
 
@@ -41,24 +39,7 @@ export abstract class TileEditTool {
     this._event = event;
     this._type = 'penDrag';
 
-    // const origEvent = event.e.originalEvent;
-    //
-    // let edits;
-    // if (this._penDown) {
-    //   if (origEvent.pressure === 0) {
-    //     this._penDown = false;
-    //     edits = this.onPenStop(tileEditor, event);
-    //   } else {
-        const edits = this.onPenDrag(tileEditor, event);
-      // }
-    // } else {
-    //   if (origEvent.pointerType === 'pen' && origEvent.pressure !== 0) {
-    //     this._penDown = true;
-    //     edits = this.onPenStart(tileEditor, event);
-    //   } else {
-    //     edits = this.onDrag(tileEditor, event);
-    //   }
-    // }
+    const edits = this.onPenDrag(tileEditor, event);
 
     this._tileEditor = null;
     this._event = null;
@@ -86,13 +67,7 @@ export abstract class TileEditTool {
     this._event = event;
     this._type = 'start';
 
-    let edits;
-    if (event.e.originalEvent.pointerType === 'pen') {
-      this._penDown = true;
-      edits = this.onPenStart(tileEditor, event);
-    } else {
-      edits = this.onStart(tileEditor, event);
-    }
+    const edits = this.onStart(tileEditor, event);
 
     this._tileEditor = null;
     this._event = null;
@@ -226,6 +201,51 @@ export abstract class TileEditTool {
         fallback.penStop(this._tileEditor, this._event);
         break;
     }
+  }
+
+  drawAsLine(
+    tileEditor: TileEditor,
+    x1: number,
+    y1: number,
+    x2: number = null,
+    y2: number = null,
+    size: number = null,
+    opacity: number = 1
+  ): void {
+
+    if (size) {
+      tileEditor.brush.onPressure(tileEditor.brushSourceCanvas, size);
+    }
+
+    if (!x2 || !y2) {
+      this.draw(tileEditor, x1, y1, opacity);
+      return;
+    }
+
+    const scale = TileEditor.SCALES[tileEditor.scaleIndex];
+    const a = x1 - x2;
+    const b = y1 - y2;
+    const distance = Math.ceil(Math.sqrt(a * a + b * b) / (scale / 2));
+
+    if (distance <= 1) {
+      this.draw(tileEditor, x2, y2, opacity);
+      return;
+    }
+
+    for (let position = 0; position <= distance; position++) {
+      const _lerp = position / distance;
+      const x = lerp(x1, x2, _lerp);
+      const y = lerp(y1, y2, _lerp);
+      this.draw(tileEditor, x, y, opacity);
+    }
+  }
+
+  draw(tileEditor: TileEditor, x: number, y: number, opacity: number = 1): void {
+    const bx = x - Math.floor(tileEditor.brush.size / 2);
+    const by = y - Math.floor(tileEditor.brush.size / 2);
+    const ctx = tileEditor.drawSourceCanvas.getContext('2d');
+    ctx.globalAlpha = opacity;
+    ctx.drawImage(tileEditor.brushSourceCanvas, bx, by);
   }
 
   protected abstract onStart(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[];

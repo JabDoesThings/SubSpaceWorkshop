@@ -13,6 +13,10 @@ class TilesetEditor extends InnerWindow {
   private editor: Editor;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+
+  private sourceCanvas: HTMLCanvasElement;
+  private sourceCtx: CanvasRenderingContext2D;
+
   private selectionCanvas: HTMLCanvasElement;
   private selectionCtx: CanvasRenderingContext2D;
   private tileEditor: TileEditor;
@@ -21,22 +25,24 @@ class TilesetEditor extends InnerWindow {
   constructor(editor: Editor) {
     super(document.getElementById('tileset-editor'));
     this.editor = editor;
-    this.tileEditor = new TileEditor(this);
-  }
-
-  /** @override */
-  onInit() {
     this.canvas = <HTMLCanvasElement> document.getElementById('tileset-editor-view');
     this.ctx = this.canvas.getContext('2d');
+    this.sourceCanvas = <HTMLCanvasElement> document.createElement('canvas');
+    this.sourceCanvas.width = 304;
+    this.sourceCanvas.height = 160;
+    this.sourceCtx = this.sourceCanvas.getContext('2d');
     this.selectionCanvas = <HTMLCanvasElement> document.getElementById('tileset-editor-selection-view');
     this.selectionCtx = this.selectionCanvas.getContext('2d');
     this.selectionCtx.fillStyle = 'black';
     this.selectionCtx.fillRect(0, 0, 128, 128);
     this.selectionCtx.imageSmoothingEnabled = false;
+    this.tileEditor = new TileEditor(this);
+  }
+
+  /** @override */
+  onInit() {
     this.element.style.display = 'none';
-
     this.tileEditor.init();
-
     this._initCanvasEventListeners();
 
     $('#tileset-editor-button-edit-tiles').on('click', () => {
@@ -48,8 +54,10 @@ class TilesetEditor extends InnerWindow {
         (this.selection[3] + 1 - this.selection[1]) * 16
       ];
 
-      this.tileEditor.setSource(this.tileset.canvas, dim, (source => {
-        this.ctx.drawImage(source, dim[0], dim[1]);
+      this.tileEditor.setSource(this.sourceCanvas, dim, (source => {
+        this.sourceCtx.imageSmoothingEnabled = false;
+        this.sourceCtx.drawImage(source, dim[0], dim[1]);
+        this.draw();
       }), () => {
 
       });
@@ -63,7 +71,7 @@ class TilesetEditor extends InnerWindow {
   }
 
   save(): void {
-    this.tileset.set(this.canvas);
+    this.tileset.set(this.sourceCanvas);
     console.log('Setting Atlas Tileset.');
 
     const atlas = this.editor.getActiveProject().atlas;
@@ -80,6 +88,7 @@ class TilesetEditor extends InnerWindow {
       return;
     }
     this.tileset = activeProject.tileset;
+    this.revert();
     this.draw();
   }
 
@@ -87,17 +96,23 @@ class TilesetEditor extends InnerWindow {
   onClose() {
   }
 
+  revert() {
+    this.sourceCtx.fillStyle = 'red';
+    this.sourceCtx.fillRect(0, 0, 304, 160);
+    this.sourceCtx.drawImage(this.tileset.canvas, 0, 0);
+  }
+
   draw() {
-    this.ctx.fillStyle = 'black';
+    this.ctx.fillStyle = 'red';
     this.ctx.fillRect(0, 0, 304, 160);
-    this.ctx.drawImage(this.tileset.canvas, 0, 0);
+    this.ctx.drawImage(this.sourceCanvas, 0, 0);
 
     if (this.hasSelection()) {
       // Calculate canvas arguments from selection range.
-      let tx = this.selection[0] * 16;
-      let ty = this.selection[1] * 16;
-      let tw = (this.selection[2] + 1) * 16 - tx;
-      let th = (this.selection[3] + 1) * 16 - ty;
+      const tx = this.selection[0] * 16;
+      const ty = this.selection[1] * 16;
+      const tw = (this.selection[2] + 1) * 16 - tx;
+      const th = (this.selection[3] + 1) * 16 - ty;
 
       // Draw the selected tiles to the preview screen.
       this.selectionCtx.fillStyle = 'black';

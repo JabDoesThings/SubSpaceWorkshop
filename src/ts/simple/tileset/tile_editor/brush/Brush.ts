@@ -1,12 +1,14 @@
 abstract class Brush {
 
-  protected canvas: HTMLCanvasElement;
+  penSizeMin: number = 1;
+  penSizeMax: number = 8;
+  size: number = 3;
+  hardness: number = 0.5;
+  color: string = 'red';
 
-  protected constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas;
-  }
+  abstract onPressure(canvas: HTMLCanvasElement, pressure: number): void;
 
-  abstract onRender(): void;
+  abstract onRender(canvas: HTMLCanvasElement): void;
 }
 
 export default Brush;

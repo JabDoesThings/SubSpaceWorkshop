@@ -2,32 +2,26 @@ import TileEditor from '../TileEditor';
 import TileEdit from '../TileEdit';
 import TileEditTool from './TileEditTool';
 import { TileEditorEvent } from '../TileEditorEvents';
-import PencilBrush from '../brush/PencilBrush';
-import { MathUtils } from 'three';
-import lerp = MathUtils.lerp;
+import CircleBrush from '../brush/CircleBrush';
 import { Path } from '../../../../util/Path';
 
 class PencilTool extends TileEditTool {
 
   private middleDown: boolean = false;
-  private brush: PencilBrush;
+  private brush: CircleBrush;
 
   private down: { x: number, y: number };
   private last: { x: number, y: number };
   private penDown: boolean = false;
 
-  constructor() {
-    super();
-  }
-
   /** @override */
   onActivate(tileEditor: TileEditor): void {
     tileEditor.setCursor('none');
     if (!this.brush) {
-      this.brush = new PencilBrush(tileEditor.brushSourceCanvas);
+      this.brush = new CircleBrush();
     }
     tileEditor.setBrush(this.brush);
-    this.brush.onRender();
+    this.brush.onRender(tileEditor.brushSourceCanvas);
     tileEditor.projectBrush();
   }
 
@@ -42,7 +36,7 @@ class PencilTool extends TileEditTool {
     this.down = tileEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
     this.last = {x: this.down.x, y: this.down.y};
 
-    this.brush.onRender();
+    this.brush.onRender(tileEditor.brushSourceCanvas);
     this.draw(tileEditor, this.down.x, this.down.y);
 
     return null;
@@ -113,7 +107,7 @@ class PencilTool extends TileEditTool {
     const p = event.data.pressure;
     const opacity = p * p;
     const pressure = Path.easeIn(p);
-    this.brush.onPressure(pressure);
+    this.brush.onPressure(tileEditor.brushSourceCanvas, pressure);
     this.draw(tileEditor, c.x, c.y, opacity);
     tileEditor.projectDraw();
     return;
@@ -151,53 +145,8 @@ class PencilTool extends TileEditTool {
 
     const edits = [tileEditor.applyDraw()];
     tileEditor.clearDraw();
-    this.brush.onRender();
+    this.brush.onRender(tileEditor.brushSourceCanvas);
     return edits;
-  }
-
-  drawAsLine(
-    tileEditor: TileEditor,
-    x1: number,
-    y1: number,
-    x2: number = null,
-    y2: number = null,
-    size: number = null,
-    opacity: number = 1
-  ): void {
-
-    if (size) {
-      this.brush.onPressure(size);
-    }
-
-    if (!x2 || !y2) {
-      this.draw(tileEditor, x1, y1, opacity);
-      return;
-    }
-
-    const scale = TileEditor.SCALES[tileEditor.scaleIndex];
-    const a = x1 - x2;
-    const b = y1 - y2;
-    const distance = Math.ceil(Math.sqrt(a * a + b * b) / (scale / 2));
-
-    if (distance <= 1) {
-      this.draw(tileEditor, x2, y2, opacity);
-      return;
-    }
-
-    for (let position = 0; position <= distance; position++) {
-      const _lerp = position / distance;
-      const x = lerp(x1, x2, _lerp);
-      const y = lerp(y1, y2, _lerp);
-      this.draw(tileEditor, x, y, opacity);
-    }
-  }
-
-  draw(tileEditor: TileEditor, x: number, y: number, opacity: number = 1): void {
-    const bx = x - Math.floor(this.brush.size / 2);
-    const by = y - Math.floor(this.brush.size / 2);
-    const ctx = tileEditor.drawSourceCanvas.getContext('2d');
-    ctx.globalAlpha = opacity;
-    ctx.drawImage(tileEditor.brushSourceCanvas, bx, by);
   }
 }
 
