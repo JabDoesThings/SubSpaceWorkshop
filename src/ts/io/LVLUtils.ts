@@ -16,7 +16,7 @@ import { TileData } from '../util/map/TileData';
 export class LVL {
 
   /** The default tileset for SubSpace maps. */
-  static DEFAULT_TILESET = LVL.readTilesetImage("assets/media/tiles.png");
+  static DEFAULT_TILESET = LVL.readTilesetImage("assets/media/tiles.png", true);
   static TILE_DIMENSIONS: number[][] = [];
   /** 16x16 pixel tiles in a 19x10 grid. */
   static readonly TILESET_DIMENSIONS: number[] = [304, 160];
@@ -112,18 +112,22 @@ export class LVL {
     fs.writeFileSync(path, buffer);
   }
 
-  static readTilesetImage(path: string): LVLTileSet {
+  static readTilesetImage(path: string, canDestroyBaseTexture: boolean = false): LVLTileSet {
 
     let split = path.toLowerCase().split('.');
     let extension = split[split.length - 1];
 
     if (extension.endsWith('bmp') || extension.endsWith('bm2')) {
       let buffer = fs.readFileSync(path);
-      return LVL.readTileset(buffer);
+      const tileset = LVL.readTileset(buffer);
+      tileset.canDestroyBaseTexture = canDestroyBaseTexture;
+      return tileset;
     }
 
     let texture = PIXI.Texture.from(path, {scaleMode: SCALE_MODES.NEAREST});
-    return new LVLTileSet(texture);
+    const tileset = new LVLTileSet(texture);
+    tileset.canDestroyBaseTexture = canDestroyBaseTexture;
+    return tileset;
   }
 
   static readTileset(bitmapBuffer: Buffer): LVLTileSet {

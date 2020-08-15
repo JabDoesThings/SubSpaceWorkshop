@@ -136,27 +136,27 @@ export class TileChunk extends UpdatedObject {
 
     // @ts-ignore
     this.tileMap = new PIXI.tilemap.CompositeRectTileLayer(0, [
-      atlas.getTextureAtlas('tiles'),
-      atlas.getTextureAtlas('tile191'),
-      atlas.getTextureAtlas('tile'),
-      atlas.getTextureAtlas('tilenoradar'),
-      atlas.getTextureAtlas('tilenobrick'),
-      atlas.getTextureAtlas('tilenoweapon'),
-      atlas.getTextureAtlas('tilenothor')
+      atlas.getTextureAtlas('tiles').texture,
+      atlas.getTextureAtlas('tile191').texture,
+      atlas.getTextureAtlas('tile').texture,
+      atlas.getTextureAtlas('tilenoradar').texture,
+      atlas.getTextureAtlas('tilenobrick').texture,
+      atlas.getTextureAtlas('tilenoweapon').texture,
+      atlas.getTextureAtlas('tilenothor').texture
     ]);
 
     // @ts-ignore
     this.tileMapAnim = new PIXI.tilemap.CompositeRectTileLayer(0, [
-      atlas.getTextureAtlas('tiles'),
-      atlas.getTextureAtlas('over1'),
-      atlas.getTextureAtlas('over2'),
-      atlas.getTextureAtlas('over3'),
-      atlas.getTextureAtlas('over4'),
-      atlas.getTextureAtlas('over5'),
-      atlas.getTextureAtlas('flag'),
-      atlas.getTextureAtlas('goal'),
-      atlas.getTextureAtlas('prizes'),
-      atlas.getTextureAtlas('wall'),
+      atlas.getTextureAtlas('tiles').texture,
+      atlas.getTextureAtlas('over1').texture,
+      atlas.getTextureAtlas('over2').texture,
+      atlas.getTextureAtlas('over3').texture,
+      atlas.getTextureAtlas('over4').texture,
+      atlas.getTextureAtlas('over5').texture,
+      atlas.getTextureAtlas('flag').texture,
+      atlas.getTextureAtlas('goal').texture,
+      atlas.getTextureAtlas('prizes').texture,
+      atlas.getTextureAtlas('wall').texture,
     ]);
 
     this.setDirty(true);
@@ -192,7 +192,7 @@ export class TileChunk extends UpdatedObject {
     const x2 = this.bounds.x2;
     const y2 = this.bounds.y2;
     const atlas = this.project.atlas;
-    if (atlas.isDirty() || this.tiles.containsDirtyArea(x1, y1, x2, y2)) {
+    if (tileset.isDirty() || atlas.isDirty() || this.tiles.containsDirtyArea(x1, y1, x2, y2)) {
       this.draw();
     }
 
@@ -227,7 +227,7 @@ export class TileChunk extends UpdatedObject {
     const tileset = this.project.tileset;
     const atlas = project.atlas;
     if (atlas.isDirty()) {
-      this.tileMap.setBitmaps([
+      this.tileMap.initialize(0, [
         atlas.getTextureAtlas('tiles').texture,
         atlas.getTextureAtlas('tile191').texture,
         atlas.getTextureAtlas('tile').texture,
@@ -236,7 +236,7 @@ export class TileChunk extends UpdatedObject {
         atlas.getTextureAtlas('tilenoweapon').texture,
         atlas.getTextureAtlas('tilenothor').texture
       ]);
-      this.tileMapAnim.setBitmaps([
+      this.tileMapAnim.initialize(0, [
         atlas.getTextureAtlas('tiles').texture,
         atlas.getTextureAtlas('over1').texture,
         atlas.getTextureAtlas('over2').texture,

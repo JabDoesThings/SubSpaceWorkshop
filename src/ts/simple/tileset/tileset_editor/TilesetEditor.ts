@@ -1,25 +1,27 @@
-import { Editor } from '../Editor';
-import { LVLTileSet } from '../../io/LVL';
+import { Editor } from '../../Editor';
+import { LVLTileSet } from '../../../io/LVL';
 import MouseDownEvent = JQuery.MouseDownEvent;
-import MouseUpEvent = JQuery.MouseUpEvent;
 import MouseMoveEvent = JQuery.MouseMoveEvent;
-import { drawAspect } from '../../util/DrawUtils';
-import { toTilesetCoords } from '../../io/LVLUtils';
-import InnerWindow from './InnerWindow';
+import { drawAspect } from '../../../util/DrawUtils';
+import { toTilesetCoords } from '../../../io/LVLUtils';
+import InnerWindow from '../../ui/InnerWindow';
+import TileEditor from '../tile_editor/TileEditor';
 
 class TilesetEditor extends InnerWindow {
+
+  private readonly selection: number[] = [0, 0, 0, 0];
   private editor: Editor;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private selectionCanvas: HTMLCanvasElement;
   private selectionCtx: CanvasRenderingContext2D;
-
+  private tileEditor: TileEditor;
   private tileset: LVLTileSet;
-  private readonly selection: number[] = [0, 0, 0, 0];
 
   constructor(editor: Editor) {
     super(document.getElementById('tileset-editor'));
     this.editor = editor;
+    this.tileEditor = new TileEditor(this);
   }
 
   /** @override */
@@ -33,36 +35,42 @@ class TilesetEditor extends InnerWindow {
     this.selectionCtx.imageSmoothingEnabled = false;
     this.element.style.display = 'none';
 
-    let down = false;
-    let mDown: { x: number, y: number };
-    let mLast: { x: number, y: number };
-    let mCurrent: { x: number, y: number };
+    this.tileEditor.init();
 
-    $(this.canvas).on('mousedown', (event: MouseDownEvent) => {
-      if(!this.enabled) return;
-      event.stopPropagation();
-      down = true;
-      mDown = toTilesetCoords(event.offsetX, event.offsetY);
-      mCurrent = mDown;
-      this.setSelection(mDown, mCurrent);
-    });
+    this._initCanvasEventListeners();
 
-    // If the selection ends with the mouse outside of the canvas.
-    $(window).on('mouseup', () => {
-      down = false;
-    });
+    $('#tileset-editor-button-edit-tiles').on('click', () => {
 
-    $(this.canvas).on('mousemove', (event: MouseMoveEvent) => {
-      if(!this.enabled) return;
-      if (!down) {
-        return;
-      }
-      if (mCurrent) {
-        mLast = mCurrent;
-      }
-      mCurrent = toTilesetCoords(event.offsetX, event.offsetY);
-      this.setSelection(mDown, mCurrent);
+      const dim = [
+        this.selection[0] * 16,
+        this.selection[1] * 16,
+        (this.selection[2] + 1 - this.selection[0]) * 16,
+        (this.selection[3] + 1 - this.selection[1]) * 16
+      ];
+
+      this.tileEditor.setSource(this.tileset.canvas, dim, (source => {
+        this.ctx.drawImage(source, dim[0], dim[1]);
+      }), () => {
+
+      });
+
+      $('#tileset-editor-save').on('click', () => {
+        this.save();
+      });
+
+      this.tileEditor.open();
     });
+  }
+
+  save(): void {
+    this.tileset.set(this.canvas);
+    console.log('Setting Atlas Tileset.');
+
+    const atlas = this.editor.getActiveProject().atlas;
+    atlas.getTextureAtlas('tiles').setTexture(this.tileset.texture);
+    atlas.setDirty(true);
+
+    this.close();
   }
 
   /** @override */
@@ -98,8 +106,45 @@ class TilesetEditor extends InnerWindow {
 
       // Draw outline.
       this.ctx.strokeStyle = 'red';
-      this.ctx.strokeRect(tx, ty, tw, th);
+      this.ctx.strokeRect(tx + 0.5, ty + 0.5, tw - 1, th - 1);
     }
+  }
+
+  private _initCanvasEventListeners(): void {
+    let down = false;
+    let mDown: { x: number, y: number };
+    let mLast: { x: number, y: number };
+    let mCurrent: { x: number, y: number };
+
+    $(this.canvas).on('mousedown', (event: MouseDownEvent) => {
+      if (!this.enabled) {
+        return;
+      }
+      event.stopPropagation();
+      down = true;
+      mDown = toTilesetCoords(event.offsetX, event.offsetY);
+      mCurrent = mDown;
+      this.setSelection(mDown, mCurrent);
+    });
+
+    // If the selection ends with the mouse outside of the canvas.
+    $(window).on('mouseup', () => {
+      down = false;
+    });
+
+    $(this.canvas).on('mousemove', (event: MouseMoveEvent) => {
+      if (!this.enabled) {
+        return;
+      }
+      if (!down) {
+        return;
+      }
+      if (mCurrent) {
+        mLast = mCurrent;
+      }
+      mCurrent = toTilesetCoords(event.offsetX, event.offsetY);
+      this.setSelection(mDown, mCurrent);
+    });
   }
 
   setSelection(topLeft: { x: number, y: number }, bottomRight: { x: number, y: number }) {

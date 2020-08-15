@@ -63,13 +63,13 @@
                     </div>
 
                     <!-- Tileset Editor Window -->
-                    <div id="tileset-editor" class="inner-window">
+                    <div id="tileset-editor" class="inner-window translucent-on-unfocus">
                         <div class="title"><label>Tileset Editor</label></div>
                         <div class="menu-bar">
                             <div class="icon-menu">
                                 <i class="fas fa-folder-open"></i>
                             </div>
-                            <div class="icon-menu">
+                            <div id="tileset-editor-save" class="icon-menu">
                                 <i class="fas fa-save"></i>
                             </div>
                         </div>
@@ -79,9 +79,44 @@
                                 <canvas id="tileset-editor-selection-view" width="128" height="128"></canvas>
                             </div>
                             <div class="button-container vertical">
-                                <div class="button"><label>Edit Tiles</label></div>
+                                <div id="tileset-editor-button-edit-tiles" class="button"><label>Edit Tiles</label>
+                                </div>
                                 <div class="button"><label>Revert Tiles</label></div>
                                 <div class="button"><label>Revert Tileset</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tile Editor Window -->
+                    <div id="tile-editor" class="inner-window">
+                        <div class="title"><label>Tile Editor</label></div>
+                        <div class="menu-bar">
+                            <div id="tile-editor-open" class="icon-menu">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <div id="tile-editor-save" class="icon-menu">
+                                <i class="fas fa-save"></i>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <div class="canvas-pane-container">
+                                <div id="tile-editor-view-pane" class="canvas-pane">
+                                    <canvas id="tile-editor-view" class="shadow-outline-outer" width="16"
+                                            height="16"></canvas>
+                                    <canvas id="tile-editor-view-draw" width="16"
+                                            height="16"></canvas>
+                                </div>
+
+                                <canvas id="tile-editor-brush" width="1" height="1"></canvas>
+
+                                <!-- Left Toolbar -->
+                                <div id="tile-editor-left-toolbar" class="ui-icon-toolbar left medium">
+                                </div>
+
+                                <!-- Left Toolbar -->
+                                <div class="ui-icon-toolbar right medium"></div>
+
+                                <div class="container-box-shadow shadow-outline-inner"></div>
                             </div>
                         </div>
                     </div>

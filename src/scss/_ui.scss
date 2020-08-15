@@ -329,6 +329,69 @@ $panelWidth: 320px;
 
 $tooltip_border_color: $color8;
 
+.ui-icon-toolbar.right {
+  position: absolute;
+  display: inline-block;
+  right: 0;
+  width: 32px;
+  height: 100%;
+
+  .tool {
+
+    .ui-tooltip {
+      z-index: -1;
+      opacity: 0;
+
+      top: 50%;
+      right: calc(100% - 8px);
+      height: 14px;
+      padding: 2px 2px 2px 4px;
+      transform: translateY(-50%);
+
+      border-top: 1px solid $tooltip_border_color;
+      border-bottom: 1px solid $tooltip_border_color;
+      border-left: 1px solid $tooltip_border_color;
+      border-right: 1px solid transparent;
+
+      transition: opacity 200ms, right 200ms;
+
+      label {
+        z-index: 1;
+      }
+
+      .ui-tooltip {
+        transition-delay: 0s;
+      }
+
+      &:before {
+        z-index: -1;
+        position: absolute;
+        right: -7px;
+        width: 13px;
+        height: 13px;
+        transform: rotate(45deg);
+
+        background-color: $color3;
+
+        border-right: 1px solid $tooltip_border_color;
+        border-top: 1px solid $tooltip_border_color;
+
+        content: '';
+      }
+    }
+
+    &:hover {
+      .ui-tooltip {
+        opacity: 1;
+        right: calc(100% + 12px);
+
+        transition: opacity 100ms, right 100ms;
+        transition-delay: 500ms;
+      }
+    }
+  }
+}
+
 .ui-icon-toolbar.left {
   position: absolute;
   display: inline-block;

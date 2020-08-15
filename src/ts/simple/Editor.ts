@@ -6,7 +6,8 @@ import { UITabMenu } from './ui/UI';
 import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 import { Layer } from './layers/Layer';
 import { LVL } from '../io/LVLUtils';
-import TilesetEditor from './ui/TilesetEditor';
+import TilesetEditor from './tileset/tileset_editor/TilesetEditor';
+import TileEditor from './tileset/tile_editor/TileEditor';
 
 /**
  * The <i>Editor</i> class. TODO: Document.
@@ -20,12 +21,12 @@ export class Editor extends CustomEventListener<EditorEvent> {
   tabMenu: UITabMenu;
   active: number;
   tilesetEditor: TilesetEditor;
+  tileEditor: TileEditor;
   private _shiftListener: KeyListener;
   private _controlListener: KeyListener;
   private _altListener: KeyListener;
 
   menuManager: MenuManager;
-
   /**
    * @constructor
    *
@@ -88,12 +89,7 @@ export class Editor extends CustomEventListener<EditorEvent> {
 
     this.menuManager.addEventListener((event) => {
       if (event.menuId === 'new') {
-        const project = new Project(this.renderer, 'untitled');
-        const baseLayer = new Layer('default', null, 'Base Layer');
-        project.layers.add(baseLayer);
-        this.add([project]);
-        this.setActive(this.projects.length - 1);
-        this.renderer.paletteTab.draw();
+        this.new();
       } else if (event.menuId === 'open') {
         this.open();
       } else if (event.menuId === 'save') {
@@ -124,6 +120,7 @@ export class Editor extends CustomEventListener<EditorEvent> {
     this.setActive(this.projects.length - 1);
 
     this.tilesetEditor = new TilesetEditor(this);
+    this.tilesetEditor.init();
   }
 
   /**
@@ -234,6 +231,15 @@ export class Editor extends CustomEventListener<EditorEvent> {
       projects: projects,
       forced: true
     });
+  }
+
+  new() {
+    const project = new Project(this.renderer, 'untitled');
+    const baseLayer = new Layer('default', null, 'Base Layer');
+    project.layers.add(baseLayer);
+    this.add([project]);
+    this.setActive(this.projects.length - 1);
+    this.renderer.paletteTab.draw();
   }
 
   open(path: string = null): void {

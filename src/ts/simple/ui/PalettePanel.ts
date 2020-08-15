@@ -74,7 +74,7 @@ export class PalettePanel extends UIPanelTab {
     }
 
     const atlas = project.atlas;
-    const shouldDraw = this.dirty || atlas.isDirty() || project !== this.lastProject;
+    const shouldDraw = project.tileset.isDirty() || this.dirty || atlas.isDirty() || project !== this.lastProject;
     if (shouldDraw) {
       this.createTileSprites(project);
       this.selectorStandardTile.draw();
@@ -87,7 +87,7 @@ export class PalettePanel extends UIPanelTab {
         setTimeout(() => {
           $(document.body).find('.side-panel.right .content-frame').each(function () {
             if (this.parentElement != null && this.parentElement.classList.contains('open')) {
-              this.style.maxHeight = (this.scrollHeight) + "px";
+              this.style.maxHeight = `${this.scrollHeight}px`;
             } else {
               this.style.maxHeight = null;
             }

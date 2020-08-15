@@ -4,7 +4,7 @@ import { ProjectAtlas, TextureAtlas } from './simple/render/ProjectAtlas';
 import { MapSprite } from './simple/render/MapSprite';
 import { Project } from './simple/Project';
 
-export let DEFAULT_ATLAS = new ProjectAtlas();
+export let DEFAULT_ATLAS = new ProjectAtlas(null);
 
 // Entry Point from HTML.
 export let start = function () {
@@ -151,14 +151,13 @@ export let start = function () {
     setTimeout(() => {
       console.log("### START ###");
       const editor = new Editor();
-      // const project = new Project(editor.renderer, "untitled");
-      // editor.add([project]);
-      // editor.setActive(0);
-      // setTimeout(() => {
-      //   editor.tilesetEditor.open();
-      // }, 1000);
+      editor.new();
+      setTimeout(() => {
+        editor.tilesetEditor.open();
+      }, 1000);
     }, 10);
   });
+
 
   loader.load();
 

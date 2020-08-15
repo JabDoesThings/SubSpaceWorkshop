@@ -70,15 +70,16 @@ export class LVLMap implements Dirtable {
  */
 export class LVLTileSet implements Dirtable {
 
-  private readonly tiles: PIXI.Texture[];
-  private readonly tileCoordinates: number[][];
-  readonly tileColor: number[][];
+  private readonly tiles: PIXI.Texture[] = [];
+  private readonly tileCoordinates: number[][] = [];
+  readonly tileColor: number[][] = [];
   readonly defaultTileColor: number[] = [170, 170, 170];
 
   texture: PIXI.Texture;
   canvas: HTMLCanvasElement;
   borderTile: PIXI.Texture;
   bitCount: number;
+  canDestroyBaseTexture: boolean = false;
 
   private dirty: boolean;
 
@@ -89,8 +90,7 @@ export class LVLTileSet implements Dirtable {
    */
   constructor(canvasOrTexture: HTMLCanvasElement | PIXI.Texture) {
     if (canvasOrTexture instanceof HTMLCanvasElement) {
-      this.canvas = canvasOrTexture;
-      this.texture = PIXI.Texture.from(canvasOrTexture.toDataURL());
+      this.set(canvasOrTexture);
     } else {
       this.texture = canvasOrTexture;
       this.canvas = document.createElement('canvas');
@@ -103,10 +103,8 @@ export class LVLTileSet implements Dirtable {
     }
 
     this.bitCount = 24;
-    this.tileCoordinates = [];
-    this.tiles = [];
-    this.tiles.push(null);
 
+    this.tiles.push(null);
     for (let y = 0; y < 10; y++) {
       for (let x = 0; x < 19; x++) {
         this.tileCoordinates.push([16 * x, 16 * y]);
@@ -235,5 +233,87 @@ export class LVLTileSet implements Dirtable {
   /** @return {LVLTileSet} Returns a cloned copy of the tileset. */
   clone(): LVLTileSet {
     return new LVLTileSet(this.texture.clone());
+  }
+
+  set(canvas: HTMLCanvasElement) {
+    if (!this.canvas) {
+      this.canvas = document.createElement('canvas');
+      this.canvas.width = 304;
+      this.canvas.height = 160;
+    }
+
+    const ctx = this.canvas.getContext('2d');
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.drawImage(canvas, 0, 0);
+
+    if (this.texture) {
+      this.texture.destroy(!this.canDestroyBaseTexture);
+    }
+
+    this.texture = PIXI.Texture.from(canvas);
+    this.bitCount = 24;
+    this.tileCoordinates.length = 0;
+    this.tiles.length = 0;
+    this.tiles.push(null);
+
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 19; x++) {
+        this.tileCoordinates.push([16 * x, 16 * y]);
+      }
+    }
+
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 19; x++) {
+        this.tileCoordinates.push([16 * x, 16 * y]);
+      }
+    }
+
+    this.tileColor.length = 0;
+    this.tileColor.push([0, 0, 0]);
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 19; x++) {
+
+        const ctx = this.canvas.getContext('2d');
+        let imgData = ctx.getImageData(x * 16, y * 16, 16, 16).data;
+
+        let pixelCount = 0;
+        let ar = 0;
+        let ag = 0;
+        let ab = 0;
+
+        let offset = 0;
+        for (let py = 0; py < 16; py++) {
+          for (let px = 0; px < 16; px++) {
+            let r = imgData[offset];
+            let g = imgData[offset + 1];
+            let b = imgData[offset + 2];
+            if (r !== 0 && g !== 0 && b !== 0) {
+              pixelCount++;
+              ar += r;
+              ag += g;
+              ab += b;
+            }
+            offset += 4;
+          }
+        }
+        const color = [0, 0, 0];
+        if (pixelCount != 0) {
+          color[0] = ar / pixelCount;
+          color[1] = ag / pixelCount;
+          color[2] = ab / pixelCount;
+        }
+        let finalColor;
+        if (pixelCount !== 0) {
+          const hsv = RGBtoHSV(color[0], color[1], color[2]);
+          finalColor = HSVtoRGB(hsv.h, hsv.s, hsv.v < 0.25 ? 0.25 : hsv.v);
+        } else {
+          finalColor = {r: 0, g: 0, b: 0};
+        }
+        this.tileColor.push([finalColor.r, finalColor.g, finalColor.b]);
+      }
+    }
+    this.borderTile = new PIXI.Texture(this.texture.baseTexture, new PIXI.Rectangle(0, 16, 16, 16));
+    this.setDirty(true);
   }
 }

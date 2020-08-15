@@ -2,6 +2,7 @@ import { Texture } from "pixi.js";
 import { MapSprite } from './MapSprite';
 import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
 import { Dirtable } from '../../util/Dirtable';
+import { Project } from '../Project';
 
 /**
  * The <i>ProjectAtlas</i> class. TODO: Document.
@@ -13,17 +14,22 @@ export class ProjectAtlas extends CustomEventListener<CustomEvent> implements Di
   private readonly textures: { [id: string]: TextureAtlas };
   private readonly tListener: (event: TextureAtlasEvent) => void | boolean;
   private dirty: boolean;
+  private project: Project;
 
   /** @constructor */
-  constructor() {
+  constructor(project: Project) {
     super();
+    this.project = project;
     this.textures = {};
     this.tListener = (event => this.dispatch(event));
     this.dirty = true;
   }
 
-  clone(): ProjectAtlas {
-    const projectAtlas = new ProjectAtlas();
+  clone(project?: Project): ProjectAtlas {
+    if(project == null) {
+      project = this.project;
+    }
+    const projectAtlas = new ProjectAtlas(project);
     for (let id in this.textures) {
       projectAtlas.textures[id] = this.textures[id].clone();
       projectAtlas.textures[id].addEventListener(projectAtlas.tListener);

@@ -1,38 +1,34 @@
-import { LVZDisplayMode, LVZRenderLayer } from '../io/LVZ';
-import { Project } from './Project';
-import { Edit } from './edits/Edit';
-
 /**
  * The <i>EditManager</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EditManager {
+import TileEditor from './TileEditor';
+import TileEdit from './TileEdit';
+
+export class TileEditManager {
 
   static readonly EDITOR_HISTORY_LIMIT = 32;
-  readonly project: Project;
-  edits: Edit[][];
-  editsToPush: Edit[];
-  private index = 0;
+  edits: TileEdit[][] = [];
+  editsToPush: TileEdit[] = [];
+  private index = -1;
+  readonly tileEditor: TileEditor;
 
   /**
    * Main constructor.
    *
-   * @param project The project instance.
+   * @param tileEditor The project instance.
    */
-  constructor(project: Project) {
-    this.project = project;
-    this.edits = [];
-    this.editsToPush = [];
-    this.index = -1;
+  constructor(tileEditor: TileEditor) {
+    this.tileEditor = tileEditor;
   }
 
   /**
    * Executes edits, filing them into the history of the editor.
    *
-   * @param {Edit[]} edits The edits to execute.
+   * @param {TileEdit[]} edits The edits to execute.
    */
-  append(edits: Edit[]): void {
+  append(edits: TileEdit[]): void {
     if (edits.length === 0) {
       return;
     }
@@ -48,7 +44,7 @@ export class EditManager {
   push(): void {
     if (this.edits.length === 0) {
       this.index = -1;
-    } else if (this.edits.length == EditManager.EDITOR_HISTORY_LIMIT) {
+    } else if (this.edits.length == TileEditManager.EDITOR_HISTORY_LIMIT) {
       this.edits.shift();
     } else {
       // If an action is done after previous are undone, remove the actions
@@ -81,7 +77,7 @@ export class EditManager {
    * Redoes the history of the project.
    *
    * @throws Error Thrown if the history is already at the latest edit.<br/>
-   * <b>NOTE</b>: Use {@link EditHistory#canRedo() canRedo()} to check if redo is possible.
+   * <b>NOTE</b>: Use {@link TileEditManager#canRedo() canRedo()} to check if redo is possible.
    */
   redo(): void {
     // Make sure that the edit history isn't set at the latest edit.
@@ -98,14 +94,13 @@ export class EditManager {
         console.error(e);
       }
     }
-    this.project.editor.renderer.radar.setDirty(true);
   }
 
   /**
    * Undoes the history of the project.
    *
    * @throws Error Thrown if the history is already at the earliest edit.<br/>
-   * <b>NOTE</b>: Use {@link EditHistory#canUndo() canUndo()} to check if undo is possible.
+   * <b>NOTE</b>: Use {@link TileEditManager#canUndo() canUndo()} to check if undo is possible.
    */
   undo(): void {
     if (this.index < 0) {
@@ -121,7 +116,6 @@ export class EditManager {
       }
     }
     this.index--;
-    this.project.editor.renderer.radar.setDirty(true);
   }
 
   /**
@@ -137,18 +131,4 @@ export class EditManager {
   canRedo(): boolean {
     return this.index < this.edits.length - 1;
   }
-}
-
-/**
- * The <i>LVZMapObjectProperties</i> interface. TODO: Documen.
- *
- * @author Jab
- */
-export interface LVZMapObjectProperties {
-  x: number;
-  y: number;
-  id: number;
-  layer: LVZRenderLayer;
-  mode: LVZDisplayMode;
-  time: number;
 }

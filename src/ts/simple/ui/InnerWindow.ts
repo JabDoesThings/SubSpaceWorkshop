@@ -2,16 +2,39 @@ import MouseMoveEvent = JQuery.MouseMoveEvent;
 
 const $win = $(window);
 
+// const pool: {[id: string]: InnerWindow} = {};
+//
+// export const load = (id: string): InnerWindow => {
+//   if(pool[id]) {
+//     return pool[id];
+//   }
+//
+//   const element = document.getElementById(id);
+//   if(!element) {
+//     throw new Error(`Inner Window does not exist: #${id}`);
+//   }
+// };
+
 abstract class InnerWindow {
-  protected element: HTMLElement;
-  private handlers: any[] = [];
+  element: HTMLElement;
   private offset: number[] = [0, 0];
   protected enabled: boolean = false;
+  protected $element: JQuery<HTMLElement>;
 
   protected constructor(element: HTMLElement) {
     this.element = element;
-    const $element = $(element);
-    const $title = $(element.getElementsByClassName('title').item(0));
+    this.$element = $(element);
+    this.element.style.display = 'none';
+  }
+
+  init() {
+    this._initHandleMove();
+    this.onInit();
+  }
+
+  private _initHandleMove(): void {
+    const $parent = $(this.element.parentElement);
+    const $title = $(this.element.getElementsByClassName('title').item(0));
     let mDown: number[];
     let mCurrent: number[];
     let ox = 0;
@@ -19,18 +42,17 @@ abstract class InnerWindow {
     let down: boolean = false;
     let moved: boolean = false;
 
-    const $parent = $(element.parentElement);
-
     console.log($parent.width());
     console.log($parent.height());
 
-    this.handlers.push($title.on('mousedown', () => {
+    $title.on('mousedown', (e) => {
+      e.stopPropagation();
       if(!this.enabled) return;
       mDown = mCurrent;
       down = true;
-    }));
+    });
 
-    this.handlers.push($win.on('mouseup', () => {
+    $win.on('mouseup', () => {
       if(!this.enabled) return;
       mDown = null;
       down = false;
@@ -41,9 +63,9 @@ abstract class InnerWindow {
         oy = 0;
         moved = false;
       }
-    }));
+    });
 
-    this.handlers.push($win.on('mousemove', (event: MouseMoveEvent) => {
+    $win.on('mousemove', (event: MouseMoveEvent) => {
       if(!this.enabled) return;
       mCurrent = [event.clientX, event.clientY];
       if (!down) {
@@ -63,8 +85,8 @@ abstract class InnerWindow {
       const ph = $parent.height();
       const pw2 = pw / 2;
       const ph2 = ph / 2;
-      const iww2 = Math.floor($element.outerWidth(false) / 2);
-      const iwh2 = Math.floor($element.outerHeight(false) / 2);
+      const iww2 = Math.floor(this.$element.outerWidth(false) / 2);
+      const iwh2 = Math.floor(this.$element.outerHeight(false) / 2);
       const xMaxLimit = pw2 - iww2;
       const xMinLimit = -pw2 + iww2;
       const yMaxLimit = ph2 - iwh2;
@@ -80,11 +102,9 @@ abstract class InnerWindow {
         oy = yMaxLimit;
       }
 
-      element.style.top = `calc(50% + ${oy}px)`;
-      element.style.left = `calc(50% + ${ox}px)`;
-    }));
-
-    this.onInit();
+      this.element.style.top = `calc(50% + ${oy}px)`;
+      this.element.style.left = `calc(50% + ${ox}px)`;
+    });
   }
 
   open() {
