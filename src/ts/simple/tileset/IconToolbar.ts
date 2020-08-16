@@ -64,9 +64,9 @@ export class IconToolbar extends CustomEventListener<IconToolbarEvent> {
     Object.keys(this.tools).forEach(_id => {
       const next = this.tools[_id];
       if (next === tool) {
-        next._setUISelected(true);
+        next.setUISelected(true);
       } else {
-        next._setUISelected(false);
+        next.setUISelected(false);
       }
     });
 
@@ -117,7 +117,7 @@ export class IconTool {
     });
   }
 
-  _setUISelected(flag: boolean) {
+  setUISelected(flag: boolean) {
     if (flag) {
       this.element.classList.add('selected');
     } else {

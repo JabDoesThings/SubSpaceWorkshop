@@ -9,7 +9,7 @@ import { TileData } from '../../util/map/TileData';
 import { Layer } from '../layers/Layer';
 
 /**
- * The <i>PencilTool</i> class. TODO: Document.
+ * The <i>BrushTool</i> class. TODO: Document.
  *
  * @author Jab
  */

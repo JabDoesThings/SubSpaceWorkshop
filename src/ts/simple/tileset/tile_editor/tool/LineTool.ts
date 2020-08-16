@@ -20,7 +20,7 @@ class LineTool extends TileEditTool {
       this.brush = new CircleBrush();
     }
     tileEditor.setBrush(this.brush);
-    this.brush.onRender(tileEditor.brushSourceCanvas);
+    this.brush.renderMouse(tileEditor.brushSourceCanvas);
     tileEditor.projectBrush();
   }
 
@@ -35,7 +35,7 @@ class LineTool extends TileEditTool {
     this.down = tileEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
     this.last = {x: this.down.x, y: this.down.y};
 
-    this.brush.onRender(tileEditor.brushSourceCanvas);
+    this.brush.renderMouse(tileEditor.brushSourceCanvas);
     this.draw(tileEditor, this.down.x, this.down.y);
 
     return null;

@@ -2,14 +2,13 @@ import TileEditor from '../TileEditor';
 import TileEdit from '../TileEdit';
 import TileEditTool from './TileEditTool';
 import { TileEditorEvent } from '../TileEditorEvents';
-import CircleBrush from '../brush/CircleBrush';
-import { Path } from '../../../../util/Path';
+import CircleBrush, { CircleBrushOptions } from '../brush/CircleBrush';
 
-class PencilTool extends TileEditTool {
+class BrushTool extends TileEditTool {
 
+  private readonly _pressures: number[] = [];
   private middleDown: boolean = false;
   private brush: CircleBrush;
-
   private down: { x: number, y: number };
   private last: { x: number, y: number };
   private penDown: boolean = false;
@@ -21,7 +20,7 @@ class PencilTool extends TileEditTool {
       this.brush = new CircleBrush();
     }
     tileEditor.setBrush(this.brush);
-    this.brush.onRender(tileEditor.brushSourceCanvas);
+    this.brush.renderMouse(tileEditor.brushSourceCanvas, tileEditor.palette, 'primary');
     tileEditor.projectBrush();
   }
 
@@ -33,10 +32,12 @@ class PencilTool extends TileEditTool {
       return;
     }
 
+    const type = event.button === 0 ? 'primary' : 'secondary';
+
     this.down = tileEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
     this.last = {x: this.down.x, y: this.down.y};
 
-    this.brush.onRender(tileEditor.brushSourceCanvas);
+    this.brush.renderMouse(tileEditor.brushSourceCanvas, tileEditor.palette, type);
     this.draw(tileEditor, this.down.x, this.down.y);
 
     return null;
@@ -54,7 +55,7 @@ class PencilTool extends TileEditTool {
     this.down = null;
     this.penDown = null;
 
-    const edits = [tileEditor.applyDraw()];
+    const edits = [tileEditor.applyDraw(true)];
     tileEditor.clearDraw();
     return edits;
   }
@@ -71,7 +72,9 @@ class PencilTool extends TileEditTool {
       return;
     }
 
-    this.drawAsLine(tileEditor, this.last.x, this.last.y, c.x, c.y, null, 1);
+    const type = event.button === 0 ? 'primary' : 'secondary';
+
+    this.drawAsLine(tileEditor, this.last.x, this.last.y, c.x, c.y, tileEditor.palette, type, null, 1);
     tileEditor.projectDraw();
 
     this.last.x = c.x;
@@ -100,54 +103,81 @@ class PencilTool extends TileEditTool {
 
   /** @override */
   protected onPenStart(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
-    // console.log(`PEN_DOWN. pressure: ${event.data.pressure}`);
+    const type = event.button === 0 ? 'primary' : 'secondary';
     const c = tileEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
     this.down = {x: c.x, y: c.y};
     this.last = {x: c.x, y: c.y};
-    const p = event.data.pressure;
-    const opacity = p * p;
-    const pressure = Path.easeIn(p);
-    this.brush.onPressure(tileEditor.brushSourceCanvas, pressure);
-    this.draw(tileEditor, c.x, c.y, opacity);
+
+    let pressure = event.data.pressure;
+    const options = <CircleBrushOptions> this.brush.options;
+    if (options.smoothPressure) {
+      pressure = this.pushAveragePressure(pressure, options.smoothAverageCount);
+    } else {
+      this.clearAveragePressure();
+    }
+
+    this.brush.renderPen(tileEditor.brushSourceCanvas, tileEditor.palette, type, pressure);
+    this.draw(tileEditor, c.x, c.y);
     tileEditor.projectDraw();
     return;
   }
 
   /** @override */
   protected onPenDrag(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
-    // console.log(`PEN_DRAG. pressure: ${event.data.pressure}`);
-
     const c = tileEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
     if (c.x === this.last.x && c.y === this.last.y) {
       return;
     }
 
-    const p = event.data.pressure;
-    const opacity = p * p;
-
-    const pressure = Path.easeIn(p);
-    this.drawAsLine(tileEditor, this.last.x, this.last.y, c.x, c.y, pressure, opacity);
+    const type = event.button === 0 ? 'primary' : 'secondary';
+    const pressure = event.data.pressure;
+    this.drawAsLine(tileEditor, this.last.x, this.last.y, c.x, c.y, tileEditor.palette, type, true, pressure);
     tileEditor.projectDraw();
+
+    this.clearAveragePressure();
 
     this.last.x = c.x;
     this.last.y = c.y;
-
     return;
   }
 
   /** @override */
   protected onPenStop(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
-    // console.log(`PEN_UP. pressure: ${event.data.pressure}`);
-
     this.last = null;
     this.down = null;
     this.penDown = null;
 
-    const edits = [tileEditor.applyDraw()];
+    const edits = [tileEditor.applyDraw(true)];
     tileEditor.clearDraw();
-    this.brush.onRender(tileEditor.brushSourceCanvas);
+
+    const type = event.button === 0 ? 'primary' : 'secondary';
+    this.brush.renderMouse(tileEditor.brushSourceCanvas, tileEditor.palette, type);
+
     return edits;
+  }
+
+  private pushAveragePressure(value: number, max: number): number {
+    if (this._pressures.length === max) {
+      this._pressures.reverse();
+      this._pressures.length -= 1;
+      this._pressures.reverse();
+    }
+    this._pressures.push(value);
+
+    let sum = 0;
+    for (let index = 0; index < this._pressures.length; index++) {
+      sum += this._pressures[index];
+    }
+    sum /= this._pressures.length;
+
+    return sum;
+  }
+
+  private clearAveragePressure(): void {
+    if (this._pressures.length !== 0) {
+      this._pressures.length = 0;
+    }
   }
 }
 
-export default PencilTool;
+export default BrushTool;

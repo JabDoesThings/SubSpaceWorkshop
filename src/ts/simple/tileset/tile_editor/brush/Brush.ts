@@ -1,14 +1,44 @@
+import Palette from '../Palette';
+
 abstract class Brush {
 
-  penSizeMin: number = 1;
-  penSizeMax: number = 8;
-  size: number = 3;
-  hardness: number = 0.5;
-  color: string = 'red';
+  options: BrushOptions = {
+    size: 8,
+    opacity: 0.5,
+  };
 
-  abstract onPressure(canvas: HTMLCanvasElement, pressure: number): void;
+  // Pen pressure fields.
+  penSizeMin: number = null;
+  penSizeMax: number = null;
+  penOpacityMin: number = 0;
+  penOpacityMax: number = 1;
+  opacityPressure: boolean = true;
+  sizePressure: boolean = true;
+  colorPressure: boolean = true;
 
-  abstract onRender(canvas: HTMLCanvasElement): void;
+  /**
+   * TODO: Document.
+   *
+   * @param {HTMLCanvasElement} canvas
+   * @param {Palette} palette
+   * @param {'primary'|'secondary'} colorType
+   */
+  abstract renderMouse(canvas: HTMLCanvasElement, palette: Palette, colorType: 'primary' | 'secondary'): void;
+
+  /**
+   * TODO: Document.
+   *
+   * @param {HTMLCanvasElement} canvas
+   * @param {Palette} palette
+   * @param {'primary'|'secondary'} colorType
+   * @param {number} pressure
+   */
+  abstract renderPen(canvas: HTMLCanvasElement, palette: Palette, colorType: 'primary' | 'secondary', pressure: number): void;
+}
+
+export interface BrushOptions {
+  size: number;
+  opacity: number;
 }
 
 export default Brush;

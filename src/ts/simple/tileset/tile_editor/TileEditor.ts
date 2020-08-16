@@ -4,11 +4,13 @@ import { IconToolbar, IconToolbarEvent, IconToolbarEventType } from '../IconTool
 import { TileEditManager } from './TileEditManager';
 import { TileEditorEvents } from './TileEditorEvents';
 import TileToolManager from './tool/TileEditToolManager';
-import PencilTool from './tool/PencilTool';
+import BrushTool from './tool/BrushTool';
 import PanTool from './tool/PanTool';
 import Brush from './brush/Brush';
 import TileEdit from './TileEdit';
 import TileEditSection from './TileEditSection';
+import Palette from './Palette';
+import PaletteColor from './PaletteColor';
 
 class TileEditor extends InnerWindow {
 
@@ -36,6 +38,8 @@ class TileEditor extends InnerWindow {
   private _onSave: (canvas: HTMLCanvasElement) => void;
   private _onCancel: () => void;
 
+  palette: Palette;
+
   brushSourceCanvas: HTMLCanvasElement;
   brushCanvas: HTMLCanvasElement;
   brush: Brush;
@@ -46,6 +50,8 @@ class TileEditor extends InnerWindow {
   constructor(tilesetEditor: TilesetEditor) {
     super(document.getElementById('tile-editor'));
     this.tilesetEditor = tilesetEditor;
+
+    this.palette = new Palette();
 
     // Will be used to store the edits.
     this.modCanvas = document.createElement('canvas');
@@ -58,32 +64,32 @@ class TileEditor extends InnerWindow {
     this.pane = document.getElementById('tile-editor-view-pane');
     this.$pane = $(this.pane);
     this.paneContainer = this.pane.parentElement;
+
     this.$content = $(this.pane.parentElement);
-
     this.brushSourceCanvas = document.createElement('canvas');
+
     this.brushCanvas = <HTMLCanvasElement> document.getElementById('tile-editor-brush');
-
     this.drawCanvas = <HTMLCanvasElement> document.getElementById('tile-editor-view-draw');
+
     this.drawSourceCanvas = document.createElement('canvas');
-
     const toolbarElement = document.getElementById('tile-editor-left-toolbar');
-    this.leftToolbar = new IconToolbar(toolbarElement);
 
+    this.leftToolbar = new IconToolbar(toolbarElement);
     this.editManager = new TileEditManager(this);
     this.events = new TileEditorEvents(this);
-    this.toolManager = new TileToolManager(this);
 
-    this.toolManager.addTool('pencil', new PencilTool());
+    this.toolManager = new TileToolManager(this);
+    this.toolManager.addTool('brush', new BrushTool());
     this.toolManager.addTool('pan', new PanTool());
-    this.toolManager.setActive('pencil');
     this.toolManager.setFallback('pan');
+    this.setTool('brush');
   }
 
   /** @override */
   onInit(): void {
     this._ctx.fillStyle = 'white';
     this._ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    this.leftToolbar.create('pencil', ['fas', 'fa-pencil-alt'], 'Pencil');
+    this.leftToolbar.create('brush', ['fas', 'fa-paint-brush'], 'Brush');
     this.leftToolbar.create('line', ['fas', 'fa-slash'], 'Line');
     this.leftToolbar.create('square', ['fas', 'fa-square'], 'Square');
     this.leftToolbar.create('circle', ['fas', 'fa-circle'], 'Circle');
@@ -147,6 +153,7 @@ class TileEditor extends InnerWindow {
 
   /** @override */
   onOpen(): void {
+    this.setTool('brush');
   }
 
   /** @override */
@@ -298,7 +305,7 @@ class TileEditor extends InnerWindow {
     this.modCtx.fillStyle = 'black';
     this.modCtx.fillRect(0, 0, 16, 16);
 
-    this.toolManager.setActive('pencil');
+    this.toolManager.setActive('brush');
 
     this._centerPane();
     this.project();
@@ -337,14 +344,20 @@ class TileEditor extends InnerWindow {
     );
   }
 
-  projectDraw() {
+  projectDraw(antialias: boolean = false) {
     const scale = TileEditor.SCALES[this.scaleIndex];
     const width = this.drawSourceCanvas.width * scale;
     const height = this.drawSourceCanvas.height * scale;
     this.drawCanvas.width = width;
     this.drawCanvas.height = height;
     const ctx = this.drawCanvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
+
+    if (antialias) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+    } else {
+      ctx.imageSmoothingEnabled = false;
+    }
     ctx.clearRect(0, 0, width, height);
     ctx.drawImage(
       this.drawSourceCanvas,
@@ -357,18 +370,31 @@ class TileEditor extends InnerWindow {
       width,
       height
     );
+    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingQuality = 'low';
   }
 
   private _buffer: HTMLCanvasElement = document.createElement('canvas');
   private _bufferCtx = this._buffer.getContext('2d');
 
-  applyDraw(): TileEdit {
+  applyDraw(antialias: boolean = false): TileEdit {
     this._buffer.width = this.modCanvas.width;
     this._buffer.height = this.modCanvas.height;
 
     this._bufferCtx.clearRect(0, 0, this._buffer.width, this._buffer.height);
     this._bufferCtx.drawImage(this.modCanvas, 0, 0);
+
+    if (antialias) {
+      this._bufferCtx.imageSmoothingEnabled = true;
+      this._bufferCtx.imageSmoothingQuality = 'high';
+    } else {
+      this._bufferCtx.imageSmoothingEnabled = false;
+      this._bufferCtx.imageSmoothingQuality = 'low';
+    }
     this._bufferCtx.drawImage(this.drawSourceCanvas, 0, 0);
+
+    this._bufferCtx.imageSmoothingEnabled = false;
+    this._bufferCtx.imageSmoothingQuality = 'low';
 
     const before: ImageData = this.modCtx.getImageData(0, 0, this.modCanvas.width, this.modCanvas.height);
     const after: ImageData = this._bufferCtx.getImageData(0, 0, this.modCanvas.width, this.modCanvas.height);
@@ -379,6 +405,11 @@ class TileEditor extends InnerWindow {
   clearDraw(): void {
     const ctx = this.drawSourceCanvas.getContext('2d');
     ctx.clearRect(0, 0, this.drawSourceCanvas.width, this.drawSourceCanvas.height);
+  }
+
+  setTool(id: string): void {
+    this.toolManager.setActive(id);
+    this.leftToolbar.setActive(id);
   }
 }
 

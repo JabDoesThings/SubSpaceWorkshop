@@ -3,6 +3,7 @@ import TileEdit from '../TileEdit';
 import { TileEditorEvent } from '../TileEditorEvents';
 import { MathUtils } from 'three';
 import lerp = MathUtils.lerp;
+import Palette from '../Palette';
 
 export abstract class TileEditTool {
 
@@ -209,42 +210,40 @@ export abstract class TileEditTool {
     y1: number,
     x2: number = null,
     y2: number = null,
-    size: number = null,
-    opacity: number = 1
+    palette: Palette,
+    colorType: 'primary' | 'secondary',
+    update: boolean = false,
+    pressure: number = 1
   ): void {
-
-    if (size) {
-      tileEditor.brush.onPressure(tileEditor.brushSourceCanvas, size);
+    if (update) {
+      tileEditor.brush.renderPen(tileEditor.brushSourceCanvas, palette, colorType, pressure);
     }
-
     if (!x2 || !y2) {
-      this.draw(tileEditor, x1, y1, opacity);
+      this.draw(tileEditor, x1, y1);
       return;
     }
-
     const scale = TileEditor.SCALES[tileEditor.scaleIndex];
     const a = x1 - x2;
     const b = y1 - y2;
     const distance = Math.ceil(Math.sqrt(a * a + b * b) / (scale / 2));
-
     if (distance <= 1) {
-      this.draw(tileEditor, x2, y2, opacity);
+      this.draw(tileEditor, x2, y2);
       return;
     }
-
     for (let position = 0; position <= distance; position++) {
       const _lerp = position / distance;
       const x = lerp(x1, x2, _lerp);
       const y = lerp(y1, y2, _lerp);
-      this.draw(tileEditor, x, y, opacity);
+      this.draw(tileEditor, x, y);
     }
   }
 
-  draw(tileEditor: TileEditor, x: number, y: number, opacity: number = 1): void {
-    const bx = x - Math.floor(tileEditor.brush.size / 2);
-    const by = y - Math.floor(tileEditor.brush.size / 2);
+  draw(tileEditor: TileEditor, x: number, y: number): void {
+    const bx = x - Math.floor(tileEditor.brush.options.size / 2);
+    const by = y - Math.floor(tileEditor.brush.options.size / 2);
     const ctx = tileEditor.drawSourceCanvas.getContext('2d');
-    ctx.globalAlpha = opacity;
+    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingQuality = 'low';
     ctx.drawImage(tileEditor.brushSourceCanvas, bx, by);
   }
 
