@@ -1,10 +1,8 @@
-@import 'color';
+@import '../color';
 
-.inner-window.translucent-on-unfocus {
+.ui-inner-window.translucent-on-unfocus {
   opacity: 0.75;
-
   transition: opacity 200ms ease-in;
-
 
   &:hover, &:active {
     opacity: 1;
@@ -12,7 +10,7 @@
   }
 }
 
-.inner-window {
+.ui-inner-window {
   position: absolute;
   z-index: 5;
   top: 50%;
@@ -31,7 +29,6 @@
       display: inline-block;
       margin-left: 5px;
       line-height: 20px;
-
       color: #eee;
       font-size: 12px;
       pointer-events: none;
@@ -49,23 +46,18 @@
     height: 19px;
     padding-left: 6px;
     padding-right: 6px;
-
     line-height: 16px;
     background-color: $color4;
-
+    border-top: 1px solid $color3;
     user-select: none;
     -webkit-user-drag: none;
 
-    border-top: 1px solid $color3;
-
     .icon-menu {
       display: inline-block;
-
       width: 14px;
       height: 12px;
       margin: 0;
       padding: 0;
-
       border: 1px black;
       font-size: 12px;
       -webkit-user-drag: none;
@@ -76,7 +68,6 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-
         color: $color8;
         pointer-events: none;
         user-select: none;
@@ -91,7 +82,6 @@
     }
 
     .text-menu {
-
     }
   }
 

@@ -44,7 +44,7 @@ function createWindow() {
             // experimentalFeatures: true,
             preload: path.join(__dirname, 'preload.js')
         },
-        icon: "levi.png"
+        icon: 'icon.png'
     });
 
     mainWindow.setMenuBarVisibility(false);
@@ -52,11 +52,11 @@ function createWindow() {
     mainWindow.setMenu(null);
 
     mainWindow.webContents.openDevTools({
-        mode: "detach"
+        mode: 'detach'
     });
 
     // and load the index.html of the app.
-    mainWindow.loadFile('simple_editor.html');
+    mainWindow.loadFile('index.html');
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {

@@ -1,7 +1,7 @@
 import { MapArea } from './MapArea';
 import { LVL } from '../../io/LVLUtils';
 import { CoordinateType } from './CoordinateType';
-import { TileEdit } from '../../simple/edits/EditTiles';
+import { TileEdit } from '../../editor/edits/EditTiles';
 import { Path } from '../Path';
 import { MapSection, MapSections } from './MapSection';
 import { MapPoint } from './MapPoint';

@@ -4,8 +4,8 @@ import { Vector2 } from 'three';
 import { PathMode } from '../util/Path';
 import type { Renderer } from './Renderer';
 import type { Dirtable } from '../util/Dirtable';
-import { MapRenderer } from '../simple/render/MapRenderer';
-import { Editor } from '../simple/Editor';
+import { MapRenderer } from '../editor/render/MapRenderer';
+import { Editor } from '../editor/Editor';
 import { HSVtoRGB, RGBtoHSV } from '../util/ColorUtils';
 
 const hsv216 = RGBtoHSV(75, 50, 37);

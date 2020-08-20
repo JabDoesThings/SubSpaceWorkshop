@@ -1,4 +1,9 @@
-@import 'color';
+@import 'icon_toolbar';
+@import 'inner_window';
+@import 'layer_container';
+@import 'menubar';
+@import 'panel';
+@import 'tab_menu';
 
 @font-face {
   font-family: 'icomoon';
@@ -21,6 +26,10 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+}
+
+body {
+  background-color: $color1;
 }
 
 /* width */
@@ -46,4 +55,10 @@ html, body {
     transition: background-color 0ms, border 0ms;
     border-radius: 1px;
   }
+}
+
+.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }

@@ -6,7 +6,6 @@ import { ELVL } from './ELVLUtils';
  * @author Jab
  */
 export abstract class ELVLChunk {
-
   readonly id: string;
 
   /**
@@ -29,7 +28,6 @@ export abstract class ELVLChunk {
  * @author Jab
  */
 export abstract class ELVLRegionChunk {
-
   readonly id: string;
 
   /**
@@ -48,7 +46,6 @@ export abstract class ELVLRegionChunk {
  * @author Jab
  */
 export class ELVLCollection {
-
   readonly chunks: ELVLChunk[];
   readonly regions: ELVLRegion[];
   readonly attributes: ELVLAttribute[];
@@ -145,7 +142,6 @@ export class ELVLCollection {
  * @author Jab
  */
 export class ELVLRawChunk extends ELVLChunk {
-
   data: Buffer;
 
   /**
@@ -181,7 +177,6 @@ export class ELVLRawChunk extends ELVLChunk {
  * @author Jab
  */
 export class ELVLAttribute extends ELVLChunk {
-
   name: string;
   value: string;
 
@@ -222,7 +217,6 @@ export class ELVLAttribute extends ELVLChunk {
  * @author Jab
  */
 export class ELVLRegion extends ELVLChunk {
-
   chunks: ELVLRegionChunk[];
   tileData: ELVLRegionTileData;
   autoWarp: ELVLRegionAutoWarp;
@@ -307,7 +301,6 @@ export class ELVLRegion extends ELVLChunk {
  * @author Jab
  */
 export class ELVLRegionRawChunk extends ELVLRegionChunk {
-
   type: number;
   data: Buffer;
 
@@ -337,7 +330,6 @@ export class ELVLRegionRawChunk extends ELVLRegionChunk {
  * @author Jab
  */
 export class ELVLRegionTileData extends ELVLRegionChunk {
-
   readonly tiles: boolean[][];
 
   /**
@@ -373,7 +365,6 @@ export class ELVLRegionTileData extends ELVLRegionChunk {
  * @author Jab
  */
 export class ELVLRegionAutoWarp extends ELVLRegionChunk {
-
   x: number;
   y: number;
   arena: string;
@@ -425,7 +416,6 @@ export class ELVLRegionAutoWarp extends ELVLRegionChunk {
  * @author Jab
  */
 export class ELVLWallTiles extends ELVLChunk {
-
   public static readonly TOP_LEFT_CORNER = 9;
   public static readonly TOP_JUNCTION = 13;
   public static readonly TOP_RIGHT_CORNER = 12;
@@ -543,7 +533,6 @@ export class ELVLTextTiles extends ELVLChunk {
    */
   constructor(chars: number[] = null) {
     super('DCTT');
-
     if (chars == null) {
       // Create a blank array for chars.
       chars = new Array(256);

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { Dirtable } from '../util/Dirtable';
 import { Validatable } from '../util/Validatable';
 import { LVZ, LVZErrorStatus } from './LVZUtils';
-import { MapSprite } from '../simple/render/MapSprite';
+import { MapSprite } from '../editor/render/MapSprite';
 import { MapArea } from '../util/map/MapArea';
 import { CoordinateType } from '../util/map/CoordinateType';
 

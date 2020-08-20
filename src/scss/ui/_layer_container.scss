@@ -1,0 +1,113 @@
+@import '../color';
+
+.ui-layer-container {
+  position: relative;
+  padding: 7px;
+  overflow-y: auto;
+  height: calc(100% - 33px);
+
+  .ui-layer-spacer {
+    display: block;
+    width: calc(100% - 2px);
+    height: 1px;
+    background-color: $color2;
+  }
+
+  .ui-layer {
+    display: block;
+    width: calc(100% - 2px);
+    height: 24px;
+    background-color: $color4;
+    border: 1px solid $color4;
+    border-bottom-color: $color2;
+    transition: border-color 300ms;
+
+    &:hover {
+      background-color: $color5;
+      border-color: $color4;
+      transition: unset;
+
+      .title {
+        color: $color7;
+      }
+
+      .grip-icon {
+        transition: unset;
+        opacity: 1;
+      }
+    }
+
+    .visibility-icon {
+      position: relative;
+      display: inline-block;
+      left: 0;
+      top: 0;
+      width: 24px;
+      height: 24px;
+      overflow-x: hidden;
+      cursor: pointer;
+
+      i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        transition: opacity 100ms;
+        color: $color8;
+        pointer-events: none;
+        user-select: none;
+        font-size: 15px;
+      }
+    }
+
+    .grip-icon {
+      float: right;
+      position: relative;
+      opacity: 0;
+      top: 0;
+      right: 0;
+      width: 24px;
+      height: 24px;
+      cursor: n-resize;
+      transition: opacity 100ms;
+
+      i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        transition: color 100ms;
+        pointer-events: none;
+        user-select: none;
+        font-size: 12px;
+        color: $color8;
+      }
+    }
+
+    .title {
+      position: relative;
+      top: -8px;
+      margin-left: 2px;
+      color: $color8;
+      font-size: 12px;
+      font-weight: bold;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .children {
+      display: block;
+      position: relative;
+      width: 100%;
+    }
+  }
+
+  .ui-layer.selected {
+    background-color: $color5;
+    border-color: $color4;
+
+    .title {
+      color: $color9;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import uuid = require('uuid');
 import { Dirtable } from '../../../util/Dirtable';
 import { Zip } from '../../../io/Zip';
+import { Sprite } from './Sprite';
 
 /**
  * The <i>Library</i> class. TODO: Document.
@@ -205,7 +206,7 @@ export class Library implements Dirtable {
         library.load(json, zip);
         onSuccess(library);
       } catch (e) {
-        console.error('Failed to load library. (id: ' + json.id + ', name: ' + json.name + ')');
+        console.error(`Failed to load library. (id: ${json.id}, name: ${json.name})`);
         error(e);
       }
     }, (error: Error) => {
@@ -395,5 +396,22 @@ export abstract class LibraryAssetLoader {
    */
   static set(type: string, loader: LibraryAssetLoader): void {
     LibraryAssetLoader.loaders[type] = loader;
+  }
+
+  static test() {
+    // let library = new Library(null, 'test');
+    // library.set(new Sprite(null, 'test'));
+    // library.toBuffer((buffer) => {
+    //   const fs = require('fs');
+    //   const dir = process.env.HOMEDRIVE + process.env.HOMEPATH + '/SubSpaceWorkshop/';
+    //   if (!fs.existsSync(dir)) {
+    //     fs.mkdirSync(dir);
+    //   }
+    //   const libDir = dir + '/Libraries/';
+    //   if (!fs.existsSync(libDir)) {
+    //     fs.mkdirSync(libDir);
+    //   }
+    //   fs.writeFileSync(libDir + 'test.sswl', buffer);
+    // });
   }
 }

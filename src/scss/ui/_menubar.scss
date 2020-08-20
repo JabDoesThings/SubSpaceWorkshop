@@ -1,0 +1,128 @@
+@import '../color';
+
+.ui-menubar {
+  display: block;
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 24px;
+  line-height: 22px;
+  padding: 0 4px;
+  user-select: none;
+  background-color: $color4;
+
+  .ui-menu {
+    display: inline-block;
+    position: relative;
+    margin-right: 4px;
+    user-select: none;
+    cursor: pointer;
+
+    .menu-section {
+      position: relative;
+
+      &:hover, &:active {
+        > label {
+          position: relative;
+          top: -1px;
+          color: $color9;
+        }
+
+        .menu-section-contents {
+          display: block;
+        }
+      }
+
+      .menu-section-contents {
+        display: none;
+        z-index: 10;
+        position: absolute;
+        top: -2px;
+        left: 100%;
+        width: fit-content;
+        min-width: 64px;
+        min-height: 24px;
+        padding: 0 4px;
+        user-select: none;
+        background-color: $color4;
+        border: 1px solid $color8;
+      }
+
+      &:before {
+        float: right;
+        content: '►';
+        font-size: 9px;
+      }
+    }
+
+    .menu-contents {
+      z-index: 10;
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: -4px;
+      width: fit-content;
+      min-width: 64px;
+      min-height: 24px;
+      padding: 0 4px;
+      user-select: none;
+      background-color: $color4;
+      border: 1px solid $color8;
+      font-size: 12px;
+      color: $color7;
+    }
+
+    .menu-option {
+      display: block;
+      position: relative;
+      width: 100%;
+      height: 24px;
+      user-select: none;
+      white-space: nowrap;
+      margin-top: -1px;
+
+      > label {
+        position: relative;
+        top: 1px;
+        white-space: nowrap;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      &:hover {
+        > label {
+          color: $color9;
+        }
+      }
+    }
+
+    .spacer {
+      display: block;
+      position: relative;
+      left: -4px;
+      width: calc(100% + 8px);
+      height: 1px;
+      margin-bottom: 1px;
+      user-select: none;
+      background-color: $color8;
+    }
+
+    .title {
+      color: $color7;
+      font-size: 12px;
+      user-select: none;
+      pointer-events: none;
+    }
+  }
+
+  .ui-menu.open {
+    .menu-contents {
+      display: block;
+    }
+
+    .title {
+      color: $color9;
+    }
+  }
+}

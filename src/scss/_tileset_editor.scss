@@ -3,10 +3,8 @@
 #tileset-editor {
   display: none;
   position: absolute;
-
   width: 336px;
   height: 360px;
-
   background-color: $color3;
   box-shadow: 0 0 2px 2px rgba(0, 0, 0, .5);
 
@@ -42,10 +40,8 @@
       background-color: $color4;
       padding: 0;
       margin-bottom: 2px;
-
       text-align: center;
       cursor: pointer;
-
       border: 1px solid $color1;
 
       label {

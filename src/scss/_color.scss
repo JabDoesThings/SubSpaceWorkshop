@@ -1,13 +1,26 @@
-$color0: black;
-$color1: #080808;
-$color2: #111;
-$color3: #11151c;
-$color4: #222831;
-$color5: #393e46;
-$color6: #00adb5;
-$color7: #eeeeee;
-$color8: #999;
-$color9: #00f7ff;
+:root {
+  --color0: #000;
+  --color1: #080808;
+  --color2: #111;
+  --color3: #11151c;
+  --color4: #222831;
+  --color5: #393e46;
+  --color6: #00adb5;
+  --color7: #eee;
+  --color8: #999;
+  --color9: #00f7ff;
+}
+
+$color0: var(--color0);
+$color1: var(--color1);
+$color2: var(--color2);
+$color3: var(--color3);
+$color4: var(--color4);
+$color5: var(--color5);
+$color6: var(--color6);
+$color7: var(--color7);
+$color8: var(--color8);
+$color9: var(--color9);
 
 .dark {
   * {

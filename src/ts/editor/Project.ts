@@ -1,4 +1,3 @@
-import { DEFAULT_ATLAS } from '../main';
 import { LVLMap, LVLTileSet } from '../io/LVL';
 import { LVL } from '../io/LVLUtils';
 import { Zip } from '../io/Zip';
@@ -22,6 +21,7 @@ import { EditLayerRemove } from './edits/EditLayerRemove';
 import { EditSelectionClear } from './edits/EditSelectionClear';
 import { EditSelectionAdd } from './edits/EditSelectionAdd';
 import { Library } from './data/library/Library';
+import { DEFAULT_ATLAS } from './render/SubSpaceAtlas';
 
 /**
  * The <i>Project</i> class. TODO: Document.

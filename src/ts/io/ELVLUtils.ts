@@ -21,21 +21,17 @@ import { BufferUtils } from '../util/BufferUtils';
  */
 export class ELVL {
 
-  static handlers: { [id: string]: ELVLChunkHandler<ELVLChunk> } = {};
-
-  static readonly DEBUG = true;
-
-  public static readonly DEFAULT_REGION_OPTIONS: ELVLRegionOptions = {
+  static readonly DEFAULT_REGION_OPTIONS: ELVLRegionOptions = {
     isFlagBase: false,
     noAntiWarp: false,
     noWeapons: false,
     noFlagDrops: false,
   };
-
-  public static readonly HEADER_SIGNATURE = 1819700325 /*elvl*/;
+  static readonly HEADER_SIGNATURE = 1819700325 /*elvl*/;
+  static readonly DEBUG = true;
+  static handlers: { [id: string]: ELVLChunkHandler<ELVLChunk> } = {};
 
   public static read(buffer: Buffer): ELVLCollection {
-
     let eStartOffset;
     let eOffset = buffer.readUInt32LE(6);
     if (eOffset == 0) {
@@ -43,73 +39,64 @@ export class ELVL {
     }
     eStartOffset = eOffset;
 
-    let signature = buffer.readUInt32LE(eOffset);
+    const signature = buffer.readUInt32LE(eOffset);
     eOffset += 4;
     if (ELVL.DEBUG) {
-      console.log("offset: " + eOffset + " signature: " + signature + " valid_signature: " + ELVL.HEADER_SIGNATURE);
+      console.log(`offset: ${eOffset} signature: ${signature} valid_signature: ${ELVL.HEADER_SIGNATURE}`);
     }
     if (signature != ELVL.HEADER_SIGNATURE) {
       return;
     }
     if (ELVL.DEBUG) {
-      console.log("ELVL data is present.");
+      console.log('ELVL data is present.');
     }
-    let eSectionLength = buffer.readUInt32LE(eOffset);
-    let eSectionEnd = eStartOffset + eSectionLength;
+    const eSectionLength = buffer.readUInt32LE(eOffset);
+    const eSectionEnd = eStartOffset + eSectionLength;
     eOffset += 4;
 
-    let eReserved = buffer.readUInt32LE(eOffset);
+    const eReserved = buffer.readUInt32LE(eOffset);
     eOffset += 4;
     if (eReserved != 0) {
       if (ELVL.DEBUG) {
-        console.warn("ELVL header's 3rd UInt32 value is not 0 and is invalid.");
+        console.warn(`ELVL header's 3rd UInt32 value is not 0 and is invalid.`);
       }
       return null;
     }
 
-    let eCollection = new ELVLCollection();
+    const eCollection = new ELVLCollection();
 
     while (eOffset < eSectionEnd) {
-
-      let cId = BufferUtils.readFixedString(buffer, eOffset, 4);
-      let cSize = buffer.readUInt32LE(eOffset + 4);
-      let cBuffer = buffer.subarray(eOffset + 8, eOffset + 8 + cSize);
+      const cId = BufferUtils.readFixedString(buffer, eOffset, 4);
+      const cSize = buffer.readUInt32LE(eOffset + 4);
+      const cBuffer = buffer.subarray(eOffset + 8, eOffset + 8 + cSize);
       eOffset += 8 + cSize;
-
       // Pad to the next 4 bytes.
-      let remainder = cSize % 4;
+      const remainder = cSize % 4;
       if (remainder != 0) {
         eOffset += 4 - remainder;
       }
-
       if (cId === 'ATTR') {
-        let attribute = (<ELVLAttributeHandler> ELVL.handlers['ATTR']).read(cBuffer);
+        const attribute = (<ELVLAttributeHandler> ELVL.handlers['ATTR']).read(cBuffer);
         eCollection.addAttribute(attribute);
       } else if (cId === 'REGN') {
-        let region = (<ELVLRegionHandler> ELVL.handlers['REGN']).read(cBuffer);
+        const region = (<ELVLRegionHandler> ELVL.handlers['REGN']).read(cBuffer);
         eCollection.addRegion(region);
       } else {
-
         let chunk: ELVLChunk;
-
-        let handler = ELVL.handlers[cId];
-
+        const handler = ELVL.handlers[cId];
         if (handler != null) {
           chunk = handler.read(cBuffer);
         }
-
         if (chunk == null) {
           if (ELVL.DEBUG) {
-            console.warn("Unknown ELVL Chunk ID '" + cId + "'. Adding as raw data chunk.");
+            console.warn(`Unknown ELVL Chunk ID '${cId}'. Adding as raw data chunk.`);
           }
           eCollection.addChunk(new ELVLRawChunk(cId, cBuffer));
           continue;
         }
-
         eCollection.addChunk(handler.read(cBuffer));
       }
     }
-
     return eCollection;
   }
 }
@@ -120,7 +107,6 @@ export class ELVL {
  * @author Jab
  */
 export abstract class ELVLChunkHandler<C extends ELVLChunk> {
-
   id: string;
 
   protected constructor(id: string) {
@@ -140,19 +126,17 @@ export abstract class ELVLChunkHandler<C extends ELVLChunk> {
 export class ELVLAttributeHandler extends ELVLChunkHandler<ELVLAttribute> {
 
   constructor() {
-    super("ATTR");
+    super('ATTR');
   }
 
-  // @Override
+  /** @override */
   read(buffer: Buffer): ELVLAttribute {
-
-    let ascii = BufferUtils.readFixedString(buffer, 0, buffer.length);
-    let split = ascii.split('=');
-
+    const ascii = BufferUtils.readFixedString(buffer, 0, buffer.length);
+    const split = ascii.split('=');
     return new ELVLAttribute(split[0], split[1]);
   }
 
-  // @Override
+  /** @override */
   write(chunk: ELVLAttribute): Buffer {
     return null;
   }
@@ -171,20 +155,17 @@ export class ELVLRegionHandler extends ELVLChunkHandler<ELVLRegion> {
     super('REGN');
   }
 
-  // @Override
+  /** @override */
   read(buffer: Buffer): ELVLRegion {
-
     let offset = 0;
-
     let name: string = null;
-
     let tileData: ELVLRegionTileData = null;
     let autoWarp: ELVLRegionAutoWarp = null;
-    let chunks: ELVLRegionChunk[] = [];
+    const chunks: ELVLRegionChunk[] = [];
     let pythonCode: string = null;
-    let color: number[] = [0, 0, 0];
+    const color: number[] = [0, 0, 0];
 
-    let options = {
+    const options = {
       isFlagBase: false,
       noAntiWarp: false,
       noWeapons: false,
@@ -192,18 +173,15 @@ export class ELVLRegionHandler extends ELVLChunkHandler<ELVLRegion> {
     };
 
     while (offset < buffer.length) {
-
-      let subChunkId = BufferUtils.readFixedString(buffer, offset, 4);
-      let subChunkSize = buffer.readUInt32LE(offset + 4);
-      let subChunkBuffer = buffer.subarray(offset + 8, offset + 8 + subChunkSize);
+      const subChunkId = BufferUtils.readFixedString(buffer, offset, 4);
+      const subChunkSize = buffer.readUInt32LE(offset + 4);
+      const subChunkBuffer = buffer.subarray(offset + 8, offset + 8 + subChunkSize);
       offset += 8 + subChunkSize;
-
       // Pad to the next 4 bytes.
-      let remainder = subChunkSize % 4;
+      const remainder = subChunkSize % 4;
       if (remainder != 0) {
         offset += 4 - remainder;
       }
-
       if (subChunkId === 'rNAM') {
         name = BufferUtils.readFixedString(subChunkBuffer, 0, subChunkSize);
       } else if (subChunkId === 'rTIL') {
@@ -221,41 +199,31 @@ export class ELVLRegionHandler extends ELVLChunkHandler<ELVLRegion> {
       } else if (subChunkId === 'rPYC') {
         pythonCode = BufferUtils.readFixedString(subChunkBuffer, 0, subChunkSize);
       } else if (subChunkId === 'rCOL') {
-
-        let red = subChunkBuffer.readUInt8(0);
-        let green = subChunkBuffer.readUInt8(1);
-        let blue = subChunkBuffer.readUInt8(2);
-
-        color = [red, green, blue];
-
+        color[0] = subChunkBuffer.readUInt8(0);
+        color[1] = subChunkBuffer.readUInt8(1);
+        color[2] = subChunkBuffer.readUInt8(2);
       } else {
-
-        let handler = ELVL.handlers[subChunkId];
-
+        const handler = ELVL.handlers[subChunkId];
         if (handler == null) {
-
           if (ELVL.DEBUG) {
-            console.warn("Unknown ELVL Chunk ID '" + subChunkId + "'. Adding as raw data chunk.");
+            console.warn(`Unknown ELVL Chunk ID '${subChunkId}'. Adding as raw data chunk.`);
           }
-
           chunks.push(new ELVLRegionRawChunk(subChunkId, subChunkBuffer));
           continue;
         }
-
         if (ELVL.DEBUG) {
-          console.log("Reading ELVL Chunk '" + subChunkId + "'. (" + subChunkSize + " byte(s))");
+          console.log(`Reading ELVL Chunk '${subChunkId}'. (${subChunkSize} byte(s))`);
         }
-
         chunks.push(handler.read(subChunkBuffer));
       }
     }
 
-    let region = new ELVLRegion(name, options, tileData, autoWarp, pythonCode, chunks);
+    const region = new ELVLRegion(name, options, tileData, autoWarp, pythonCode, chunks);
     region.color = color;
     return region;
   }
 
-  // @Override
+  /** @override */
   write(chunk: ELVLChunk): Buffer {
     return null;
   }
@@ -273,32 +241,25 @@ export class ELVLWallTilesHandler extends ELVLChunkHandler<ELVLWallTiles> {
   }
 
   read(buffer: Buffer): ELVLWallTiles {
-
     if (buffer.length != 16) {
       throw new Error(
-        "The size for DCME Wall-Tile chunks can only be 16. (" + buffer.length + " given)");
+        `The size for DCME Wall-Tile chunks can only be 16. (${buffer.length} given)`);
     }
-
     // Read the 16 tiles.
-    let tiles: number[] = new Array(16);
+    const tiles: number[] = new Array(16);
     for (let index = 0; index < 16; index++) {
       tiles[index] = buffer.readUInt8(index);
     }
-
     return new ELVLWallTiles(tiles);
   }
 
   write(chunk: ELVLWallTiles): Buffer {
-
     chunk.validate();
-
-    let buffer = Buffer.alloc(16);
-
+    const buffer = Buffer.alloc(16);
     // Write each tile ID as the offset of the index.
     for (let index = 0; index < 16; index++) {
       buffer.writeUInt8(chunk.tiles[index], index);
     }
-
     return buffer;
   }
 }
@@ -314,32 +275,26 @@ export class ELVLTextTilesHandler extends ELVLChunkHandler<ELVLTextTiles> {
     super('DCTT');
   }
 
-  // @Override
+  /** @override */
   read(buffer: Buffer): ELVLTextTiles {
-
     // Create a blank character map.
-    let charMap = new Array(256);
+    const charMap = new Array(256);
     for (let index = 0; index < charMap.length; index++) {
       charMap[index] = 0;
     }
-
     let offset = 0;
-
     while (offset < buffer.length) {
-      let charValue = buffer.readUInt8(offset++);
+      const charValue = buffer.readUInt8(offset++);
       charMap[charValue] = buffer.readUInt8(offset++);
     }
-
     return new ELVLTextTiles(charMap);
   }
 
-  // @Override
+  /** @override */
   write(chunk: ELVLTextTiles): Buffer {
-
     chunk.validate();
-
     // Create a compressed character map to write to a buffer.
-    let map = [];
+    const map = [];
     for (let index = 0; index < chunk.charMap.length; index++) {
       let tileId = chunk.charMap[index];
       if (tileId > 0) {
@@ -347,13 +302,11 @@ export class ELVLTextTilesHandler extends ELVLChunkHandler<ELVLTextTiles> {
         map.push(tileId);
       }
     }
-
     // Write the compressed character map to the buffer.
-    let buffer = Buffer.alloc(map.length);
+    const buffer = Buffer.alloc(map.length);
     for (let index = 0; index < map.length; index++) {
       buffer.writeUInt8(map[index], index);
     }
-
     return buffer;
   }
 }
@@ -369,23 +322,17 @@ export class ELVLHashCodeHandler extends ELVLChunkHandler<ELVLHashCode> {
     super('DCID');
   }
 
-  // @Override
+  /** @override */
   read(buffer: Buffer): ELVLHashCode {
-
-    let hashCode = BufferUtils.readFixedString(buffer, 0, buffer.length);
-
+    const hashCode = BufferUtils.readFixedString(buffer, 0, buffer.length);
     return new ELVLHashCode(hashCode);
   }
 
-  // @Override
+  /** @override */
   write(chunk: ELVLHashCode): Buffer {
-
     chunk.validate();
-
-    let buffer = Buffer.alloc(chunk.hashCode.length);
-
+    const buffer = Buffer.alloc(chunk.hashCode.length);
     BufferUtils.writeFixedString(buffer, chunk.hashCode, 0);
-
     return buffer;
   }
 }
@@ -401,12 +348,12 @@ export class ELVLBookmarksHandler extends ELVLChunkHandler<ELVLBookmarks> {
     super('DCBM');
   }
 
-  // @Override
+  /** @override */
   read(buffer: Buffer): ELVLBookmarks {
     return new ELVLBookmarks(buffer);
   }
 
-  // @Override
+  /** @override */
   write(chunk: ELVLBookmarks): Buffer {
     return chunk.data;
   }
@@ -423,12 +370,12 @@ export class ELVLLVZPathHandler extends ELVLChunkHandler<ELVLLVZPath> {
     super('DCBM');
   }
 
-  // @Override
+  /** @override */
   read(buffer: Buffer): ELVLLVZPath {
     return new ELVLLVZPath(buffer);
   }
 
-  // @Override
+  /** @override */
   write(chunk: ELVLLVZPath): Buffer {
     return chunk.data;
   }
@@ -445,8 +392,6 @@ export abstract class ELVLRegionChunkHandler<C extends ELVLRegionChunk> {
   id: string;
 
   /**
-   *  @constructor
-   *
    * @param {string} id The unique ID of the region.
    * */
   protected constructor(id: string) {
@@ -484,7 +429,6 @@ export class ELVLRegionTileMapHandler extends ELVLRegionChunkHandler<ELVLRegionT
   private static readonly SMALL_REPEAT = 6;
   private static readonly LONG_REPEAT = 7;
 
-  /** @constructor */
   constructor() {
     super('rTIL');
   }
@@ -494,7 +438,7 @@ export class ELVLRegionTileMapHandler extends ELVLRegionChunkHandler<ELVLRegionT
     let offset = 0;
 
     // Create a new blank array.
-    let tiles: boolean[][] = new Array(1024);
+    const tiles: boolean[][] = new Array(1024);
     for (let x = 0; x < 1024; x++) {
       tiles[x] = new Array(1024);
       for (let y = 0; y < 1024; y++) {
@@ -504,123 +448,88 @@ export class ELVLRegionTileMapHandler extends ELVLRegionChunkHandler<ELVLRegionT
 
     let tilesInRow: number = 0;
     let rowsCounted: number = 0;
-
     let byte1: number = 0;
     let byte2: number = 0;
     let value: number = 0;
 
     while (offset < buffer.length && rowsCounted < 1024) {
-
       byte1 = buffer.readUInt8(offset++);
-
-      let b1check = Math.floor(byte1 / 32);
-
+      const b1check = Math.floor(byte1 / 32);
       if (b1check == ELVLRegionTileMapHandler.SMALL_EMPTY_RUN) {
-
         // 000nnnnn - n+1 (1-32) empty tiles in a row
         value = byte1 % 32 + 1;
-
         for (let x = tilesInRow; x < tilesInRow + value; x++) {
           tiles[x][rowsCounted] = false;
         }
-
         tilesInRow += value;
-
       } else if (b1check == ELVLRegionTileMapHandler.LONG_EMPTY_RUN) {
-
         // 001000nn nnnnnnnn - n+1 (1-1024) empty tiles in a row
         byte2 = buffer.readUInt8(offset++);
         value = 256 * (byte1 % 4) + byte2 + 1;
-
         for (let x = tilesInRow; x < tilesInRow + value; x++) {
           tiles[x][rowsCounted] = false;
         }
-
         tilesInRow += value;
-
       } else if (b1check == ELVLRegionTileMapHandler.SMALL_PRESENT_RUN) {
-
         // 010nnnnn - n+1 (1-32) present tiles in a row
         value = byte1 % 32 + 1;
-
         if (tilesInRow + value > 1024) {
           if (ELVL.DEBUG) {
-            console.warn("Something's wrong. More than 1024 tiles in that row.");
+            console.warn(`Something's wrong. More than 1024 tiles in that row.`);
           }
         } else {
           for (let x = tilesInRow; x < tilesInRow + value; x++) {
             tiles[x][rowsCounted] = true;
           }
         }
-
         tilesInRow += value;
-
       } else if (b1check == ELVLRegionTileMapHandler.LONG_PRESENT_RUN) {
-
         // 011000nn nnnnnnnn - n+1 (1-1024) present tiles in a row
         byte2 = buffer.readUInt8(offset++);
         value = 256 * (byte1 % 4) + byte2 + 1;
-
         if (tilesInRow + value > 1024) {
           if (ELVL.DEBUG) {
-            console.warn("Something's wrong. More than 1024 tiles in that row.");
+            console.warn(`Something's wrong. More than 1024 tiles in that row.`);
           }
         } else {
           for (let x = tilesInRow; x < tilesInRow + value; x++) {
             tiles[x][rowsCounted] = true;
           }
         }
-
         tilesInRow += value;
-
       } else if (b1check == ELVLRegionTileMapHandler.SMALL_EMPTY_ROWS) {
-
         // 100nnnnn - n+1 (1-32) rows of all empty
         value = byte1 % 32 + 1;
-
         rowsCounted += value;
-
       } else if (b1check == ELVLRegionTileMapHandler.LONG_EMPTY_ROWS) {
-
         // 101000nn nnnnnnnn - n+1 (1-1024) rows of all empty
         byte2 = buffer.readUInt8(offset++);
         value = 256 * (byte1 % 4) + byte2 + 1;
-
         rowsCounted += value;
-
       } else if (b1check == ELVLRegionTileMapHandler.SMALL_REPEAT) {
-
         // 110nnnnn - repeat last row n+1 (1-32) times
         value = byte1 % 32 + 1;
-
         // Next, copy the entire row.
         for (let x = 0; x < 1024; x++) {
           for (let y = rowsCounted; y < rowsCounted + value; y++) {
             tiles[x][y] = tiles[x][y - 1];
           }
         }
-
         rowsCounted += value;
-
       } else if (b1check == ELVLRegionTileMapHandler.LONG_REPEAT) {
-
         // 111000nn nnnnnnnn - repeat last row n+1 (1-1024) times
         byte2 = buffer.readUInt8(offset++);
         value = 256 * (byte1 % 4) + byte2 + 1;
-
         // Next, copy the entire row.
         for (let x = 0; x < 1024; x++) {
           for (let y = rowsCounted; y < rowsCounted + value; y++) {
             tiles[x][y] = tiles[x][y - 1];
           }
         }
-
         rowsCounted += value;
-
       } else {
-        throw new Error("Error in region tile data: byte1/32 = " + b1check);
+        throw new Error(`Error in region tile data: byte1/32 = ${b1check}`);
       }
-
       if (tilesInRow == 1024) {
         tilesInRow = 0;
         rowsCounted += 1;
@@ -644,19 +553,15 @@ export class ELVLRegionTileMapHandler extends ELVLRegionChunkHandler<ELVLRegionT
  */
 export class ELVLRegionAutoWarpHandler extends ELVLRegionChunkHandler<ELVLRegionAutoWarp> {
 
-  /** @constructor */
   constructor() {
     super('rAWP');
   }
 
   /** @override */
   read(buffer: Buffer): ELVLRegionAutoWarp {
-    let x: number;
-    let y: number;
+    const x = buffer.readInt16LE(0);
+    const y = buffer.readInt16LE(2);
     let arena: string = null;
-
-    x = buffer.readInt16LE(0);
-    y = buffer.readInt16LE(2);
 
     if (buffer.length > 4) {
       arena = BufferUtils.readFixedString(buffer, 4, buffer.length - 4);
@@ -668,17 +573,13 @@ export class ELVLRegionAutoWarpHandler extends ELVLRegionChunkHandler<ELVLRegion
   /** @override */
   write(chunk: ELVLRegionAutoWarp): Buffer {
     chunk.validate();
-
-    let arena = chunk.arena;
-    let buffer: Buffer = Buffer.alloc(arena != null ? 4 + arena.length : 4);
-
+    const arena = chunk.arena;
+    const buffer: Buffer = Buffer.alloc(arena != null ? 4 + arena.length : 4);
     buffer.writeUInt16LE(chunk.x, 0);
     buffer.writeUInt16LE(chunk.y, 2);
-
     if (arena != null) {
       BufferUtils.writeFixedString(buffer, arena, 4);
     }
-
     return buffer;
   }
 }

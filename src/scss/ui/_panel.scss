@@ -1,0 +1,189 @@
+@import '../color';
+
+$panelTime: 200ms;
+$panelWidth: 320px;
+
+.ui-panel {
+  z-index: 2;
+  display: inline-block;
+  top: 1px;
+  width: 0;
+  height: 100%;
+  margin-top: -1px;
+  background-color: $color4;
+  transition: all $panelTime;
+
+  .ui-panel-overflow-container {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    transition: max-width $panelTime, max-height $panelTime;
+  }
+
+  .ui-panel-contents {
+    display: inline-block;
+    position: relative;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    transition: left 200ms;
+  }
+
+  .ui-tab-menu.left {
+    position: absolute;
+    top: 100%;
+    left: -24px;
+    width: 965px;
+    float: right;
+    transform: rotate(-90deg);
+    transform-origin: left top 0;
+
+    .ui-tab {
+      float: right;
+    }
+  }
+
+  .ui-tab-menu.right {
+    position: absolute;
+    top: 0;
+    left: calc(100% + 24px);
+    width: 2048px;
+    transform: rotate(90deg);
+    transform-origin: left top 0;
+  }
+}
+
+.ui-panel.left.open, .ui-panel.right.open {
+  .ui-panel-overflow-container {
+    max-width: unset;
+  }
+}
+
+.ui-panel.left, .ui-panel.right {
+  .ui-panel-overflow-container {
+    max-width: 0;
+  }
+}
+
+.ui-panel.top.open, .ui-panel.bottom.open {
+  .ui-panel-overflow-container {
+    max-height: unset;
+  }
+}
+
+.ui-panel.top, .ui-panel.bottom {
+  .ui-panel-overflow-container {
+    max-height: 0;
+  }
+}
+
+.ui-panel.left {
+  position: absolute;
+  left: 0;
+  right: unset;
+}
+
+.ui-panel.right {
+  position: absolute;
+  left: unset;
+  right: 0;
+}
+
+.ui-panel.half {
+  height: 50%;
+}
+
+.ui-panel.top-half {
+  top: 1px;
+  bottom: unset;
+}
+
+.ui-panel.bottom-half {
+  top: unset;
+  bottom: 1px;
+}
+
+.ui-panel-tab {
+  position: absolute;
+  display: inline-block;
+  top: 0;
+  left: 0;
+  width: $panelWidth;
+  height: 100%;
+  z-index: 1;
+  overflow-y: auto;
+}
+
+.ui-panel-tab.open {
+  z-index: 2;
+}
+
+.ui-panel-section {
+  display: block;
+
+  .header {
+    width: 100%;
+    height: 24px;
+    padding: 0;
+    user-select: none;
+    background-color: $color4;
+
+    .arrow {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      margin: 0 -6px 0 0;
+      padding: 0;
+      user-select: none;
+      cursor: pointer;
+      transform-origin: 50% 50%;
+
+      label {
+        position: relative;
+        display: inline-block;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 12px;
+        font-weight: bold;
+      }
+    }
+
+    .title {
+      display: inline-block;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    label {
+      display: inline-block;
+      color: $color7;
+      font-size: 12px;
+      line-height: 25px;
+      pointer-events: none;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+  }
+
+  .content-frame {
+    display: block;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    background-color: $color3;
+    transition: max-height 0.2s ease-out;
+
+    .contents {
+      padding: 7px;
+
+      canvas {
+        margin-bottom: -3px;
+      }
+    }
+  }
+}

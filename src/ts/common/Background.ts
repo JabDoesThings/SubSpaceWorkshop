@@ -1,9 +1,9 @@
 // eslint no-unused-vars: "off"
 
 import * as PIXI from 'pixi.js';
-import { MapRenderer } from '../simple/render/MapRenderer';
+import { MapRenderer } from '../editor/render/MapRenderer';
 import { SeededRandom } from '../util/SeededRandom';
-import type { Project } from '../simple/Project';
+import type { Project } from '../editor/Project';
 import type { Renderer } from './Renderer';
 
 /**
