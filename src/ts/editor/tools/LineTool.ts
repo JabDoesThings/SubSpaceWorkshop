@@ -4,9 +4,9 @@ import { Selection } from '../ui/Selection';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 import { DrawTool } from './DrawTool';
-import { LVL } from '../../io/LVLUtils';
 import { TileData } from '../../util/map/TileData';
 import { Layer } from '../layers/Layer';
+import { TILE_DIMENSIONS } from '../../io/LVL';
 
 /**
  * The <i>LineTool</i> class. TODO: Document.
@@ -57,7 +57,7 @@ export class LineTool extends DrawTool {
     const slots: boolean[][] = [];
 
     const isSlotTaken = (x1: number, y1: number, id: number): boolean => {
-      const dimensions = LVL.TILE_DIMENSIONS[id];
+      const dimensions = TILE_DIMENSIONS[id];
       const x2 = x1 + dimensions[0] - 1;
       const y2 = y1 + dimensions[1] - 1;
       for (let y = y1; y <= y2; y++) {
@@ -70,7 +70,7 @@ export class LineTool extends DrawTool {
     };
 
     const setSlots = (x1: number, y1: number, id: number): void => {
-      const dimensions = LVL.TILE_DIMENSIONS[id];
+      const dimensions = TILE_DIMENSIONS[id];
       const x2 = x1 + dimensions[0] - 1;
       const y2 = y1 + dimensions[1] - 1;
       for (let y = y1; y <= y2; y++) {

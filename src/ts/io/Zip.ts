@@ -10,14 +10,8 @@ const fs = require('fs');
  * @author Jab
  */
 export class Zip {
-
-  private readonly content: { [path: string]: Buffer | string };
+  private readonly content: { [path: string]: Buffer | string } = {};
   processed: boolean = false;
-
-  /** @constructor */
-  constructor() {
-    this.content = {};
-  }
 
   /**
    * Reads a Zip file from a path.

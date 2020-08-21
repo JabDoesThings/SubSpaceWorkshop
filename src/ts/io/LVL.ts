@@ -1,319 +1,144 @@
-import { Dirtable } from '../util/Dirtable';
-import * as PIXI from "pixi.js";
-import { LVL } from './LVLUtils';
-import { ELVLCollection } from './ELVL';
-import { TileData } from '../util/map/TileData';
-import { MapArea } from '../util/map/MapArea';
-import { HSVtoRGB, RGBtoHSV } from '../util/ColorUtils';
+import LVLTileSet from './lvl/LVLTileSet';
+import LVLMap from './lvl/LVLMap';
 
-/**
- * The <i>LVLMap</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class LVLMap implements Dirtable {
+import ELVLCollection from './lvl/elvl/ELVLCollection';
+import ELVLRegion from './lvl/elvl/chunk/region/ELVLRegion';
+import ELVLRegionAutoWarp from './lvl/elvl/chunk/region/ELVLRegionAutoWarp';
+import ELVLRegionChunk from './lvl/elvl/chunk/region/ELVLRegionChunk';
+import ELVLRegionRawChunk from './lvl/elvl/chunk/region/ELVLRegionRawChunk';
+import ELVLRegionTileData from './lvl/elvl/chunk/region/ELVLRegionTileData';
+import ELVLAttribute from './lvl/elvl/chunk/ELVLAttribute';
+import ELVLBookmarks from './lvl/elvl/chunk/ELVLBookmarks';
+import ELVLChunk from './lvl/elvl/chunk/ELVLChunk';
+import ELVLHashCode from './lvl/elvl/chunk/ELVLHashCode';
+import ELVLLVZPath from './lvl/elvl/chunk/ELVLLVZPath';
+import ELVLRawChunk from './lvl/elvl/chunk/ELVLRawChunk';
+import ELVLTextTiles from './lvl/elvl/chunk/ELVLTextTiles';
+import ELVLWallTiles from './lvl/elvl/chunk/ELVLWallTiles';
+import ELVLChunkHandler from './lvl/elvl/chunk/handler/ELVLChunkHandler';
 
-  readonly tiles: TileData;
-  tileset: LVLTileSet;
-  metadata: ELVLCollection;
-  name: string;
+import {
+  readLVL,
+  writeLVL,
+  readTileset,
+  readTilesetImage,
+  validateArea,
+  validateCoordinates,
+  validateRanges,
+  validateTileId,
+  validateTileImage,
+  validateTilesetImage,
+  isOutOfRange,
+  canFitTiles,
+  canImageFitTiles,
+  contains,
+  inTilesetRange,
+  toTileBuffer,
+  toTilesetCoords
+} from './lvl/LVLUtils';
+import ELVLRegionHandler from './lvl/elvl/chunk/handler/region/ELVLRegionHandler';
+import { ELVLAttributeHandler } from './lvl/elvl/chunk/handler/ELVLAttributeHandler';
+import { ELVLWallTilesHandler } from './lvl/elvl/chunk/handler/ELVLWallTilesHandler';
+import ELVLTextTilesHandler from './lvl/elvl/chunk/handler/ELVLTextTilesHandler';
+import ELVLHashCodeHandler from './lvl/elvl/chunk/handler/ELVLHashCodeHandler';
+import ELVLBookmarksHandler from './lvl/elvl/chunk/handler/ELVLBookmarksHandler';
+import ELVLLVZPathHandler from './lvl/elvl/chunk/handler/ELVLLVZPathHandler';
+import ELVLRegionTileMapHandler from './lvl/elvl/chunk/handler/region/ELVLRegionTileMapHandler';
+import ELVLRegionAutoWarpHandler from './lvl/elvl/chunk/handler/region/ELVLRegionAutoWarpHandler';
+import ELVLRegionChunkHandler from './lvl/elvl/chunk/handler/region/ELVLRegionChunkHandler';
 
-  private dirty: boolean;
+const ELVL_HANDLERS: { [id: string]: ELVLChunkHandler<ELVLChunk> } = {};
+const ELVL_REGION_HANDLERS: { [id: string]: ELVLRegionChunkHandler<ELVLRegionChunk> } = {};
 
-  /**
-   * @constructor
-   *
-   * @param name {string} The name of the map.
-   * @param tiles {TileData} The tiles placed in the map.
-   * @param tileSet {LVLTileSet} The tileset used by the map.
-   * @param metadata {ELVLCollection} The ELVL metadata stored with the map file.
-   */
-  public constructor(
-    name: string,
-    tiles: TileData = null,
-    tileSet: LVLTileSet = LVL.DEFAULT_TILESET,
-    metadata: ELVLCollection = new ELVLCollection()
-  ) {
+// #############################
+// ## HANDLER ASSIGNMENT CODE ##
+// #############################
+ELVL_HANDLERS['ATTR'] = new ELVLAttributeHandler();
+ELVL_HANDLERS['REGN'] = new ELVLRegionHandler();
+ELVL_HANDLERS['DCWT'] = new ELVLWallTilesHandler();
+ELVL_HANDLERS['DCTT'] = new ELVLTextTilesHandler();
+ELVL_HANDLERS['DCID'] = new ELVLHashCodeHandler();
+ELVL_HANDLERS['DCBM'] = new ELVLBookmarksHandler();
+ELVL_HANDLERS['DCLV'] = new ELVLLVZPathHandler();
+ELVL_REGION_HANDLERS['rTIL'] = new ELVLRegionTileMapHandler();
+ELVL_REGION_HANDLERS['rAWP'] = new ELVLRegionAutoWarpHandler();
+// #############################
 
-    this.name = name;
-    this.tileset = tileSet;
-    this.metadata = metadata;
+/** The default tileset for SubSpace maps. */
+const DEFAULT_TILESET = readTilesetImage("assets/media/tiles.png", true);
+/** 16x16 pixel tiles in a 19x10 grid. */
+const TILESET_DIMENSIONS: number[] = [304, 160];
+/** The width and height of a map in tiles. */
+const MAP_LENGTH = 1024;
 
-    if (tiles == null) {
-      tiles = new TileData();
-    }
-    this.tiles = tiles;
-  }
-
-  getMetadata(): ELVLCollection {
-    return this.metadata;
-  }
-
-  /** @override */
-  public isDirty(): boolean {
-    return this.dirty;
-  }
-
-  /** @override */
-  public setDirty(flag: boolean, area: MapArea = null): void {
-    if (flag != this.dirty) {
-      this.dirty = flag;
-      this.tiles.setDirty(flag, area);
-    }
-  }
-}
-
-/**
- * The <i>Tileset</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class LVLTileSet implements Dirtable {
-
-  private readonly tiles: PIXI.Texture[] = [];
-  private readonly tileCoordinates: number[][] = [];
-  readonly tileColor: number[][] = [];
-  readonly defaultTileColor: number[] = [170, 170, 170];
-
-  texture: PIXI.Texture;
-  canvas: HTMLCanvasElement;
-  borderTile: PIXI.Texture;
-  bitCount: number;
-  canDestroyBaseTexture: boolean = false;
-
-  private dirty: boolean;
-
-  /**
-   * @constructor
-   *
-   * @param {HTMLCanvasElement | PIXI.Texture} canvasOrTexture The image source to import.
-   */
-  constructor(canvasOrTexture: HTMLCanvasElement | PIXI.Texture) {
-    if (canvasOrTexture instanceof HTMLCanvasElement) {
-      this.set(canvasOrTexture);
-    } else {
-      this.texture = canvasOrTexture;
-      this.canvas = document.createElement('canvas');
-      this.canvas.width = 304;
-      this.canvas.height = 160;
-      const ctx = this.canvas.getContext('2d');
-      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      // @ts-ignore
-      ctx.drawImage(canvasOrTexture.baseTexture.resource.source, 0, 0);
-    }
-
-    this.bitCount = 24;
-
-    this.tiles.push(null);
-    for (let y = 0; y < 10; y++) {
-      for (let x = 0; x < 19; x++) {
-        this.tileCoordinates.push([16 * x, 16 * y]);
-      }
-    }
-
-    for (let y = 0; y < 10; y++) {
-      for (let x = 0; x < 19; x++) {
-        this.tileCoordinates.push([16 * x, 16 * y]);
-      }
-    }
-
-    this.tileColor = [];
-    this.tileColor.push([0, 0, 0]);
-    for (let y = 0; y < 10; y++) {
-      for (let x = 0; x < 19; x++) {
-
-        const ctx = this.canvas.getContext('2d');
-        let imgData = ctx.getImageData(x * 16, y * 16, 16, 16).data;
-
-        let pixelCount = 0;
-        let ar = 0;
-        let ag = 0;
-        let ab = 0;
-
-        let offset = 0;
-        for (let py = 0; py < 16; py++) {
-          for (let px = 0; px < 16; px++) {
-            let r = imgData[offset];
-            let g = imgData[offset + 1];
-            let b = imgData[offset + 2];
-            if (r !== 0 && g !== 0 && b !== 0) {
-              pixelCount++;
-              ar += r;
-              ag += g;
-              ab += b;
-            }
-            offset += 4;
-          }
-        }
-        const color = [0, 0, 0];
-        if (pixelCount != 0) {
-          color[0] = ar / pixelCount;
-          color[1] = ag / pixelCount;
-          color[2] = ab / pixelCount;
-        }
-        let finalColor;
-        if (pixelCount !== 0) {
-          const hsv = RGBtoHSV(color[0], color[1], color[2]);
-          finalColor = HSVtoRGB(hsv.h, hsv.s, hsv.v < 0.25 ? 0.25 : hsv.v);
-        } else {
-          finalColor = {r: 0, g: 0, b: 0};
-        }
-        this.tileColor.push([finalColor.r, finalColor.g, finalColor.b]);
-      }
-    }
-    this.borderTile = new PIXI.Texture(this.texture.baseTexture, new PIXI.Rectangle(0, 16, 16, 16));
-  }
-
-  /**
-   * @param tile The ID of the tile to grab.
-   *
-   * @return Returns the image element of the tile in the tileset.
-   *
-   * @throws RangeError Thrown if the ID given is below 0 or above 190.
-   */
-  public getTile(tile: number): PIXI.Texture {
-    // Check to make sure that the tile is within range.
-    if (!LVL.inTilesetRange(tile)) {
-      throw new RangeError(
-        "The id given is out of range. Id's can only be between 1 and 190. ("
-        + tile
-        + " given)"
-      );
-    }
-    return this.tiles[tile];
-  }
-
-  /**
-   * Sets a tile-image for a tile-id in a tileset.
-   *
-   * @param tile The tile ID to set.
-   * @param image The image to set for the tile.
-   *
-   * @throws RangeError Thrown if the tile ID given is out of the tileset's range of 1 to 190.
-   * @throws Error Thrown if the image given is null or is not 16x16 in size.
-   */
-  public setTile(tile: number, image: PIXI.Texture) {
-    // Check to make sure that the tile is within range.
-    if (!LVL.inTilesetRange(tile)) {
-      throw new RangeError(
-        "The id given is out of range. Id's can only be between 1 and 190. ("
-        + tile
-        + " given)"
-      );
-    }
-
-    // Make sure that the tile image is properly sized before application.
-    LVL.validateTileImage(image);
-    // Set the tile in the tiles array.
-    this.tiles[tile] = image;
-    // Sets the tileset as 'dirty' to be updated.
-    this.setDirty(true);
-  }
-
-  /** @return {PIXI.Texture} Returns the source image of the entire tileset. */
-  public getTexture(): PIXI.Texture {
-    return this.texture;
-  }
-
-  /** @return {number[]} Returns the UV pixel coordinates for the tile. */
-  public getTileCoordinates(tile: number): number[] {
-    return this.tileCoordinates[tile - 1];
-  }
-
-  /** @override */
-  public isDirty(): boolean {
-    return this.dirty;
-  }
-
-  /** @override */
-  public setDirty(flag: boolean): void {
-    this.dirty = flag;
-  }
-
-  /** @return {LVLTileSet} Returns a cloned copy of the tileset. */
-  clone(): LVLTileSet {
-    return new LVLTileSet(this.texture.clone());
-  }
-
-  set(canvas: HTMLCanvasElement) {
-    if (!this.canvas) {
-      this.canvas = document.createElement('canvas');
-      this.canvas.width = 304;
-      this.canvas.height = 160;
-    }
-
-    const ctx = this.canvas.getContext('2d');
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    ctx.drawImage(canvas, 0, 0);
-
-    if (this.texture) {
-      this.texture.destroy(!this.canDestroyBaseTexture);
-    }
-
-    this.texture = PIXI.Texture.from(canvas);
-    this.bitCount = 24;
-    this.tileCoordinates.length = 0;
-    this.tiles.length = 0;
-    this.tiles.push(null);
-
-    for (let y = 0; y < 10; y++) {
-      for (let x = 0; x < 19; x++) {
-        this.tileCoordinates.push([16 * x, 16 * y]);
-      }
-    }
-
-    for (let y = 0; y < 10; y++) {
-      for (let x = 0; x < 19; x++) {
-        this.tileCoordinates.push([16 * x, 16 * y]);
-      }
-    }
-
-    this.tileColor.length = 0;
-    this.tileColor.push([0, 0, 0]);
-    for (let y = 0; y < 10; y++) {
-      for (let x = 0; x < 19; x++) {
-
-        const ctx = this.canvas.getContext('2d');
-        let imgData = ctx.getImageData(x * 16, y * 16, 16, 16).data;
-
-        let pixelCount = 0;
-        let ar = 0;
-        let ag = 0;
-        let ab = 0;
-
-        let offset = 0;
-        for (let py = 0; py < 16; py++) {
-          for (let px = 0; px < 16; px++) {
-            let r = imgData[offset];
-            let g = imgData[offset + 1];
-            let b = imgData[offset + 2];
-            if (r !== 0 && g !== 0 && b !== 0) {
-              pixelCount++;
-              ar += r;
-              ag += g;
-              ab += b;
-            }
-            offset += 4;
-          }
-        }
-        const color = [0, 0, 0];
-        if (pixelCount != 0) {
-          color[0] = ar / pixelCount;
-          color[1] = ag / pixelCount;
-          color[2] = ab / pixelCount;
-        }
-        let finalColor;
-        if (pixelCount !== 0) {
-          const hsv = RGBtoHSV(color[0], color[1], color[2]);
-          finalColor = HSVtoRGB(hsv.h, hsv.s, hsv.v < 0.25 ? 0.25 : hsv.v);
-        } else {
-          finalColor = {r: 0, g: 0, b: 0};
-        }
-        this.tileColor.push([finalColor.r, finalColor.g, finalColor.b]);
-      }
-    }
-    this.borderTile = new PIXI.Texture(this.texture.baseTexture, new PIXI.Rectangle(0, 16, 16, 16));
-    this.setDirty(true);
+const TILE_DIMENSIONS: number[][] = [];
+// Create dimension array to reference for tools.
+for (let index = 0; index < 256; index++) {
+  TILE_DIMENSIONS[index] = new Array(2);
+  if (index == 217) {
+    // Large Asteroid
+    TILE_DIMENSIONS[index][0] = 2;
+    TILE_DIMENSIONS[index][1] = 2;
+  } else if (index == 219) {
+    // Station Tile
+    TILE_DIMENSIONS[index][0] = 6;
+    TILE_DIMENSIONS[index][1] = 6;
+  } else if (index == 220) {
+    // Wormhole Tile
+    TILE_DIMENSIONS[index][0] = 5;
+    TILE_DIMENSIONS[index][1] = 5;
+  } else {
+    // Other Tiles
+    TILE_DIMENSIONS[index][0] = 1;
+    TILE_DIMENSIONS[index][1] = 1;
   }
 }
+
+export {
+  // LVL objects.
+  LVLMap,
+  LVLTileSet,
+
+  // ELVL objects.
+  ELVLAttribute,
+  ELVLCollection,
+  ELVLBookmarks,
+  ELVLChunk,
+  ELVLHashCode,
+  ELVLLVZPath,
+  ELVLRawChunk,
+  ELVLRegion,
+  ELVLRegionAutoWarp,
+  ELVLRegionChunk,
+  ELVLRegionRawChunk,
+  ELVLRegionTileData,
+  ELVLTextTiles,
+  ELVLWallTiles,
+
+  // Utility methods.
+  readLVL,
+  writeLVL,
+  readTileset,
+  readTilesetImage,
+  validateArea,
+  validateCoordinates,
+  validateRanges,
+  validateTileId,
+  validateTileImage,
+  validateTilesetImage,
+  isOutOfRange,
+  canFitTiles,
+  canImageFitTiles,
+  contains,
+  inTilesetRange,
+  toTileBuffer,
+  toTilesetCoords,
+
+  // Global variables.
+  DEFAULT_TILESET,
+  TILESET_DIMENSIONS,
+  MAP_LENGTH,
+  TILE_DIMENSIONS,
+  ELVL_HANDLERS,
+  ELVL_REGION_HANDLERS,
+};

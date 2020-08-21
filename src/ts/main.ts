@@ -14,18 +14,21 @@ export let start = function () {
   const loader = new PIXI.Loader();
   loader.add(DEFAULT_TEXTURES);
 
+  const init = () => {
+    setTimeout(() => {
+      console.debug('Starting Editor');
+      const editor = new Editor();
+      // editor.new();
+      // setTimeout(() => {
+      //   editor.tilesetEditor.open();
+      // }, 1000);
+    }, 10);
+  };
+
   console.debug('Loading textures..');
   loader.onComplete.add(() => {
-    DEFAULT_ATLAS.load(loader, () => {
-      setTimeout(() => {
-        console.debug('Starting Editor');
-        const editor = new Editor();
-        editor.new();
-        setTimeout(() => {
-          editor.tilesetEditor.open();
-        }, 1000);
-      }, 10);
-    });
+    console.debug('Creating atlas..');
+    DEFAULT_ATLAS.load(loader, init);
   });
 
   loader.load();

@@ -155,7 +155,6 @@ export class Bitmap {
           imageData.data[dataIndex + 3] = 255;
         }
       }
-
     }
     return imageData;
   }
@@ -167,8 +166,8 @@ export class Bitmap {
    * @param dummy Set to true to save to a 1x1 bitmap.
    */
   static toBuffer(source: HTMLCanvasElement, bitCount: number, dummy: boolean = false) {
-    let sw = source.width;
-    let sh = source.height;
+    const sw = dummy ? 1 : source.width;
+    const sh = dummy ? 1 : source.height;
     const ctx = source.getContext("2d");
     const imageData = ctx.getImageData(0, 0, sw, sh);
 
@@ -238,10 +237,6 @@ export class Bitmap {
     buffer.writeUInt16LE(0, 8); // bfReserved2
     buffer.writeUInt32LE(40, 14); // biSize
 
-    if (dummy) {
-      sw = 1;
-      sh = 1;
-    }
     // Info Header
     buffer.writeUInt32LE(sw, 18); // biWidth
     buffer.writeUInt32LE(sh, 22); // biHeight
@@ -274,12 +269,10 @@ export class Bitmap {
  * @author Jab
  */
 export class PaletteData {
-
   palette: PaletteColor[];
   pixels: number[];
 
   constructor(data: ImageData) {
-
     const width = data.width;
     const height = data.height;
     const pixelCount = width * height;
@@ -292,8 +285,8 @@ export class PaletteData {
       const r = data.data[offset];
       const g = data.data[offset + 1];
       const b = data.data[offset + 2];
-      let pixelIndex = -1;
 
+      let pixelIndex = -1;
       for (let ti = 0; ti < this.palette.length; ti++) {
         let next = this.palette[ti];
         if (r === next.r && g === next.g && b === next.b) {
@@ -306,7 +299,6 @@ export class PaletteData {
         pixelIndex = this.palette.length;
         this.palette.push(new PaletteColor(r, g, b));
       }
-
       this.pixels[index] = pixelIndex;
     }
   }
@@ -321,10 +313,9 @@ export class PaletteData {
       compressedPixels.push(this.pixels[pi]);
     }
 
-    const compressedTable: PaletteColor[] = [];
-
     // Add basic colors to anchor to with color reduction so things don't look off
     //   that should be solid colors.
+    const compressedTable: PaletteColor[] = [];
     compressedTable.push(new PaletteColor(0, 0, 0));
     compressedTable.push(new PaletteColor(255, 255, 255));
     compressedTable.push(new PaletteColor(255, 0, 0));

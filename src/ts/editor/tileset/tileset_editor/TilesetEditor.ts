@@ -1,9 +1,8 @@
 import { Editor } from '../../Editor';
-import { LVLTileSet } from '../../../io/LVL';
+import { LVLTileSet, toTilesetCoords } from '../../../io/LVL';
 import MouseDownEvent = JQuery.MouseDownEvent;
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import { drawAspect } from '../../../util/DrawUtils';
-import { toTilesetCoords } from '../../../io/LVLUtils';
 import InnerWindow from '../../ui/InnerWindow';
 import TileEditor from '../tile_editor/TileEditor';
 

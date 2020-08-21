@@ -1,6 +1,5 @@
 import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
-import { CompiledLVZScreenObject, LVZPackage, LVZResource } from '../io/LVZ';
-import { LVZ } from '../io/LVZUtils';
+import { CompiledLVZScreenObject, loadTexture, LVZPackage, LVZResource, readLVZ } from '../io/LVZ';
 import { Project } from './Project';
 import { ProjectAtlas, TextureAtlas } from './render/ProjectAtlas';
 import { MapSprite } from './render/MapSprite';
@@ -14,27 +13,19 @@ import Texture = PIXI.Texture;
  * @author Jab
  */
 export class LVZManager extends CustomEventListener<LVZEvent> {
-
-  packages: LVZPackage[];
+  packages: LVZPackage[] = [];
   project: Project;
-  lvzDirtyRange: { x1: number, y1: number, x2: number, y2: number };
-  resourceDirty: boolean;
-  loaded: boolean;
-  dirty: boolean;
+  lvzDirtyRange: { x1: number, y1: number, x2: number, y2: number } = {x1: 0, x2: 0, y1: 16384, y2: 16384};
+  resourceDirty: boolean = false;
+  loaded: boolean = false;
+  dirty: boolean = true;
 
   /**
-   * @constructor
-   *
    * @param {Project} project
    */
   constructor(project: Project) {
     super();
     this.project = project;
-    this.packages = [];
-    this.lvzDirtyRange = {x1: 0, x2: 0, y1: 16384, y2: 16384};
-    this.resourceDirty = false;
-    this.loaded = false;
-    this.dirty = true;
   }
 
   /**
@@ -48,7 +39,7 @@ export class LVZManager extends CustomEventListener<LVZEvent> {
       return;
     }
     for (let index = 0; index < paths.length; index++) {
-      let next = LVZ.read(paths[index]).inflate();
+      let next = readLVZ(paths[index]).inflate();
       this.packages.push(next);
     }
     if (this.packages.length === 0) {
@@ -174,7 +165,7 @@ export class LVZManager extends CustomEventListener<LVZEvent> {
             atlas.setTextureAtlas(textureAtlas);
           }
 
-          LVZ.loadTexture(nextResource, (texture: Texture) => {
+          loadTexture(nextResource, (texture: Texture) => {
             textureAtlas.setTexture(texture);
           });
         }

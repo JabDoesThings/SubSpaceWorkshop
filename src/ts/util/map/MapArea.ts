@@ -11,7 +11,6 @@ import { CoordinateType } from './CoordinateType';
  * @author Jab
  */
 export class MapArea {
-
   readonly type: CoordinateType;
   readonly x1: number;
   readonly y1: number;

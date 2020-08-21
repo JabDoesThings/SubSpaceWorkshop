@@ -4,8 +4,8 @@ import { AdvancedBloomFilter } from '@pixi/filter-advanced-bloom';
 import { UpdatedObject } from '../util/UpdatedObject';
 import { Path, PathCoordinates, PathMode } from '../util/Path';
 import { KeyListener } from '../util/KeyListener';
-import { LVL } from '../io/LVLUtils';
 import Filter = PIXI.Filter;
+import { MAP_LENGTH } from '../io/LVL';
 
 const Stats = require('stats.js');
 
@@ -397,7 +397,7 @@ export class Camera extends UpdatedObject {
     this.setRequireDirtyToUpdate(false);
 
     this.coordinateMin = 0;
-    this.coordinateMax = LVL.MAP_LENGTH;
+    this.coordinateMax = MAP_LENGTH;
 
     // Set the initial position to be the center of the map with the default scale.
     this.position = {

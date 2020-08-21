@@ -5,9 +5,9 @@ import { Project } from './Project';
 import { UITabMenu } from './ui/UI';
 import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
 import { Layer } from './layers/Layer';
-import { LVL } from '../io/LVLUtils';
 import TilesetEditor from './tileset/tileset_editor/TilesetEditor';
 import TileEditor from './tileset/tile_editor/TileEditor';
+import { readLVL } from '../io/LVL';
 
 /**
  * The <i>Editor</i> class. TODO: Document.
@@ -291,7 +291,7 @@ export class Editor extends CustomEventListener<EditorEvent> {
     let project = this.projects[this.active];
 
     const _import = (_path: string): void => {
-      let map = LVL.read(_path);
+      const map = readLVL(_path);
       let addProject: boolean = false;
       if (project == null) {
         project = new Project(this.renderer, map.name);

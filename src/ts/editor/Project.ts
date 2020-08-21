@@ -1,5 +1,4 @@
-import { LVLMap, LVLTileSet } from '../io/LVL';
-import { LVL } from '../io/LVLUtils';
+import { DEFAULT_TILESET, LVLMap, LVLTileSet, readTileset, writeLVL } from '../io/LVL';
 import { Zip } from '../io/Zip';
 import { TileData } from '../util/map/TileData';
 import { Editor } from './Editor';
@@ -57,7 +56,7 @@ export class Project extends CustomEventListener<CustomEvent> {
     this.renderer = renderer;
     this.editor = this.renderer.editor;
     this._name = name;
-    this.tileset = LVL.DEFAULT_TILESET.clone();
+    this.tileset = DEFAULT_TILESET.clone();
     this.path = null;
     this.metadata = {};
     this.atlas = DEFAULT_ATLAS.clone();
@@ -340,7 +339,7 @@ export class Project extends CustomEventListener<CustomEvent> {
         layers.setActive(layers.layers[layers.layers.length - 1]);
 
         if (zip.exists('tileset.bmp')) {
-          project.setTileset(LVL.readTileset(<Buffer> zip.get('tileset.bmp')));
+          project.setTileset(readTileset(<Buffer> zip.get('tileset.bmp')));
         }
         if (zip.exists('library.sswl')) {
           await Library.read(zip.get('library.sswl'), library => {
@@ -423,7 +422,7 @@ export class Project extends CustomEventListener<CustomEvent> {
     }
 
     const map = new LVLMap('name', tiles, project.tileset);
-    LVL.write(map, path);
+    writeLVL(map, path);
   }
 }
 

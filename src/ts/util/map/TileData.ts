@@ -1,10 +1,10 @@
 import { MapArea } from './MapArea';
-import { LVL } from '../../io/LVLUtils';
 import { CoordinateType } from './CoordinateType';
 import { TileEdit } from '../../editor/edits/EditTiles';
 import { Path } from '../Path';
 import { MapSection, MapSections } from './MapSection';
 import { MapPoint } from './MapPoint';
+import { TILE_DIMENSIONS, validateCoordinates, validateTileId } from '../../io/LVL';
 
 /**
  * The <i>TileData</i> class. TODO: Document.
@@ -194,7 +194,7 @@ export class TileData {
    */
   public get(x: number, y: number): number {
     // Make sure that the coordinates are within bounds.
-    LVL.validateCoordinates(x, y, 0, 0, this.width - 1, this.height - 1);
+    validateCoordinates(x, y, 0, 0, this.width - 1, this.height - 1);
     // Grab the value stored in the tile array at the coordinates.
     return this.tiles[x][y];
   }
@@ -212,8 +212,8 @@ export class TileData {
    */
   public set(x: number, y: number, value: number, mask: MapSections = null, applyDimensions: boolean = true): TileEdit[] {
     // Make sure that the tile ID is proper.
-    LVL.validateTileId(value);
-    LVL.validateCoordinates(x, y, 0, 0, this.width - 1, this.height - 1);
+    validateTileId(value);
+    validateCoordinates(x, y, 0, 0, this.width - 1, this.height - 1);
     if (mask != null && !mask.test(x, y)) {
       return [];
     }
@@ -259,7 +259,7 @@ export class TileData {
             }
             const id = this.tiles[x][y];
             if (id != 0) {
-              const dimensions = LVL.TILE_DIMENSIONS[id];
+              const dimensions = TILE_DIMENSIONS[id];
               const x2 = x + dimensions[0] - 1;
               const y2 = y + dimensions[1] - 1;
               if (contains(cx, cy, x, y, x2, y2)) {
@@ -291,7 +291,7 @@ export class TileData {
         }
       };
 
-      const dimensions = LVL.TILE_DIMENSIONS[value];
+      const dimensions = TILE_DIMENSIONS[value];
       const x2 = x + dimensions[0] - 1;
       const y2 = y + dimensions[1] - 1;
       remove(x, y, x2, y2);
