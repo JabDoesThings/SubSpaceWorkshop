@@ -2,24 +2,16 @@ import MouseMoveEvent = JQuery.MouseMoveEvent;
 
 const $win = $(window);
 
-// const pool: {[id: string]: InnerWindow} = {};
-//
-// export const load = (id: string): InnerWindow => {
-//   if(pool[id]) {
-//     return pool[id];
-//   }
-//
-//   const element = document.getElementById(id);
-//   if(!element) {
-//     throw new Error(`Inner Window does not exist: #${id}`);
-//   }
-// };
-
-abstract class InnerWindow {
+/**
+ * The <i>UIInnerWindow</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
+abstract class UIInnerWindow {
   element: HTMLElement;
   private offset: number[] = [0, 0];
   protected enabled: boolean = false;
-  protected $element: JQuery<HTMLElement>;
+  protected $element: JQuery;
 
   protected constructor(element: HTMLElement) {
     this.element = element;
@@ -138,4 +130,4 @@ abstract class InnerWindow {
   abstract onClose(): void;
 }
 
-export default InnerWindow;
+export default UIInnerWindow;

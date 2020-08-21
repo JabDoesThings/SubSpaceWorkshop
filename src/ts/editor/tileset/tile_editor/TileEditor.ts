@@ -1,4 +1,4 @@
-import InnerWindow from '../../ui/InnerWindow';
+import UIInnerWindow from '../../../ui/component/UIInnerWindow';
 import TilesetEditor from '../tileset_editor/TilesetEditor';
 import { IconToolbar, IconToolbarEvent, IconToolbarEventType } from '../IconToolbar';
 import { TileEditManager } from './TileEditManager';
@@ -12,7 +12,7 @@ import TileEditSection from './TileEditSection';
 import Palette from './Palette';
 import PaletteColor from './PaletteColor';
 
-class TileEditor extends InnerWindow {
+class TileEditor extends UIInnerWindow {
 
   static SCALES = [1, 2, 4, 8, 16];
 

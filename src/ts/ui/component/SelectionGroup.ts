@@ -1,3 +1,4 @@
+import Selection from './Selection';
 import { Dirtable } from '../../util/Dirtable';
 
 /**
@@ -51,48 +52,4 @@ export class SelectionGroup implements Dirtable {
   }
 }
 
-/**
- * The <i>Selection</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class Selection {
-
-  type: string;
-  id: number | string;
-
-  /**
-   * @constructor
-   *
-   * @param {string} type
-   * @param {number | string} id
-   */
-  constructor(type: string, id: number | string) {
-    this.type = type;
-    this.id = id;
-  }
-}
-
-/**
- * The <i>SelectionType</i> enum. TODO: Document.
- *
- * @author Jab
- */
-export enum SelectionType {
-  TILE = 'tile',
-  IMAGE = 'image',
-  MAP_OBJECT = 'map_object',
-  SCREEN_OBJECT = 'screen_object',
-  REGION = 'region'
-}
-
-/**
- * The <i>SelectionSlot</i> enum. TODO: Document.
- *
- * @author Jab
- */
-export enum SelectionSlot {
-  PRIMARY = 0,
-  MIDDLE = 1,
-  SECONDARY = 2
-}
+export default SelectionGroup;

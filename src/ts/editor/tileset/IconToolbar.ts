@@ -1,4 +1,4 @@
-import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
+import { CustomEventListener, CustomEvent } from '../../ui/UI';
 import MouseDownEvent = JQuery.MouseDownEvent;
 
 export class IconToolbar extends CustomEventListener<IconToolbarEvent> {

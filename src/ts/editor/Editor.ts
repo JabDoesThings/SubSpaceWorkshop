@@ -2,12 +2,13 @@ import * as PIXI from "pixi.js";
 import { MapRenderer } from './render/MapRenderer';
 import { KeyListener } from '../util/KeyListener';
 import { Project } from './Project';
-import { UITabMenu } from './ui/UI';
-import { CustomEventListener, CustomEvent } from './ui/CustomEventListener';
+import { CustomEventListener } from '../ui/CustomEventListener';
+import { CustomEvent } from '../ui/UIEvents';
 import { Layer } from './layers/Layer';
 import TilesetEditor from './tileset/tileset_editor/TilesetEditor';
 import TileEditor from './tileset/tile_editor/TileEditor';
 import { readLVL } from '../io/LVL';
+import UITabMenu from '../ui/component/UITabMenu';
 
 /**
  * The <i>Editor</i> class. TODO: Document.
@@ -15,8 +16,8 @@ import { readLVL } from '../io/LVL';
  * @author Jab
  */
 export class Editor extends CustomEventListener<EditorEvent> {
-
-  projects: Project[];
+  projects: Project[] = [];
+  menuManager: MenuManager;
   renderer: MapRenderer;
   tabMenu: UITabMenu;
   active: number;
@@ -26,10 +27,7 @@ export class Editor extends CustomEventListener<EditorEvent> {
   private _controlListener: KeyListener;
   private _altListener: KeyListener;
 
-  menuManager: MenuManager;
   /**
-   * @constructor
-   *
    * @param {Project[]} projects The projects to initially load.<br/>
    *     <b>NOTE</b>: The last project will be set active.
    */
@@ -39,13 +37,10 @@ export class Editor extends CustomEventListener<EditorEvent> {
     // @ts-ignore
     global.editor = this;
 
-    this.projects = [];
-
     this.menuManager = new MenuManager(this);
     this._altListener = new KeyListener('alt');
     this._controlListener = new KeyListener('control');
     this._shiftListener = new KeyListener('shift');
-
     this.tabMenu = new UITabMenu();
     const mapEditorTab = this.tabMenu.createTab('map_editor', 'Map', true);
     const blueprintEditorTab = this.tabMenu.createTab('blueprint_editor', 'Blueprint Editor', false);

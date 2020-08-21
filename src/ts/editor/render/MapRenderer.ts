@@ -1,17 +1,20 @@
 import * as PIXI from "pixi.js";
 import { MapGrid } from './MapGrid';
-import { PalettePanel } from '../ui/PalettePanel';
+import { PalettePanel } from '../../ui/component/PalettePanel';
 import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Renderer';
 import { Radar } from '../../common/Radar';
 import { PathMode } from '../../util/Path';
 import { Project } from '../Project';
 import { CompiledLVZMapObject, CompiledLVZScreenObject, LVZPackage } from '../../io/LVZ';
-import { CustomEvent, CustomEventListener } from '../ui/CustomEventListener';
 import { MapSprite } from './MapSprite';
 import { ToolManager } from '../tools/ToolManager';
-import { LayersPanel } from '../ui/LayersPanel';
 import { Editor } from '../Editor';
+import { RenderMode } from './RenderMode';
+import GlassBlur from './GlassBlur';
+import LayersPanel from '../ui/LayersPanel';
 import {
+  CustomEvent,
+  CustomEventListener,
   IconToolbarAction,
   PanelOrientation,
   TabOrientation,
@@ -25,9 +28,7 @@ import {
   UIPanelSection,
   UITool,
   UITooltip
-} from '../ui/UI';
-import { RenderMode } from './RenderMode';
-import GlassBlur from './GlassBlur';
+} from '../../ui/UI';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.

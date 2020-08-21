@@ -1,6 +1,6 @@
+import { CustomEventListener, CustomEvent } from '../../ui/UI';
 import { Texture } from "pixi.js";
 import { MapSprite } from './MapSprite';
-import { CustomEventListener, CustomEvent } from '../ui/CustomEventListener';
 import { Dirtable } from '../../util/Dirtable';
 import { Project } from '../Project';
 
@@ -16,7 +16,6 @@ export class ProjectAtlas extends CustomEventListener<CustomEvent> implements Di
   private dirty: boolean;
   private project: Project;
 
-  /** @constructor */
   constructor(project: Project) {
     super();
     this.project = project;

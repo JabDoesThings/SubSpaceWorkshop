@@ -1,4 +1,4 @@
-import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
+import { CustomEvent, CustomEventListener } from '../ui/CustomEventListener';
 import { CompiledLVZScreenObject, loadTexture, LVZPackage, LVZResource, readLVZ } from '../io/LVZ';
 import { Project } from './Project';
 import { ProjectAtlas, TextureAtlas } from './render/ProjectAtlas';

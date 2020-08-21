@@ -2,7 +2,7 @@ import { Tool } from './Tool';
 import { Project } from '../Project';
 import { MapMouseEvent } from '../../common/Renderer';
 import { Edit } from '../edits/Edit';
-import { Selection, SelectionType } from '../ui/Selection';
+import { Selection, SelectionType } from '../../ui/UI';
 
 /**
  * The <i>DrawTool</i> class. TODO: Document.

@@ -3,10 +3,10 @@ import { LVLTileSet, toTilesetCoords } from '../../../io/LVL';
 import MouseDownEvent = JQuery.MouseDownEvent;
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import { drawAspect } from '../../../util/DrawUtils';
-import InnerWindow from '../../ui/InnerWindow';
+import UIInnerWindow from '../../../ui/component/UIInnerWindow';
 import TileEditor from '../tile_editor/TileEditor';
 
-class TilesetEditor extends InnerWindow {
+class TilesetEditor extends UIInnerWindow {
 
   private readonly selection: number[] = [0, 0, 0, 0];
   private editor: Editor;

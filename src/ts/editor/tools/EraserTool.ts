@@ -3,7 +3,7 @@ import { MapMouseEvent } from '../../common/Renderer';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 import { DrawTool } from './DrawTool';
-import { Selection } from '../ui/Selection';
+import { Selection } from '../../ui/component/Selection';
 import { TileData } from '../../util/map/TileData';
 
 /**

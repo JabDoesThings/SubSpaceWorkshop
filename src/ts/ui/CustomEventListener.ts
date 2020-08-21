@@ -1,18 +1,13 @@
+import { CustomEvent } from './UIEvents';
+
 /**
  * The <i>UIEventListener</i> abstract class. TODO: Document.
  *
  * @author Jab
  */
 export abstract class CustomEventListener<E extends CustomEvent> {
-
-  private listeners: ((event: E) => void | boolean)[];
-  private dispatching: boolean;
-
-  /** @constructor */
-  protected constructor() {
-    this.listeners = [];
-    this.dispatching = false;
-  }
+  private listeners: ((event: E) => void | boolean)[] = [];
+  private dispatching: boolean = false;
 
   /**
    * Dispatches a event.
@@ -73,12 +68,4 @@ export abstract class CustomEventListener<E extends CustomEvent> {
   }
 }
 
-/**
- * The <i>CustomEvent</i> interface. TODO: Document.
- *
- * @author Jab
- */
-export interface CustomEvent {
-  eventType: string;
-  forced: boolean;
-}
+export default CustomEventListener;

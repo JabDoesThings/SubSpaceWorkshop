@@ -3,9 +3,6 @@ import { Zip } from '../io/Zip';
 import { TileData } from '../util/map/TileData';
 import { Editor } from './Editor';
 import { Bitmap } from '../io/Bitmap';
-import { Selection, SelectionGroup, SelectionSlot, SelectionType } from './ui/Selection';
-import { UITab } from './ui/UI';
-import { CustomEvent, CustomEventListener } from './ui/CustomEventListener';
 import { ProjectAtlas } from './render/ProjectAtlas';
 import { EditManager } from './EditManager';
 import { LayerManager } from './layers/LayerManager';
@@ -21,6 +18,15 @@ import { EditSelectionClear } from './edits/EditSelectionClear';
 import { EditSelectionAdd } from './edits/EditSelectionAdd';
 import { Library } from './data/library/Library';
 import { DEFAULT_ATLAS } from './render/SubSpaceAtlas';
+import {
+  Selection,
+  UITab,
+  CustomEventListener,
+  CustomEvent,
+  SelectionGroup,
+  SelectionSlot,
+  SelectionType
+} from '../ui/UI';
 
 /**
  * The <i>Project</i> class. TODO: Document.

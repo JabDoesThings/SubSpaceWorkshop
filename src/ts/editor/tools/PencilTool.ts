@@ -1,6 +1,6 @@
 import { Project } from '../Project';
 import { MapMouseEvent } from '../../common/Renderer';
-import { Selection } from '../ui/Selection';
+import { Selection } from '../../ui/component/Selection';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 import { DrawTool } from './DrawTool';

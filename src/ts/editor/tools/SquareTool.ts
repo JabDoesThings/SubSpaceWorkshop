@@ -1,7 +1,7 @@
 import { Project } from '../Project';
 import { MapMouseEvent } from '../../common/Renderer';
 import { Tool } from './Tool';
-import { SelectionType } from '../ui/Selection';
+import { SelectionType } from '../../ui/component/Selection';
 import { Edit } from '../edits/Edit';
 import { EditTiles } from '../edits/EditTiles';
 import { TileData } from '../../util/map/TileData';

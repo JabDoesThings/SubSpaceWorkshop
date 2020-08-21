@@ -4,7 +4,7 @@ import { Dirtable } from '../../util/Dirtable';
 import { InheritedObject } from '../../util/InheritedObject';
 import { MapRenderer } from '../render/MapRenderer';
 import { LayerManager } from './LayerManager';
-import { UILayer } from '../ui/LayersPanel';
+import { UILayer } from '../../ui/UI';
 import { EditLayerVisible } from '../edits/EditLayerVisible';
 import { TileData } from '../../util/map/TileData';
 import { CoordinateType } from '../../util/map/CoordinateType';
@@ -16,18 +16,16 @@ import { Zip } from '../../io/Zip';
  * @author Jab
  */
 export class Layer extends InheritedObject<Layer> implements Dirtable {
-
   static readonly DEFAULT_NAME: string = 'Untitled Layer';
 
   readonly ui: UILayer;
-  private readonly metadata: { [id: string]: any };
-  private readonly id: string;
-  private readonly type: string;
-
-  protected manager: LayerManager;
   bounds: MapArea;
   tiles: TileData;
   _tileCache: TileData;
+  protected manager: LayerManager;
+  private readonly metadata: { [id: string]: any };
+  private readonly id: string;
+  private readonly type: string;
   private name: string;
   private visible: boolean;
   private dirty: boolean;
@@ -36,8 +34,6 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
   private cacheDirty: boolean;
 
   /**
-   * @constructor
-   *
    * @param {string} type The type of Layer.
    * @param {string} id The unique ID of the layer. <br/>
    *   <b>NOTE</b>: Only provide this when loading an existing layer. A
@@ -82,10 +78,10 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
 
   load(json: { [field: string]: any }, projectZip: Zip): void {
     if (json.name == null) {
-      throw new Error('The layer \'' + this.id + '\' does not have a name.');
+      throw new Error(`The layer '${this.id}' does not have a name.`);
     }
     if (json.visible == null) {
-      throw new Error('The layer \'' + this.id + '\' does not have the \'visible\' flag.');
+      throw new Error(`The layer '${this.id}' does not have the 'visible' flag.`);
     }
     // Load metadata for the layer.
     if (json.metadata != null) {
