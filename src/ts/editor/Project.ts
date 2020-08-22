@@ -1,40 +1,37 @@
-import { DEFAULT_TILESET, LVLMap, LVLTileSet, readTileset, writeLVL } from '../io/LVL';
 import { Zip } from '../io/Zip';
-import { TileData } from '../util/map/TileData';
-import { Editor } from './Editor';
 import { Bitmap } from '../io/Bitmap';
-import { ProjectAtlas } from './render/ProjectAtlas';
-import { EditManager } from './EditManager';
-import { LayerManager } from './layers/LayerManager';
-import { MapSection, MapSections } from '../util/map/MapSection';
-import { Background } from '../common/Background';
-import { SelectionRenderer } from './render/SelectionRenderer';
-import { MapRenderer } from './render/MapRenderer';
-import { Layer, LayerLoader } from './layers/Layer';
-import { CoordinateType } from '../util/map/CoordinateType';
-import { MapPoint } from '../util/map/MapPoint';
-import { EditLayerRemove } from './edits/EditLayerRemove';
-import { EditSelectionClear } from './edits/EditSelectionClear';
-import { EditSelectionAdd } from './edits/EditSelectionAdd';
-import { Library } from './data/library/Library';
+import { DEFAULT_TILESET, LVLMap, LVLTileSet, readTileset, writeLVL } from '../io/LVL';
 import { DEFAULT_ATLAS } from './render/SubSpaceAtlas';
-import {
-  Selection,
-  UITab,
-  CustomEventListener,
-  CustomEvent,
-  SelectionGroup,
-  SelectionSlot,
-  SelectionType
-} from '../ui/UI';
+import { CustomEvent, CustomEventListener, UITab } from '../ui/UI';
+import Editor from './Editor';
+import EditManager from './EditManager';
+import SelectionRenderer from './render/SelectionRenderer';
+import TileData from '../util/map/TileData';
+import LayerManager from './layers/LayerManager';
+import MapRenderer from './render/MapRenderer';
+import Layer from './layers/Layer';
+import CoordinateType from '../util/map/CoordinateType';
+import MapPoint from '../util/map/MapPoint';
+import ProjectAtlas from './render/ProjectAtlas';
+import Background from '../common/render/Background';
+import EditLayerRemove from './edits/EditLayerRemove';
+import EditSelectionClear from './edits/EditSelectionClear';
+import EditSelectionAdd from './edits/EditSelectionAdd';
+import Library from './data/library/Library';
+import SelectionGroup from './ui/SelectionGroup';
+import Selection from './ui/Selection';
+import SelectionSlot from './ui/SelectionSlot';
+import SelectionType from './ui/SelectionType';
+import LayerLoader from './layers/LayerLoader';
+import MapSections from '../util/map/MapSections';
+import MapSection from '../util/map/MapSection';
 
 /**
  * The <i>Project</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Project extends CustomEventListener<CustomEvent> {
-
+export default class Project extends CustomEventListener<CustomEvent> {
   library: Library;
   editor: Editor;
   editManager: EditManager;
@@ -52,8 +49,6 @@ export class Project extends CustomEventListener<CustomEvent> {
   private readonly metadata: { [id: string]: any };
 
   /**
-   * @constructor
-   *
    * @param {MapRenderer} renderer
    * @param {string} name
    */
@@ -430,13 +425,4 @@ export class Project extends CustomEventListener<CustomEvent> {
     const map = new LVLMap('name', tiles, project.tileset);
     writeLVL(map, path);
   }
-}
-
-/**
- * The <i>ProjectEvent</i> interface. TODO: Document.
- *
- * @author Jab
- */
-export interface ProjectEvent extends CustomEvent {
-  project: Project;
 }

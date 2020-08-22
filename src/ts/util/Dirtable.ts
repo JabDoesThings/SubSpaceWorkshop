@@ -3,7 +3,7 @@
  *
  * @author Jab
  */
-export interface Dirtable {
+interface Dirtable {
 
   /** @return {boolean} Returns 'true' if the object is dirty. */
   isDirty(): boolean;
@@ -15,3 +15,5 @@ export interface Dirtable {
    */
   setDirty(flag: boolean): void;
 }
+
+export default Dirtable;

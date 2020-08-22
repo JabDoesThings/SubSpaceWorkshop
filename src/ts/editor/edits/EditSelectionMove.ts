@@ -1,21 +1,18 @@
-import { Edit } from './Edit';
-import { EditManager } from '../EditManager';
-import { MapSection } from '../../util/map/MapSection';
+import Edit from './Edit';
+import EditManager from '../EditManager';
+import MapSection from '../../util/map/MapSection';
 
 /**
  * The <i>EditSelectionMove</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EditSelectionMove extends Edit {
-
+export default class EditSelectionMove extends Edit {
   private readonly x: number;
   private readonly y: number;
   private sections: MapSection[];
 
   /**
-   * @constructor
-   *
    * @param {number} x The 'X' offset. (In tiles)
    * @param {number} y The 'Y' offset. (In tiles)
    */

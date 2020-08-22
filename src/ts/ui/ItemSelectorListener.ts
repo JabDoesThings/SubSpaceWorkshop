@@ -1,5 +1,5 @@
-import ItemSelector from './component/ItemSelector';
-import Item from './component/Item';
+import ItemSelector from '../editor/ui/ItemSelector';
+import Item from '../editor/ui/Item';
 import Rectangle = PIXI.Rectangle;
 import { ItemSelectorAction } from './UIProperties';
 

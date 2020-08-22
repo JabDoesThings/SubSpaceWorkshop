@@ -1,23 +1,22 @@
 import uuid = require('uuid');
-import { MapArea } from '../../util/map/MapArea';
-import { Dirtable } from '../../util/Dirtable';
-import { InheritedObject } from '../../util/InheritedObject';
-import { MapRenderer } from '../render/MapRenderer';
-import { LayerManager } from './LayerManager';
-import { UILayer } from '../../ui/UI';
-import { EditLayerVisible } from '../edits/EditLayerVisible';
-import { TileData } from '../../util/map/TileData';
-import { CoordinateType } from '../../util/map/CoordinateType';
+import MapArea from '../../util/map/MapArea';
+import Dirtable from '../../util/Dirtable';
+import InheritedObject from '../../util/InheritedObject';
+import MapRenderer from '../render/MapRenderer';
+import TileData from '../../util/map/TileData';
+import CoordinateType from '../../util/map/CoordinateType';
 import { Zip } from '../../io/Zip';
+import LayerManager from './LayerManager';
+import { UILayer } from '../../ui/UI';
+import EditLayerVisible from '../edits/EditLayerVisible';
 
 /**
  * The <i>Layer</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Layer extends InheritedObject<Layer> implements Dirtable {
+export default class Layer extends InheritedObject<Layer> implements Dirtable {
   static readonly DEFAULT_NAME: string = 'Untitled Layer';
-
   readonly ui: UILayer;
   bounds: MapArea;
   tiles: TileData;
@@ -27,11 +26,11 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
   private readonly id: string;
   private readonly type: string;
   private name: string;
-  private visible: boolean;
-  private dirty: boolean;
-  private locked: boolean;
-  private updatingUI: boolean;
-  private cacheDirty: boolean;
+  private visible: boolean = true;
+  private locked: boolean = false;
+  private updatingUI: boolean = false;
+  private cacheDirty: boolean = true;
+  private dirty: boolean = true;
 
   /**
    * @param {string} type The type of Layer.
@@ -56,7 +55,6 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
     }
     this.id = id;
     this.name = name;
-    this.visible = true;
     this.tiles = new TileData();
     this._tileCache = new TileData();
     this.ui = new UILayer(this.name);
@@ -70,10 +68,6 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
     this.ui.element.addEventListener('click', () => {
       this.manager.setActive(this);
     });
-
-    this.updatingUI = false;
-    this.cacheDirty = true;
-    this.dirty = true;
   }
 
   load(json: { [field: string]: any }, projectZip: Zip): void {
@@ -452,55 +446,3 @@ export class Layer extends InheritedObject<Layer> implements Dirtable {
   onSave(json: { [field: string]: any }, projectZip: Zip): void {
   }
 }
-
-/**
- * The <i>LayerLoader</i> class. TODO: Document.
- *
- * @author Jab
- */
-export abstract class LayerLoader {
-
-  static readonly loaders: { [type: string]: LayerLoader } = {};
-
-  /**
-   * @param {string} id
-   * @param {[field: string]: any} json
-   * @param {Zip} projectZip
-   */
-  abstract onLoad(id: string, json: { [field: string]: any }, projectZip: Zip): Layer;
-
-  /**
-   * @param {string} type The type that the layer loader identifies as.
-   *
-   * @return {LayerLoader} Returns the layer loader that is identified as the given type.
-   */
-  static get(type: string): LayerLoader {
-    return LayerLoader.loaders[type];
-  }
-
-  /**
-   * @param {string} type type The type that the layer loader identifies as.
-   * @param {LayerLoader} loader The layer loader to set.
-   */
-  static set(type: string, loader: LayerLoader): void {
-    LayerLoader.loaders[type] = loader;
-  }
-}
-
-/**
- * The <i>DefaultLayerLoader</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class DefaultLayerLoader extends LayerLoader {
-
-  /** @override */
-  onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Layer {
-    console.log(`# Reading layer: ${json.name} (${id})`);
-    let layer = new Layer(json.type, id, json.name);
-    layer.load(json, projectZip);
-    return layer;
-  }
-}
-
-LayerLoader.set('default', new DefaultLayerLoader());

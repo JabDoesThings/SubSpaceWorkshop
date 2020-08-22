@@ -1,22 +1,18 @@
 import TileEditor from '../TileEditor';
 import TileEdit from '../TileEdit';
-import { TileEditorEvent } from '../TileEditorEvents';
 import { MathUtils } from 'three';
 import lerp = MathUtils.lerp;
 import Palette from '../Palette';
+import  TileEditorEvent  from '../TileEditorEvent';
 
-export abstract class TileEditTool {
-
+export default abstract class TileEditTool {
   isSelector: boolean = false;
-
   private _tileEditor: TileEditor;
   private _event: TileEditorEvent;
   private _type: string;
-
   private _penDown: boolean = false;
 
   penStart(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
-
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'penStart';
@@ -39,9 +35,7 @@ export abstract class TileEditTool {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'penDrag';
-
     const edits = this.onPenDrag(tileEditor, event);
-
     this._tileEditor = null;
     this._event = null;
     this._type = null;
@@ -52,10 +46,8 @@ export abstract class TileEditTool {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'penStop';
-
     this._penDown = false;
     const edits = this.onPenStop(tileEditor, event);
-
     this._tileEditor = null;
     this._event = null;
     this._type = null;
@@ -63,13 +55,10 @@ export abstract class TileEditTool {
   }
 
   start(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
-
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'start';
-
     const edits = this.onStart(tileEditor, event);
-
     this._tileEditor = null;
     this._event = null;
     this._type = null;
@@ -129,9 +118,7 @@ export abstract class TileEditTool {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'enter';
-
     const edits = this.onEnter(tileEditor, event);
-
     this._tileEditor = null;
     this._event = null;
     this._type = null;
@@ -142,9 +129,7 @@ export abstract class TileEditTool {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'exit';
-
     const edits = this.onExit(tileEditor, event);
-
     this._tileEditor = null;
     this._event = null;
     this._type = null;
@@ -155,9 +140,7 @@ export abstract class TileEditTool {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'wheel';
-
     const edits = this.onWheel(tileEditor, event);
-
     this._tileEditor = null;
     this._event = null;
     this._type = null;
@@ -267,5 +250,3 @@ export abstract class TileEditTool {
 
   abstract onActivate(tileEditor: TileEditor): void;
 }
-
-export default TileEditTool;

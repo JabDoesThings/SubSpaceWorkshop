@@ -1,19 +1,13 @@
-import { Inheritable } from './Inheritable';
+import Inheritable from './Inheritable';
 
 /**
  * The <i>InheritedObject</i> class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class InheritedObject<I extends InheritedObject<I>> implements Inheritable {
-
-  private children: I[];
+export default abstract class InheritedObject<I extends InheritedObject<I>> implements Inheritable {
+  private children: I[] = [];
   private parent: I;
-
-  /** @constructor */
-  protected constructor() {
-    this.children = [];
-  }
 
   /////////////////
   // PARENT CODE //

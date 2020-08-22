@@ -1,16 +1,12 @@
-import { ProjectAtlas, TextureAtlas } from './ProjectAtlas';
-import { Project } from '../Project';
-import { MapSprite } from './MapSprite';
-import Loader = PIXI.Loader;
 import * as PIXI from "pixi.js";
+import ProjectAtlas from './ProjectAtlas';
+import  MapSprite  from './MapSprite';
+import Loader = PIXI.Loader;
+import  TextureAtlas  from './TextureAtlas';
 
 const texFolder = 'assets/media';
 
-class SubSpaceAtlas extends ProjectAtlas {
-
-  constructor(project: Project) {
-    super(project);
-  }
+export default class SubSpaceAtlas extends ProjectAtlas {
 
   load(loader: Loader, onComplete: () => void): void {
     this.clear();
@@ -103,8 +99,6 @@ class SubSpaceAtlas extends ProjectAtlas {
     onComplete();
   }
 }
-
-export default SubSpaceAtlas;
 
 export const DEFAULT_ATLAS: SubSpaceAtlas = new SubSpaceAtlas(null);
 export const DEFAULT_TEXTURES: string[] = [

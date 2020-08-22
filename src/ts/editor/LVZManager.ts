@@ -1,10 +1,12 @@
-import { CustomEvent, CustomEventListener } from '../ui/CustomEventListener';
 import { CompiledLVZScreenObject, loadTexture, LVZPackage, LVZResource, readLVZ } from '../io/LVZ';
-import { Project } from './Project';
-import { ProjectAtlas, TextureAtlas } from './render/ProjectAtlas';
-import { MapSprite } from './render/MapSprite';
-import { MapArea } from '../util/map/MapArea';
-import { CoordinateType } from '../util/map/CoordinateType';
+import { CustomEventListener } from '../ui/UI';
+import Project from './Project';
+import ProjectAtlas from './render/ProjectAtlas';
+import MapSprite from './render/MapSprite';
+import MapArea from '../util/map/MapArea';
+import CoordinateType from '../util/map/CoordinateType';
+import TextureAtlas from './render/TextureAtlas';
+import LVZEvent from './LVZEvent';
 import Texture = PIXI.Texture;
 
 /**
@@ -257,16 +259,4 @@ export class LVZManager extends CustomEventListener<LVZEvent> {
     'warp',
     'warppnt'
   ];
-}
-
-export interface LVZEvent extends CustomEvent {
-  packages: LVZPackage[];
-  action: LVZAction;
-}
-
-export enum LVZAction {
-  LOAD_PACKAGES = 'load-packages',
-  LOADED_PACKAGES = 'loaded-packages',
-  UNLOAD_PACKAGES = 'unload-packages',
-  UNLOADED_PACKAGES = 'unloaded-packages',
 }

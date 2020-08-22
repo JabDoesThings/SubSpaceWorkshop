@@ -1,4 +1,4 @@
-import { BufferUtils } from '../../../../../util/BufferUtils';
+import BufferUtils from '../../../../../util/BufferUtils';
 import ELVLChunkHandler from './ELVLChunkHandler';
 import ELVLAttribute from '../ELVLAttribute';
 
@@ -7,7 +7,7 @@ import ELVLAttribute from '../ELVLAttribute';
  *
  * @author Jab
  */
-export class ELVLAttributeHandler extends ELVLChunkHandler<ELVLAttribute> {
+export default class ELVLAttributeHandler extends ELVLChunkHandler<ELVLAttribute> {
 
   constructor() {
     super('ATTR');

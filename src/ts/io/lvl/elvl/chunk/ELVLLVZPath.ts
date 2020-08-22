@@ -5,14 +5,9 @@ import ELVLRawChunk from './ELVLRawChunk';
  *
  * @author Jab
  */
-export class ELVLLVZPath extends ELVLRawChunk {
-
-  /**
-   * @param {Buffer} data
-   */
+export default class ELVLLVZPath extends ELVLRawChunk {
+  /** @param {Buffer} data */
   constructor(data: Buffer) {
     super('DCLV', data);
   }
 }
-
-export default ELVLLVZPath;

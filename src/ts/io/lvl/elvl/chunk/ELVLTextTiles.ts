@@ -5,7 +5,7 @@ import ELVLChunk from './ELVLChunk';
  *
  * @author Jab
  */
-export class ELVLTextTiles extends ELVLChunk {
+export default class ELVLTextTiles extends ELVLChunk {
   readonly charMap: number[];
 
   /**
@@ -21,7 +21,6 @@ export class ELVLTextTiles extends ELVLChunk {
         chars[index] = 0;
       }
     }
-
     this.charMap = chars;
   }
 
@@ -58,5 +57,3 @@ export class ELVLTextTiles extends ELVLChunk {
     }
   }
 }
-
-export default ELVLTextTiles;

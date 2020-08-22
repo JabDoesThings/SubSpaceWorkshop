@@ -1,6 +1,7 @@
-import { CustomEventListener } from '../CustomEventListener';
 import { IconToolbarAction, ToolbarOrientation, ToolbarSize } from '../UIProperties';
-import { CustomEvent, UIIconToolbarEvent, UIToolEvent } from '../UIEvents';
+import { UIIconToolbarEvent, UIToolEvent } from '../UIEvents';
+import CustomEventListener from '../CustomEventListener';
+import CustomEvent  from '../CustomEvent';
 import UITool from './UITool';
 
 /**

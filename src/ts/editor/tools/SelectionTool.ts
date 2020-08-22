@@ -1,31 +1,26 @@
-import { Tool } from './Tool';
-import { Project } from '../Project';
-import { MapMouseEvent } from '../../common/Renderer';
-import { Edit } from '../edits/Edit';
-import { MapSection } from '../../util/map/MapSection';
-import { EditSelectionAdd } from '../edits/EditSelectionAdd';
-import { EditSelectionClear } from '../edits/EditSelectionClear';
+import Tool from './Tool';
+import Project from '../Project';
+import Edit from '../edits/Edit';
+import MapSection from '../../util/map/MapSection';
+import EditSelectionAdd from '../edits/EditSelectionAdd';
+import EditSelectionClear from '../edits/EditSelectionClear';
+import MapMouseEvent from '../../common/MapMouseEvent';
 
 /**
  * The <i>SelectionTool</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class SelectionTool extends Tool {
+export default class SelectionTool extends Tool {
+  invert: boolean = false;
+  valid: boolean = false;
+  dragged: boolean = false;
 
-  invert: boolean;
-  valid: boolean;
-  dragged: boolean;
-
-  /** @constructor */
   constructor() {
     super();
     // Let the editor know that the tool is a selector and requires changes to
     //   certain components to not get in the way of selecting.
     this.isSelector = true;
-    this.valid = false;
-    this.invert = false;
-    this.dragged = false;
   }
 
   /** @override */

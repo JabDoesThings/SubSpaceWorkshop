@@ -1,22 +1,24 @@
-import { MapRenderer } from '../render/MapRenderer';
-import { Layer } from '../layers/Layer';
-import { EditLayerRemove } from '../edits/EditLayerRemove';
-import { EditLayerAdd } from '../edits/EditLayerAdd';
-import { ToolbarOrientation } from '../../ui/UIProperties';
-import { UIToolEvent } from '../../ui/UIEvents';
-import UIPanelTab from '../../ui/component/UIPanelTab';
-import UIIconToolbar from '../../ui/component/UIIconToolbar';
-import UITool from '../../ui/component/UITool';
-import UIIcon from '../../ui/component/UIIcon';
-import UITooltip from '../../ui/component/UITooltip';
-import UILayer from '../../ui/component/UILayer';
+import MapRenderer from '../render/MapRenderer';
+import Layer from '../layers/Layer';
+import EditLayerRemove from '../edits/EditLayerRemove';
+import EditLayerAdd from '../edits/EditLayerAdd';
+import {
+  UIPanelTab,
+  UIIconToolbar,
+  UITool,
+  UIIcon,
+  UITooltip,
+  UILayer,
+  ToolbarOrientation,
+  UIToolEvent
+} from '../../ui/UI';
 
 /**
  * The <i>LayersPanel</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LayersPanel extends UIPanelTab {
+export default class LayersPanel extends UIPanelTab {
   readonly toolbar: UIIconToolbar;
   readonly layers: UILayer[] = [];
   selectedLayer: number;
@@ -175,5 +177,3 @@ export class LayersPanel extends UIPanelTab {
     project.editManager.push();
   }
 }
-
-export default LayersPanel;

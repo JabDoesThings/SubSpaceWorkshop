@@ -5,14 +5,10 @@ import ELVLRawChunk from './ELVLRawChunk';
  *
  * @author Jab
  */
-export class ELVLBookmarks extends ELVLRawChunk {
+export default class ELVLBookmarks extends ELVLRawChunk {
 
-  /**
-   * @param {Buffer} data
-   */
+  /** @param {Buffer} data */
   constructor(data: Buffer) {
     super('DCBM', data);
   }
 }
-
-export default ELVLBookmarks;

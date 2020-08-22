@@ -5,7 +5,7 @@ import ELVLRegionChunk from './ELVLRegionChunk';
  *
  * @author Jab
  */
-export class ELVLRegionTileData extends ELVLRegionChunk {
+export default class ELVLRegionTileData extends ELVLRegionChunk {
   readonly tiles: boolean[][];
 
   /**
@@ -32,5 +32,3 @@ export class ELVLRegionTileData extends ELVLRegionChunk {
     // TODO: Implement.
   }
 }
-
-export default ELVLRegionTileData;

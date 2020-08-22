@@ -1,21 +1,24 @@
 import * as PIXI from "pixi.js";
-import { MapRenderer } from './render/MapRenderer';
-import { KeyListener } from '../util/KeyListener';
-import { Project } from './Project';
-import { CustomEventListener } from '../ui/CustomEventListener';
-import { CustomEvent } from '../ui/UIEvents';
-import { Layer } from './layers/Layer';
+import { readLVL } from '../io/LVL';
+import MapRenderer from './render/MapRenderer';
+import KeyListener from '../util/KeyListener';
 import TilesetEditor from './tileset/tileset_editor/TilesetEditor';
 import TileEditor from './tileset/tile_editor/TileEditor';
-import { readLVL } from '../io/LVL';
 import UITabMenu from '../ui/component/UITabMenu';
+import MenuManager from './MenuManager';
+import EditorEvent from './EditorEvent';
+import EditorProjectEvent from './EditorProjectEvent';
+import EditorAction from './EditorAction';
+import Project from './Project';
+import CustomEventListener from '../ui/CustomEventListener';
+import Layer from './layers/Layer';
 
 /**
  * The <i>Editor</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Editor extends CustomEventListener<EditorEvent> {
+class Editor extends CustomEventListener<EditorEvent> {
   projects: Project[] = [];
   menuManager: MenuManager;
   renderer: MapRenderer;
@@ -444,88 +447,4 @@ export class Editor extends CustomEventListener<EditorEvent> {
   }
 }
 
-export class MenuManager extends CustomEventListener<MenuEvent> {
-
-  editor: Editor;
-
-  /**
-   * @constructor
-   *
-   * @param {Editor} editor
-   */
-  constructor(editor: Editor) {
-    super();
-    this.editor = editor;
-
-    $(document).on('click', '.menu-section', function (event) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    });
-
-    $(document).on('click', '.ui-menu', function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-      if (this.classList.contains('open')) {
-        this.classList.remove('open');
-      } else {
-        const menu = this.parentElement;
-        for (let index = 0; index < menu.childElementCount; index++) {
-          let next = menu.children.item(index);
-          next.classList.remove('open');
-        }
-        this.classList.add('open');
-      }
-    });
-
-    const ctx = this;
-    $(document).on('click', '.ui-menu .menu-option', function () {
-      const menuOption = <HTMLDivElement> this;
-      ctx.dispatch(<MenuEvent> {
-        eventType: 'MenuEvent',
-        menuId: menuOption.getAttribute('menu-id'),
-        forced: false
-      });
-    });
-    $(document).on('click', () => {
-      $('.ui-menu').removeClass('open');
-    });
-  }
-
-}
-
-export interface MenuEvent extends CustomEvent {
-  menuId: string;
-}
-
-/**
- * The <i>EditorEvent</i> interface. TODO: Document.
- *
- * @author Jab
- */
-export interface EditorEvent extends CustomEvent {
-  editor: Editor;
-  action: EditorAction;
-}
-
-/**
- * The <i>EditorProjectEvent</i> interface. TODO: Document.
- *
- * @author Jab
- */
-export interface EditorProjectEvent extends EditorEvent {
-  projects: Project[];
-}
-
-/**
- * The <i>EditorAction</i> enum. TODO: Document.
- *
- * @author Jab
- */
-export enum EditorAction {
-  PROJECT_ACTIVATE = 'project-activate',
-  PROJECT_ACTIVATED = 'project-activated',
-  PROJECT_ADD = 'project-add',
-  PROJECT_ADDED = 'project-added',
-  PROJECT_REMOVE = 'project-remove',
-  PROJECT_REMOVED = 'project-removed'
-}
+export default Editor;

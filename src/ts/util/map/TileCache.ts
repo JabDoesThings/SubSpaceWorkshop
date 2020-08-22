@@ -1,4 +1,4 @@
-import { TileData } from './TileData';
+import TileData from './TileData';
 
 /**
  * The <i>TileCache</i> class handles storage of cached Tile IDs for the map when processing
@@ -6,14 +6,8 @@ import { TileData } from './TileData';
  *
  * @author Jab
  */
-export class TileCache {
-
-  private readonly tiles: number[][];
-
-  /** @constructor */
-  constructor() {
-    this.tiles = [];
-  }
+export default class TileCache {
+  private readonly tiles: number[][] = [];
 
   /**
    * @param {TileData} tiles The map to read if the tile's ID isn't cached.

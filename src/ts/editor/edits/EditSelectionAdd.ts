@@ -1,20 +1,17 @@
-import { Edit } from './Edit';
-import { EditManager } from '../EditManager';
-import { MapSection } from '../../util/map/MapSection';
+import Edit from './Edit';
+import EditManager from '../EditManager';
+import MapSection from '../../util/map/MapSection';
 
 /**
  * The <i>EditSelectionAdd</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EditSelectionAdd extends Edit {
-
+export default class EditSelectionAdd extends Edit {
   private readonly selections: MapSection[];
-  private done: boolean;
+  private done: boolean = false;
 
   /**
-   * @constructor
-   *
    * @param {MapSection[]} selections
    */
   constructor(selections: MapSection[]) {

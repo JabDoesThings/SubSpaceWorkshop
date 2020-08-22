@@ -1,9 +1,9 @@
+import { UIToolEvent } from '../UIEvents';
+import { ToolAction } from '../UIProperties';
 import UIIcon from './UIIcon';
 import UIIconToolbar from './UIIconToolbar';
 import UITooltip from './UITooltip';
-import { CustomEventListener } from '../CustomEventListener';
-import { UIToolEvent } from '../UIEvents';
-import { ToolAction } from '../UIProperties';
+import CustomEventListener from '../CustomEventListener';
 
 /**
  * The <i>UITool</i> class. TODO: Document.

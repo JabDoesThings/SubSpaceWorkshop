@@ -1,6 +1,6 @@
-import { Path } from '../../../util/Path';
+import Path from '../../../util/Path';
 
-class PaletteColor {
+export default class PaletteColor {
   r: number;
   g: number;
   b: number;
@@ -8,7 +8,6 @@ class PaletteColor {
   color: string;
 
   /**
-   * @constructor
    * @param {number} r
    * @param {number} g
    * @param {number} b
@@ -24,7 +23,6 @@ class PaletteColor {
   }
 
   /**
-   * @constructor
    * @param {number} r
    * @param {number} g
    * @param {number} b
@@ -113,5 +111,3 @@ class PaletteColor {
     }
   }
 }
-
-export default PaletteColor;

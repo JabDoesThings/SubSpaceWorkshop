@@ -1,16 +1,14 @@
-import LVZPackage from './LVZPackage';
-import { LVZErrorStatus } from '../LVZProperties';
 import { validateDecompressedLVZMapObject } from '../LVZUtils';
+import { LVZErrorStatus } from '../LVZProperties';
+import LVZPackage from './LVZPackage';
 
 /**
  * The <i>CompiledLVZMapObject</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class CompiledLVZMapObject {
-
+export default class CompiledLVZMapObject {
   readonly pkg: LVZPackage;
-
   id: number;
   x: number;
   y: number;
@@ -20,8 +18,6 @@ export class CompiledLVZMapObject {
   mode: number;
 
   /**
-   * @constructor
-   *
    * @param {LVZPackage} pkg
    * @param {number} id
    * @param {number} x
@@ -51,5 +47,3 @@ export class CompiledLVZMapObject {
     }
   }
 }
-
-export default CompiledLVZMapObject;

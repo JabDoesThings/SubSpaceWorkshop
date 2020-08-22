@@ -1,22 +1,17 @@
-import { Project } from '../Project';
-import { MapMouseEvent } from '../../common/Renderer';
-import { Edit } from '../edits/Edit';
-import { EditTiles } from '../edits/EditTiles';
-import { DrawTool } from './DrawTool';
-import { Selection } from '../../ui/component/Selection';
-import { TileData } from '../../util/map/TileData';
+import Project from '../Project';
+import Edit from '../edits/Edit';
+import EditTiles from '../edits/EditTiles';
+import DrawTool from './DrawTool';
+import Selection from '../ui/Selection';
+import TileData from '../../util/map/TileData';
+import MapMouseEvent from '../../common/MapMouseEvent';
 
 /**
  * The <i>EraserTool</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EraserTool extends DrawTool {
-
-  /** @constructor */
-  constructor() {
-    super();
-  }
+export default class EraserTool extends DrawTool {
 
   /** @override */
   protected drawTile(project: Project, selection: Selection, event: MapMouseEvent, useActiveLayer: boolean): Edit[] {

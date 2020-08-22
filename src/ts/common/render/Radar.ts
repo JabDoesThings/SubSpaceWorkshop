@@ -1,12 +1,12 @@
 import MouseDownEvent = JQuery.MouseDownEvent;
 import MouseMoveEvent = JQuery.MouseMoveEvent;
+import type Dirtable from '../../util/Dirtable';
+import MapRenderer from '../../editor/render/MapRenderer';
+import Editor from '../../editor/Editor';
+import PathMode from '../../util/PathMode';
+import { HSVtoRGB, RGBtoHSV } from '../../util/ColorUtils';
 import { Vector2 } from 'three';
-import { PathMode } from '../util/Path';
-import type { Renderer } from './Renderer';
-import type { Dirtable } from '../util/Dirtable';
-import { MapRenderer } from '../editor/render/MapRenderer';
-import { Editor } from '../editor/Editor';
-import { HSVtoRGB, RGBtoHSV } from '../util/ColorUtils';
+import type Renderer from './Renderer';
 
 const hsv216 = RGBtoHSV(75, 50, 37);
 const hsv217 = RGBtoHSV(75, 50, 37);
@@ -26,7 +26,7 @@ const rgbMisc = HSVtoRGB(hsvMisc.h, hsvMisc.s, hsvMisc.v < 0.5 ? 0.5 : hsvMisc.v
  *
  * @author Jab
  */
-export class Radar implements Dirtable {
+class Radar implements Dirtable {
   lock: boolean;
   protected readonly view: Renderer;
   protected readonly imgData: ImageData = new ImageData(1024, 1024);
@@ -41,8 +41,6 @@ export class Radar implements Dirtable {
   private visible: boolean = false;
 
   /**
-   * @constructor
-   *
    * @param {Renderer} view
    */
   constructor(view: Renderer) {
@@ -290,3 +288,5 @@ export class Radar implements Dirtable {
     return editor.isAltPressed();
   }
 }
+
+export default Radar;

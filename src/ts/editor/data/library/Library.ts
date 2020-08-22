@@ -1,31 +1,28 @@
 import uuid = require('uuid');
-import { Dirtable } from '../../../util/Dirtable';
+import Dirtable from '../../../util/Dirtable';
+import LibraryAsset from './LibraryAsset';
+import LibraryAssetLoader from './LibraryAssetLoader';
 import { Zip } from '../../../io/Zip';
-import { Sprite } from './Sprite';
 
 /**
  * The <i>Library</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Library implements Dirtable {
-
-  private readonly metadata: { [id: string]: any };
-  private readonly assets: { [id: string]: LibraryAsset };
+class Library implements Dirtable {
+  private readonly metadata: { [id: string]: any } = {};
+  private readonly assets: { [id: string]: LibraryAsset } = {};
   private readonly id: string;
-
   private name: string;
-  private dirty: boolean;
+  private dirty: boolean = true;
 
   /**
-   * Main constructor
-   *
    * @param id
    * @param name
    */
   constructor(id: string = null, name: string) {
     if (name == null) {
-      throw new Error("The name given is null or undefined.");
+      throw new Error('The name given is null or undefined.');
     }
     if (id == null) {
       id = uuid.v4();
@@ -33,9 +30,6 @@ export class Library implements Dirtable {
 
     this.id = id;
     this.name = name;
-    this.assets = {};
-    this.metadata = {};
-    this.dirty = true;
   }
 
   private load(json: { [field: string]: any }, zip: Zip): void {
@@ -43,35 +37,23 @@ export class Library implements Dirtable {
     for (let id in assets) {
       const next = assets[id];
       if (next.name == null) {
-        throw new Error('The asset does not have a defined name. (id: ' + id + ")");
+        throw new Error(`The asset does not have a defined name. (id: ${id})`);
       }
       if (next.type == null) {
-        throw new Error('The asset does not have a defined type. (id: ' + id + ", name: " + next.name + ")");
+        throw new Error(`The asset does not have a defined type. (id: ${id}, name: ${next.name})`);
       }
 
       const loader = LibraryAssetLoader.get(next.type);
       if (loader == null) {
         throw new Error(
-          'There are no registered loaders for the type: \''
-          + next.type
-          + '\' (id: '
-          + id
-          + ', name: '
-          + next.name
-          + ')'
+          `There are no registered loaders for the type: '${next.type}' (id: ${id}, name: ${next.name})`
         );
       }
       try {
         this.assets[id] = loader.onLoad(next.id, next, zip);
       } catch (e) {
         console.error(
-          'Failed to load asset. (type: '
-          + next.type
-          + ', id: '
-          + id
-          + ', name: '
-          + next.name
-          + ')'
+          `Failed to load asset. (type: ${next.type}, id: ${id}, name: ${next.name})`
         );
         throw e;
       }
@@ -96,7 +78,7 @@ export class Library implements Dirtable {
       try {
         next.save(next, zip);
       } catch (e) {
-        console.error('Failed to save asset: {id: ' + next.getId() + ', name: ' + next.getName() + '}');
+        console.error(`Failed to save asset: {id: ${next.getId()}, name: ${next.getName()}}`);
         console.error(e);
       }
     }
@@ -186,7 +168,7 @@ export class Library implements Dirtable {
     zip.read(path, () => {
       if (!zip.exists('library.json')) {
         if (typeof path === 'string') {
-          throw new Error('The file \'library.json\' does not exist in: ' + path);
+          throw new Error(`The file 'library.json' does not exist in: ${path}`);
         } else {
           throw new Error('The file \'library.json\' does not exist in library buffer.');
         }
@@ -215,203 +197,4 @@ export class Library implements Dirtable {
   }
 }
 
-/**
- * The <i>LibraryAsset</i> class. TODO: Document.
- *
- * @author Jab
- */
-export abstract class LibraryAsset {
-
-  private readonly metadata: { [id: string]: any };
-  private readonly id: string;
-  private readonly type: string;
-
-  private name: string;
-  private dirty: boolean;
-
-  /**
-   * @constructor
-   *
-   * @param {string} type
-   * @param {string} id
-   * @param {string} name
-   */
-  protected constructor(type: string, id: string = null, name: string) {
-    if (type == null) {
-      throw new Error('The id given is null or undefined.');
-    }
-    if (name == null) {
-      throw new Error('The name given is null or undefined.');
-    }
-    if (id == null) {
-      id = uuid.v4();
-    }
-    this.type = type;
-    this.id = id;
-    this.name = name;
-    this.metadata = {};
-    this.dirty = true;
-  }
-
-  /**
-   * @param {[field: string]: any} json
-   * @param {Zip} libraryZip
-   */
-  load(json: { [field: string]: any }, libraryZip: Zip): void {
-    this.onLoad(json, libraryZip);
-    this.setDirty(true);
-  }
-
-  /**
-   * @param {[field: string]: any} json
-   * @param {Zip} libraryZip
-   */
-  save(json: { [field: string]: any }, libraryZip: Zip): void {
-    json.type = this.type;
-    json.name = this.name;
-    this.onSave(json, libraryZip);
-  }
-
-  preUpdate(): void {
-    try {
-      this.onPreUpdate();
-    } catch (e) {
-      console.error(
-        `Failed to preUpdate() for LibraryAsset. (id: ${this.getId()}, name: ${this.getName()})`
-      );
-    }
-  }
-
-  update(): void {
-    try {
-      this.onUpdate();
-    } catch (e) {
-      console.error(
-        `Failed to update() for LibraryAsset. (id: ${this.getId()}, name: ${this.getName()})`
-      );
-    }
-  }
-
-  postUpdate(): void {
-    try {
-      this.onPostUpdate();
-    } catch (e) {
-      console.error(
-        `Failed to postUpdate() for LibraryAsset. (id: ${this.getId()}, name: ${this.getName()})`
-      );
-    }
-    this.setDirty(false);
-  }
-
-  getName(): string {
-    return this.name;
-  }
-
-  setName(name: string): void {
-    if (name == null) {
-      throw new Error('The name given is null or undefined.');
-    }
-    if (this.name === name) {
-      return;
-    }
-    this.name = name;
-    this.setDirty(true);
-  }
-
-  getType(): string {
-    return this.type;
-  }
-
-  getId(): string {
-    return this.id;
-  }
-
-  /** @override */
-  isDirty(): boolean {
-    return this.dirty;
-  }
-
-  /** @override */
-  setDirty(flag: boolean): void {
-    this.dirty = flag;
-  }
-
-  getMetadata(id: string): any {
-    return this.metadata[id];
-  }
-
-  setMetadata(id: string, value: any): void {
-    this.metadata[id] = value;
-  }
-
-  getMetadataTable(): { [id: string]: any } {
-    return this.metadata;
-  }
-
-  protected abstract onPreUpdate(): void;
-
-  protected abstract onUpdate(): void;
-
-  protected abstract onPostUpdate(): void;
-
-  /**
-   * @param {[field: string]: any} json
-   * @param {Zip} libraryZip
-   */
-  protected abstract onLoad(json: { [field: string]: any }, libraryZip: Zip): void;
-
-  /**
-   * @param {[field: string]: any} json
-   * @param {Zip} libraryZip
-   */
-  protected abstract onSave(json: { [field: string]: any }, libraryZip: Zip): void;
-}
-
-/**
- * The <i>LibraryAssetLoader</i> class. TODO: Document.
- *
- * @author Jab
- */
-export abstract class LibraryAssetLoader {
-
-  static readonly loaders: { [type: string]: LibraryAssetLoader } = {};
-
-  /**
-   * @param {string} id
-   * @param {[field: string]: any} json
-   * @param {Zip} projectZip
-   */
-  abstract onLoad(id: string, json: { [field: string]: any }, projectZip: Zip): LibraryAsset;
-
-  /**
-   * @param {string} type
-   */
-  static get(type: string): LibraryAssetLoader {
-    return LibraryAssetLoader.loaders[type];
-  }
-
-  /**
-   * @param {string} type
-   * @param {LibraryAssetLoader} loader
-   */
-  static set(type: string, loader: LibraryAssetLoader): void {
-    LibraryAssetLoader.loaders[type] = loader;
-  }
-
-  static test() {
-    // let library = new Library(null, 'test');
-    // library.set(new Sprite(null, 'test'));
-    // library.toBuffer((buffer) => {
-    //   const fs = require('fs');
-    //   const dir = process.env.HOMEDRIVE + process.env.HOMEPATH + '/SubSpaceWorkshop/';
-    //   if (!fs.existsSync(dir)) {
-    //     fs.mkdirSync(dir);
-    //   }
-    //   const libDir = dir + '/Libraries/';
-    //   if (!fs.existsSync(libDir)) {
-    //     fs.mkdirSync(libDir);
-    //   }
-    //   fs.writeFileSync(libDir + 'test.sswl', buffer);
-    // });
-  }
-}
+export default Library;

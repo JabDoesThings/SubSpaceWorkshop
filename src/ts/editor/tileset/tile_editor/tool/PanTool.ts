@@ -1,20 +1,15 @@
 import TileEditor from '../TileEditor';
 import TileEdit from '../TileEdit';
 import TileEditTool from './TileEditTool';
-import { TileEditorEvent } from '../TileEditorEvents';
+import TileEditorEvent from '../TileEditorEvent';
 
-class PanTool extends TileEditTool {
-
+export default class PanTool extends TileEditTool {
   private ox: number = 0;
   private oy: number = 0;
   private moved: boolean = false;
   private _down: boolean = false;
   private mouseDown = [0, 0];
   private mouseCurrent = [0, 0];
-
-  constructor() {
-    super();
-  }
 
   /** @override */
   onActivate(tileEditor: TileEditor): void {
@@ -173,5 +168,3 @@ class PanTool extends TileEditTool {
     tileEditor.pane.style.left = `${x}px`;
   }
 }
-
-export default PanTool;

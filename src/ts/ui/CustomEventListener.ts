@@ -1,11 +1,11 @@
-import { CustomEvent } from './UIEvents';
+import CustomEvent from './CustomEvent';
 
 /**
  * The <i>UIEventListener</i> abstract class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class CustomEventListener<E extends CustomEvent> {
+export default abstract class CustomEventListener<E extends CustomEvent> {
   private listeners: ((event: E) => void | boolean)[] = [];
   private dispatching: boolean = false;
 
@@ -67,5 +67,3 @@ export abstract class CustomEventListener<E extends CustomEvent> {
     this.listeners = [];
   }
 }
-
-export default CustomEventListener;

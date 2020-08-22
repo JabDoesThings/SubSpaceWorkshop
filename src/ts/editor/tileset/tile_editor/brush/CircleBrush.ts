@@ -1,12 +1,12 @@
-import Brush, { BrushOptions } from './Brush';
-import { Path } from '../../../../util/Path';
+import Brush from './Brush';
+import Path from '../../../../util/Path';
 import PaletteColor from '../PaletteColor';
 import Palette from '../Palette';
+import CircleBrushOptions from './CircleBrushOptions';
 
 const arcLength = Math.PI * 2;
 
-class CircleBrush extends Brush {
-
+export default class CircleBrush extends Brush {
   // Pen pressure fields.
   hardnessPressure: boolean = true;
   penHardnessMin: number = 0;
@@ -153,16 +153,3 @@ class CircleBrush extends Brush {
     ctx.globalAlpha = 1;
   }
 }
-
-export interface CircleBrushOptions extends BrushOptions {
-  size: number;
-  hardness: number;
-  opacity: number;
-  smoothPressure: boolean;
-  smoothAverageCount: number;
-  outline: boolean;
-  outlineColor: PaletteColor;
-  outlineThickness: number;
-}
-
-export default CircleBrush;

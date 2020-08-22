@@ -1,24 +1,19 @@
-import { Project } from '../Project';
-import { MapMouseEvent } from '../../common/Renderer';
-import { Selection } from '../../ui/component/Selection';
-import { Edit } from '../edits/Edit';
-import { EditTiles } from '../edits/EditTiles';
-import { DrawTool } from './DrawTool';
-import { TileData } from '../../util/map/TileData';
-import { Layer } from '../layers/Layer';
 import { TILE_DIMENSIONS } from '../../io/LVL';
+import Selection from '../ui/Selection';
+import Project from '../Project';
+import Edit from '../edits/Edit';
+import EditTiles from '../edits/EditTiles';
+import DrawTool from './DrawTool';
+import TileData from '../../util/map/TileData';
+import Layer from '../layers/Layer';
+import MapMouseEvent from '../../common/MapMouseEvent';
 
 /**
  * The <i>LineTool</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LineTool extends DrawTool {
-
-  /** @constructor */
-  constructor() {
-    super(true);
-  }
+export default class LineTool extends DrawTool {
 
   /** @override */
   protected drawTile(project: Project, selection: Selection, event: MapMouseEvent, useActiveLayer: boolean): Edit[] {

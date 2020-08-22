@@ -1,24 +1,16 @@
 import Selection from './Selection';
-import { Dirtable } from '../../util/Dirtable';
+import Dirtable from '../../util/Dirtable';
 
 /**
  * The <i>SelectionGroup</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class SelectionGroup implements Dirtable {
-
-  selections: { [slot: number]: Selection };
-  private dirty: boolean;
-
-  /** @constructor */
-  constructor() {
-    this.selections = {};
-    this.setDirty(true);
-  }
+export default class SelectionGroup implements Dirtable {
+  selections: { [slot: number]: Selection } = {};
+  private dirty: boolean = true;
 
   setSelection(slot: number, selection: Selection): void {
-    console.log(`setSelection(slot: ${slot}, selection: `, selection, "}");
     this.selections[slot] = selection;
     this.setDirty(true);
   }
@@ -51,5 +43,3 @@ export class SelectionGroup implements Dirtable {
     this.dirty = flag;
   }
 }
-
-export default SelectionGroup;

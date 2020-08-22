@@ -1,18 +1,13 @@
-import { Dirtable } from './Dirtable';
+import Dirtable from './Dirtable';
 
 /**
  * The <i>DirtyObject</i> class. TODO: Document.
  *
  * @author Jab
+ * @deprecated This class is redundant.
  */
-export abstract class DirtyObject implements Dirtable {
-
-  private dirty: boolean;
-
-  /** @constructor */
-  protected constructor() {
-    this.dirty = false;
-  }
+export default abstract class DirtyObject implements Dirtable {
+  private dirty: boolean = false;
 
   /** @override */
   isDirty(): boolean {

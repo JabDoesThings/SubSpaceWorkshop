@@ -3,12 +3,10 @@
  *
  * @author Jab
  */
-export abstract class ELVLChunk {
+export default abstract class ELVLChunk {
   readonly id: string;
 
-  /**
-   * @param {string} id
-   */
+  /** @param {string} id */
   protected constructor(id: string) {
     this.id = id;
   }
@@ -17,5 +15,3 @@ export abstract class ELVLChunk {
 
   abstract validate(): void;
 }
-
-export default ELVLChunk;

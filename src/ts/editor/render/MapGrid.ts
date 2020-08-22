@@ -1,13 +1,12 @@
 import * as PIXI from "pixi.js";
-import { MapRenderer } from './MapRenderer';
+import MapRenderer from './MapRenderer';
 
 /**
  * The <i>MapGrid</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class MapGrid extends PIXI.Container {
-
+export default class MapGrid extends PIXI.Container {
   scalePrevious: number = -1;
   renderBaseGrid: boolean;
   renderAxisLines: boolean;
@@ -20,8 +19,6 @@ export class MapGrid extends PIXI.Container {
   private readonly borderLines: PIXI.Graphics;
 
   /**
-   * @constructor
-   *
    * @param {MapRenderer} view
    */
   constructor(view: MapRenderer) {
@@ -72,7 +69,9 @@ export class MapGrid extends PIXI.Container {
           const y2 = mapLength * tileLength;
           this.baseGrid.moveTo(x1, y1);
           this.baseGrid.lineTo(x2, y2);
+          // noinspection JSSuspiciousNameCombination
           this.baseGrid.moveTo(y1, x1);
+          // noinspection JSSuspiciousNameCombination
           this.baseGrid.lineTo(y2, x2);
         }
       }
@@ -95,7 +94,9 @@ export class MapGrid extends PIXI.Container {
             const y2 = (16 * 64) * tileLength;
             this.chunkGrid.moveTo(x1, y1);
             this.chunkGrid.lineTo(x1, y2);
+            // noinspection JSSuspiciousNameCombination
             this.chunkGrid.moveTo(y1, x1);
+            // noinspection JSSuspiciousNameCombination
             this.chunkGrid.lineTo(y2, x1);
           }
         }

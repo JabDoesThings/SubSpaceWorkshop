@@ -1,5 +1,5 @@
-import { Validatable } from '../../util/Validatable';
-import { Dirtable } from '../../util/Dirtable';
+import Validatable from '../../util/Validatable';
+import Dirtable from '../../util/Dirtable';
 import * as fs from "fs";
 import * as zlib from "zlib";
 import CompressedLVZSection from './binary/CompressedLVZSection';
@@ -13,15 +13,13 @@ const ACCEPTED_FORMATS = ['bm2', 'bmp', 'png', 'gif', 'jpg'];
  *
  * @author Jab
  */
-export class LVZResource implements Validatable, Dirtable {
+export default class LVZResource implements Validatable, Dirtable {
   private data: Buffer;
   private name: string;
   private time: number;
   private dirty: boolean;
 
   /**
-   * @constructor
-   *
    * @param {string} nameOrPath
    * @param {Buffer} data
    * @param {number} time
@@ -174,5 +172,3 @@ export class LVZResource implements Validatable, Dirtable {
     return this.data == null || this.data.length === 0;
   }
 }
-
-export default LVZResource;

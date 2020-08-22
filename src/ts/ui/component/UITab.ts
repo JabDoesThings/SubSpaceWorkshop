@@ -1,5 +1,5 @@
 import UITabMenu from './UITabMenu';
-import { CustomEventListener } from '../CustomEventListener';
+import CustomEventListener from '../CustomEventListener';
 import { UITabEvent } from '../UIEvents';
 import { TabAction } from '../UIProperties';
 

@@ -1,34 +1,30 @@
-import { MapRenderer } from '../render/MapRenderer';
-import { PencilTool } from './PencilTool';
-import { Project } from '../Project';
-import { MapMouseEvent, MapMouseEventType } from '../../common/Renderer';
-import { Tool } from './Tool';
-import { Edit } from '../edits/Edit';
-import { LineTool } from './LineTool';
-import { EraserTool } from './EraserTool';
-import { SelectionTool } from './SelectionTool';
-import { MoveTool } from './MoveTool';
+import MapRenderer from '../render/MapRenderer';
+import Project from '../Project';
+import MapMouseEventType from '../../common/MapMouseEventType';
+import MapMouseEvent from '../../common/MapMouseEvent';
+import Edit from '../edits/Edit';
+import Tool from './Tool';
+import PencilTool from './PencilTool';
+import LineTool from './LineTool';
+import EraserTool from './EraserTool';
+import SelectionTool from './SelectionTool';
+import MoveTool from './MoveTool';
 
 /**
  * The <i>ToolManager</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class ToolManager {
-
-  private readonly tools: { [id: string]: Tool };
+class ToolManager {
+  private readonly tools: { [id: string]: Tool } = {};
   private readonly renderer: MapRenderer;
-  private active: string;
+  private active: string | null = null;
 
   /**
-   * @constructor
-   *
    * @param {MapRenderer} renderer
    */
   constructor(renderer: MapRenderer) {
     this.renderer = renderer;
-    this.active = null;
-    this.tools = {};
     this.tools['pencil'] = new PencilTool();
     this.tools['eraser'] = new EraserTool();
     this.tools['line'] = new LineTool();
@@ -109,3 +105,5 @@ export class ToolManager {
     return this.tools[id];
   }
 }
+
+export default ToolManager;

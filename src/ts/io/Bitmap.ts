@@ -4,7 +4,6 @@
  * @author Jab
  */
 export class BitmapHeader {
-
   readonly bfType: number;
   readonly bfSize: number;
   readonly bfReserved1: number;
@@ -19,13 +18,11 @@ export class BitmapHeader {
   readonly biSizeImage: number;
   readonly biXPelsPerMeter: number;
   readonly biYPelsPerMeter: number;
-
   pixelOffset: number;
   biClrUsed: number;
   biClrImportant: number;
 
   constructor(buffer: Buffer) {
-
     // File Header
     this.bfType = buffer.readUInt16LE(0);
     this.bfSize = buffer.readUInt32LE(2);

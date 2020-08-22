@@ -6,7 +6,7 @@ import ELVLBookmarks from '../ELVLBookmarks';
  *
  * @author Jab
  */
-export class ELVLBookmarksHandler extends ELVLChunkHandler<ELVLBookmarks> {
+export default class ELVLBookmarksHandler extends ELVLChunkHandler<ELVLBookmarks> {
 
   constructor() {
     super('DCBM');
@@ -22,5 +22,3 @@ export class ELVLBookmarksHandler extends ELVLChunkHandler<ELVLBookmarks> {
     return chunk.data;
   }
 }
-
-export default ELVLBookmarksHandler;

@@ -1,10 +1,10 @@
+import { ELVL_HANDLERS } from '../../LVL';
 import ELVLChunk from './chunk/ELVLChunk';
 import ELVLRegionOptions from './ELVLRegionOptions';
-import { BufferUtils } from '../../../util/BufferUtils';
+import BufferUtils from '../../../util/BufferUtils';
 import ELVLCollection from './ELVLCollection';
 import ELVLRawChunk from './chunk/ELVLRawChunk';
-import { ELVL_HANDLERS } from '../../LVL';
-import { ELVLAttributeHandler } from './chunk/handler/ELVLAttributeHandler';
+import ELVLAttributeHandler from './chunk/handler/ELVLAttributeHandler';
 import ELVLRegionHandler from './chunk/handler/region/ELVLRegionHandler';
 
 export const DEFAULT_REGION_OPTIONS: ELVLRegionOptions = {

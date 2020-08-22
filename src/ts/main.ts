@@ -1,4 +1,4 @@
-import { Editor } from './editor/Editor';
+import Editor from './editor/Editor';
 import * as PIXI from "pixi.js";
 import { DEFAULT_ATLAS, DEFAULT_TEXTURES } from './editor/render/SubSpaceAtlas';
 

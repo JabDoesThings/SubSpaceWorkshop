@@ -3,7 +3,7 @@
  *
  * @author Jab
  */
-export interface Unique {
+export default interface Unique {
 
   /**
    * Simplified method for comparing two DataObjects by their respective ID's.

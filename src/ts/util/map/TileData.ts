@@ -1,18 +1,18 @@
-import { MapArea } from './MapArea';
-import { CoordinateType } from './CoordinateType';
-import { TileEdit } from '../../editor/edits/EditTiles';
-import { Path } from '../Path';
-import { MapSection, MapSections } from './MapSection';
-import { MapPoint } from './MapPoint';
 import { TILE_DIMENSIONS, validateCoordinates, validateTileId } from '../../io/LVL';
+import MapArea from './MapArea';
+import CoordinateType from './CoordinateType';
+import Path from '../Path';
+import MapPoint from './MapPoint';
+import TileEdit from '../../editor/edits/TileEdit';
+import MapSection from './MapSection';
+import MapSections from './MapSections';
 
 /**
  * The <i>TileData</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class TileData {
-
+export default class TileData {
   readonly width: number;
   readonly height: number;
   readonly tiles: number[][];
@@ -21,8 +21,6 @@ export class TileData {
   private dirty: boolean;
 
   /**
-   * @constructor
-   *
    * @param {number[][]} tiles
    */
   constructor(tiles: number[][] = null) {

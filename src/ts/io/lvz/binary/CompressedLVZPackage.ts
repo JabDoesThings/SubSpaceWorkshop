@@ -7,16 +7,11 @@ import { decompressLVZ } from '../LVZUtils';
  *
  * @author Jab
  */
-export class CompressedLVZPackage {
-
+export default class CompressedLVZPackage {
   public sections: CompressedLVZSection[] = [];
   public name: string;
 
-  /**
-   * @constructor
-   *
-   * @param name The name of the package. (The name of the LVZ file)
-   */
+  /** @param name The name of the package. (The name of the LVZ file) */
   constructor(name: string) {
     this.name = name;
   }
@@ -120,5 +115,3 @@ export class CompressedLVZPackage {
     return this.sections.length;
   }
 }
-
-export default CompressedLVZPackage;

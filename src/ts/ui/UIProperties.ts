@@ -86,27 +86,3 @@ export enum PanelOrientation {
   LEFT = 'left',
   RIGHT = 'right'
 }
-
-/**
- * The <i>SelectionSlot</i> enum. TODO: Document.
- *
- * @author Jab
- */
-export enum SelectionSlot {
-  PRIMARY = 0,
-  MIDDLE = 1,
-  SECONDARY = 2
-}
-
-/**
- * The <i>SelectionType</i> enum. TODO: Document.
- *
- * @author Jab
- */
-export enum SelectionType {
-  TILE = 'tile',
-  IMAGE = 'image',
-  MAP_OBJECT = 'map_object',
-  SCREEN_OBJECT = 'screen_object',
-  REGION = 'region'
-}

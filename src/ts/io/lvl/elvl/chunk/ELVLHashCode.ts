@@ -5,12 +5,10 @@ import ELVLChunk from './ELVLChunk';
  *
  * @author Jab
  */
-export class ELVLHashCode extends ELVLChunk {
+export default class ELVLHashCode extends ELVLChunk {
   hashCode: string;
 
-  /**
-   * @param {string} hashCode
-   */
+  /** @param {string} hashCode */
   constructor(hashCode: string) {
     super('DCID');
     if (hashCode == null) {
@@ -38,5 +36,3 @@ export class ELVLHashCode extends ELVLChunk {
     }
   }
 }
-
-export default ELVLHashCode;

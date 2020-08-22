@@ -3,8 +3,7 @@
  *
  * @author Jab, kittykatattack
  */
-export class KeyListener {
-
+export default class KeyListener {
   readonly value: string;
   press: () => void;
   held: () => void;
@@ -17,8 +16,6 @@ export class KeyListener {
   private upHandler: (event: KeyboardEvent) => void;
 
   /**
-   * @constructor
-   *
    * @param {string} value
    * @param {()=>void} press
    * @param {()=>void} held

@@ -1,10 +1,11 @@
-import { CustomEventListener, CustomEvent } from '../../ui/UI';
-import MouseDownEvent = JQuery.MouseDownEvent;
+import { CustomEventListener } from '../../ui/UI';
+import IconToolbarEvent from './IconToolbarEvent';
+import IconToolbarEventType from './IconToolbarEventType';
+import IconTool from './IconTool';
 
-export class IconToolbar extends CustomEventListener<IconToolbarEvent> {
-
+export default class IconToolbar extends CustomEventListener<IconToolbarEvent> {
+  private readonly tools: { [id: string]: IconTool } = {};
   private element: HTMLElement;
-  private readonly tools: { [id: string]: IconTool };
   private active: string;
 
   constructor(element: HTMLElement) {
@@ -13,7 +14,6 @@ export class IconToolbar extends CustomEventListener<IconToolbarEvent> {
       throw new Error(`Invalid element: ${element}`);
     }
     this.element = element;
-    this.tools = {};
     this.read();
   }
 
@@ -77,55 +77,5 @@ export class IconToolbar extends CustomEventListener<IconToolbarEvent> {
       type: IconToolbarEventType.SET_ACTIVE
     };
     this.dispatch(event);
-  }
-}
-
-export interface IconToolbarEvent extends CustomEvent {
-  eventType: string;
-  forced: boolean;
-  tool: IconTool;
-  type: IconToolbarEventType;
-}
-
-export enum IconToolbarEventType {
-  CREATE = 'create',
-  SET_ACTIVE = 'set_active'
-}
-
-export class IconTool {
-
-  private readonly toolbar: IconToolbar;
-  private readonly element: HTMLElement;
-  readonly id: string;
-
-  constructor(toolbar: IconToolbar, element: HTMLElement) {
-    this.toolbar = toolbar;
-    this.element = element;
-    if (!this.element.hasAttribute('tool_id')) {
-      throw new Error(`The tool doesn't have a 'tool_id': ${element}`);
-    }
-    this.id = element.getAttribute('tool_id');
-
-    const $element = $(element);
-
-    $element.on('mousedown', (event: MouseDownEvent) => {
-      event.stopPropagation();
-      if (this.isActive()) {
-        return;
-      }
-      toolbar.setActive(this.id);
-    });
-  }
-
-  setUISelected(flag: boolean) {
-    if (flag) {
-      this.element.classList.add('selected');
-    } else {
-      this.element.classList.remove('selected');
-    }
-  }
-
-  isActive(): boolean {
-    return this.element.classList.contains('selected');
   }
 }

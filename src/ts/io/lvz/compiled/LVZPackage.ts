@@ -1,4 +1,6 @@
-import { Validatable } from '../../../util/Validatable';
+import { LVZDisplayMode, LVZRenderLayer } from '../LVZProperties';
+import { compressLVZ } from '../LVZUtils';
+import Validatable from '../../../util/Validatable';
 import LVZCollection from '../object/LVZCollection';
 import LVZResource from '../LVZResource';
 import CompiledLVZImage from './CompiledLVZImage';
@@ -8,16 +10,13 @@ import LVZImage from '../object/LVZImage';
 import LVZMapObject from '../object/LVZMapObject';
 import LVZScreenObject from '../object/LVZScreenObject';
 import CompressedLVZPackage from '../binary/CompressedLVZPackage';
-import { LVZDisplayMode, LVZRenderLayer } from '../LVZProperties';
-import { compressLVZ } from '../LVZUtils';
 
 /**
  * The <i>LVZPackage</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LVZPackage implements Validatable {
-
+export default class LVZPackage implements Validatable {
   public resources: LVZResource[] = [];
   public images: CompiledLVZImage[] = [];
   public mapObjects: CompiledLVZMapObject[] = [];
@@ -25,8 +24,6 @@ export class LVZPackage implements Validatable {
   public name: string;
 
   /**
-   * @constructor
-   *
    * @param {string} name The name of the package. (The name of the LVZ file)
    */
   public constructor(name: string) {
@@ -264,5 +261,3 @@ export class LVZPackage implements Validatable {
     return null;
   }
 }
-
-export default LVZPackage;

@@ -3,6 +3,6 @@
  *
  * @author Jab
  */
-export interface Validatable {
+export default interface Validatable {
   validate(): void;
 }

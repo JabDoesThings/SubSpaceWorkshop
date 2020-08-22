@@ -6,7 +6,7 @@ import ELVLLVZPath from '../ELVLLVZPath';
  *
  * @author Jab
  */
-export class ELVLLVZPathHandler extends ELVLChunkHandler<ELVLLVZPath> {
+export default class ELVLLVZPathHandler extends ELVLChunkHandler<ELVLLVZPath> {
 
   constructor() {
     super('DCBM');
@@ -22,5 +22,3 @@ export class ELVLLVZPathHandler extends ELVLChunkHandler<ELVLLVZPath> {
     return chunk.data;
   }
 }
-
-export default ELVLLVZPathHandler;

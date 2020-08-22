@@ -1,17 +1,12 @@
-import { Project } from '../Project';
-import { MapMouseEvent } from '../../common/Renderer';
-import { Tool } from './Tool';
-import { SelectionType } from '../../ui/component/Selection';
-import { Edit } from '../edits/Edit';
-import { EditTiles } from '../edits/EditTiles';
-import { TileData } from '../../util/map/TileData';
+import Project from '../Project';
+import Tool from './Tool';
+import SelectionType from '../ui/Selection';
+import Edit from '../edits/Edit';
+import EditTiles from '../edits/EditTiles';
+import TileData from '../../util/map/TileData';
+import MapMouseEvent from '../../common/MapMouseEvent';
 
-export class SquareTool extends Tool {
-
-  /** @constructor */
-  constructor() {
-    super();
-  }
+export default class SquareTool extends Tool {
 
   /** @override */
   protected onStart(project: Project, event: MapMouseEvent): Edit[] {

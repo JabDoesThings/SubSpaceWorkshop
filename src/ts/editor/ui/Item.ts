@@ -1,13 +1,13 @@
-import { Dirtable } from '../../util/Dirtable';
-import { ItemSelector } from './ItemSelector';
-import { SelectionSlot } from '../UIProperties';
+import Dirtable from '../../util/Dirtable';
+import ItemSelector from './ItemSelector';
+import SelectionSlot from './SelectionSlot';
 
 /**
  * The abstract <i>Item</i> class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class Item implements Dirtable {
+export default abstract class Item implements Dirtable {
   readonly id: string;
   type: string;
   outline: PIXI.Graphics;
@@ -106,5 +106,3 @@ export abstract class Item implements Dirtable {
 
   abstract getContainer(): PIXI.Container;
 }
-
-export default Item;

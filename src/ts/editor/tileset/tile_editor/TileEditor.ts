@@ -1,8 +1,8 @@
 import UIInnerWindow from '../../../ui/component/UIInnerWindow';
 import TilesetEditor from '../tileset_editor/TilesetEditor';
-import { IconToolbar, IconToolbarEvent, IconToolbarEventType } from '../IconToolbar';
-import { TileEditManager } from './TileEditManager';
-import { TileEditorEvents } from './TileEditorEvents';
+import IconToolbar from '../IconToolbar';
+import TileEditManager from './TileEditManager';
+import TileEditorEvents from './TileEditorEvents';
 import TileToolManager from './tool/TileEditToolManager';
 import BrushTool from './tool/BrushTool';
 import PanTool from './tool/PanTool';
@@ -10,12 +10,11 @@ import Brush from './brush/Brush';
 import TileEdit from './TileEdit';
 import TileEditSection from './TileEditSection';
 import Palette from './Palette';
-import PaletteColor from './PaletteColor';
+import IconToolbarEvent from '../IconToolbarEvent';
+import IconToolbarEventType from '../IconToolbarEventType';
 
-class TileEditor extends UIInnerWindow {
-
+export default class TileEditor extends UIInnerWindow {
   static SCALES = [1, 2, 4, 8, 16];
-
   readonly editManager: TileEditManager;
   readonly toolManager: TileToolManager;
   readonly tilesetEditor: TilesetEditor;
@@ -23,29 +22,26 @@ class TileEditor extends UIInnerWindow {
   readonly canvas: HTMLCanvasElement;
   readonly $canvas: JQuery<HTMLCanvasElement>;
   readonly modCtx: CanvasRenderingContext2D;
-  $content: JQuery;
+  readonly brushSourceCanvas: HTMLCanvasElement;
+  readonly brushCanvas: HTMLCanvasElement;
+  readonly drawCanvas: HTMLCanvasElement;
+  readonly drawSourceCanvas: HTMLCanvasElement;
   paneContainer: HTMLElement;
   pane: HTMLElement;
-  $pane: JQuery<HTMLElement>;
+  $content: JQuery;
+  $pane: JQuery;
   paneOffset: number[] = [0, 0];
   scaleIndex: number = 0;
   events: TileEditorEvents;
+  palette: Palette;
+  brush: Brush;
   grid: boolean = true;
   private readonly _ctx: CanvasRenderingContext2D;
-  private readonly modCanvas: HTMLCanvasElement;
-  private _sourceDim: number[] = [0, 0, 16, 16];
+  private readonly _modCanvas: HTMLCanvasElement;
   private _sourceCanvas: HTMLCanvasElement;
+  private _sourceDim: number[] = [0, 0, 16, 16];
   private _onSave: (canvas: HTMLCanvasElement) => void;
   private _onCancel: () => void;
-
-  palette: Palette;
-
-  brushSourceCanvas: HTMLCanvasElement;
-  brushCanvas: HTMLCanvasElement;
-  brush: Brush;
-
-  drawCanvas: HTMLCanvasElement;
-  drawSourceCanvas: HTMLCanvasElement;
 
   constructor(tilesetEditor: TilesetEditor) {
     super(document.getElementById('tile-editor'));
@@ -54,8 +50,8 @@ class TileEditor extends UIInnerWindow {
     this.palette = new Palette();
 
     // Will be used to store the edits.
-    this.modCanvas = document.createElement('canvas');
-    this.modCtx = this.modCanvas.getContext('2d');
+    this._modCanvas = document.createElement('canvas');
+    this.modCtx = this._modCanvas.getContext('2d');
 
     // This canvas will project the modified canvas.
     this.canvas = <HTMLCanvasElement> document.getElementById('tile-editor-view');
@@ -185,7 +181,7 @@ class TileEditor extends UIInnerWindow {
 
   save() {
     if (this._onSave) {
-      this._onSave(this.modCanvas);
+      this._onSave(this._modCanvas);
     }
     this._reset();
     this.close();
@@ -201,8 +197,8 @@ class TileEditor extends UIInnerWindow {
 
   project(): void {
     const scale = TileEditor.SCALES[this.scaleIndex];
-    const scaledWidth = this.modCanvas.width * scale;
-    const scaledHeight = this.modCanvas.height * scale;
+    const scaledWidth = this._modCanvas.width * scale;
+    const scaledHeight = this._modCanvas.height * scale;
 
     this.canvas.width = scaledWidth;
     this.canvas.height = scaledHeight;
@@ -217,11 +213,11 @@ class TileEditor extends UIInnerWindow {
 
     // Project modified canvas onto the visual canvas.
     this._ctx.drawImage(
-      this.modCanvas,
+      this._modCanvas,
       0,
       0,
-      this.modCanvas.width,
-      this.modCanvas.height,
+      this._modCanvas.width,
+      this._modCanvas.height,
       0,
       0,
       this.canvas.width,
@@ -258,14 +254,14 @@ class TileEditor extends UIInnerWindow {
   }
 
   private _projectSource() {
-    this.modCanvas.width = this._sourceDim[2];
-    this.modCanvas.height = this._sourceDim[3];
+    this._modCanvas.width = this._sourceDim[2];
+    this._modCanvas.height = this._sourceDim[3];
     this.drawSourceCanvas.width = this._sourceDim[2];
     this.drawSourceCanvas.height = this._sourceDim[3];
     // Clear.
     this.modCtx.imageSmoothingEnabled = false;
     this.modCtx.fillStyle = 'black';
-    this.modCtx.fillRect(0, 0, this.modCanvas.width, this.modCanvas.height);
+    this.modCtx.fillRect(0, 0, this._modCanvas.width, this._modCanvas.height);
     this.modCtx.imageSmoothingEnabled = false;
     this.modCtx.imageSmoothingQuality = 'low';
 
@@ -278,8 +274,8 @@ class TileEditor extends UIInnerWindow {
       this._sourceDim[3],
       0,
       0,
-      this.modCanvas.width,
-      this.modCanvas.height,
+      this._modCanvas.width,
+      this._modCanvas.height,
     );
   }
 
@@ -295,8 +291,8 @@ class TileEditor extends UIInnerWindow {
     this.scaleIndex = 0;
 
     // Reset modified canvas.
-    this.modCanvas.width = 16;
-    this.modCanvas.height = 16;
+    this._modCanvas.width = 16;
+    this._modCanvas.height = 16;
     this.drawCanvas.width = 16;
     this.drawCanvas.height = 16;
     this.drawSourceCanvas.width = 16;
@@ -378,11 +374,11 @@ class TileEditor extends UIInnerWindow {
   private _bufferCtx = this._buffer.getContext('2d');
 
   applyDraw(antialias: boolean = false): TileEdit {
-    this._buffer.width = this.modCanvas.width;
-    this._buffer.height = this.modCanvas.height;
+    this._buffer.width = this._modCanvas.width;
+    this._buffer.height = this._modCanvas.height;
 
     this._bufferCtx.clearRect(0, 0, this._buffer.width, this._buffer.height);
-    this._bufferCtx.drawImage(this.modCanvas, 0, 0);
+    this._bufferCtx.drawImage(this._modCanvas, 0, 0);
 
     if (antialias) {
       this._bufferCtx.imageSmoothingEnabled = true;
@@ -396,8 +392,8 @@ class TileEditor extends UIInnerWindow {
     this._bufferCtx.imageSmoothingEnabled = false;
     this._bufferCtx.imageSmoothingQuality = 'low';
 
-    const before: ImageData = this.modCtx.getImageData(0, 0, this.modCanvas.width, this.modCanvas.height);
-    const after: ImageData = this._bufferCtx.getImageData(0, 0, this.modCanvas.width, this.modCanvas.height);
+    const before: ImageData = this.modCtx.getImageData(0, 0, this._modCanvas.width, this._modCanvas.height);
+    const after: ImageData = this._bufferCtx.getImageData(0, 0, this._modCanvas.width, this._modCanvas.height);
 
     return new TileEditSection(before, after);
   }
@@ -412,5 +408,3 @@ class TileEditor extends UIInnerWindow {
     this.leftToolbar.setActive(id);
   }
 }
-
-export default TileEditor;

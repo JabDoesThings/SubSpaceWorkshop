@@ -1,14 +1,12 @@
-import { Layer } from './Layer';
+import Layer from './Layer';
 
-export abstract class GeneratedLayer extends Layer {
-
+export default abstract class GeneratedLayer extends Layer {
   private seed: number;
-  private _generate: boolean;
+  private _generate: boolean = true;
 
-  protected constructor(type: string, id: string, name: string) {
-    super(type, id, name);
-    this._generate = true;
-  }
+  // protected constructor(type: string, id: string, name: string) {
+  //   super(type, id, name);
+  // }
 
   /** @override */
   protected onUpdate(delta: number): void {

@@ -6,7 +6,7 @@ import ELVLChunkHandler from './ELVLChunkHandler';
  *
  * @author Jab
  */
-export class ELVLWallTilesHandler extends ELVLChunkHandler<ELVLWallTiles> {
+export default class ELVLWallTilesHandler extends ELVLChunkHandler<ELVLWallTiles> {
 
   constructor() {
     super('DCWT');

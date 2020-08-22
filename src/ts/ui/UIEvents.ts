@@ -2,18 +2,9 @@ import UITab from './component/UITab';
 import UIPanelTab from './component/UIPanelTab';
 import UIIconToolbar from './component/UIIconToolbar';
 import UITool from './component/UITool';
-import Item from './component/Item';
+import Item from '../editor/ui/Item';
 import { IconToolbarAction, ItemSelectorAction, TabAction, TabPanelAction, ToolAction } from './UIProperties';
-
-/**
- * The <i>CustomEvent</i> interface. TODO: Document.
- *
- * @author Jab
- */
-export interface CustomEvent {
-  eventType: string;
-  forced: boolean;
-}
+import CustomEvent from './CustomEvent';
 
 /**
  * The <i>ItemSelectorEvent</i> interface. TODO: Document.

@@ -1,7 +1,7 @@
-import { Dirtable } from '../../util/Dirtable';
-import { TileData } from '../../util/map/TileData';
-import { MapArea } from '../../util/map/MapArea';
 import { DEFAULT_TILESET, LVLTileSet } from '../LVL';
+import Dirtable from '../../util/Dirtable';
+import TileData  from '../../util/map/TileData';
+import MapArea from '../../util/map/MapArea';
 import ELVLCollection from './elvl/ELVLCollection';
 
 /**
@@ -9,18 +9,14 @@ import ELVLCollection from './elvl/ELVLCollection';
  *
  * @author Jab
  */
-export class LVLMap implements Dirtable {
-
+export default class LVLMap implements Dirtable {
   readonly tiles: TileData;
   tileset: LVLTileSet;
   metadata: ELVLCollection;
   name: string;
-
   private dirty: boolean;
 
   /**
-   * @constructor
-   *
    * @param name {string} The name of the map.
    * @param tiles {TileData} The tiles placed in the map.
    * @param tileSet {LVLTileSet} The tileset used by the map.
@@ -60,5 +56,3 @@ export class LVLMap implements Dirtable {
     }
   }
 }
-
-export default LVLMap;

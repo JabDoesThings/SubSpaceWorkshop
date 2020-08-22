@@ -3,11 +3,9 @@
  *
  * @author Jab
  */
-export interface ELVLRegionOptions {
+export default interface ELVLRegionOptions {
   isFlagBase: boolean;
   noAntiWarp: boolean;
   noWeapons: boolean;
   noFlagDrops: boolean;
 }
-
-export default ELVLRegionOptions;

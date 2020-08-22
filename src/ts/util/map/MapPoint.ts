@@ -1,14 +1,11 @@
-import { CoordinateType } from './CoordinateType';
+import CoordinateType from './CoordinateType';
 
-export class MapPoint {
-
+export default class MapPoint {
   readonly type: CoordinateType;
   readonly x: number;
   readonly y: number;
 
   /**
-   * @constructor
-   *
    * @param {CoordinateType} type The type of coordinates stored.
    * @param {number} x The 'X' coordinate of the point on the map.
    * @param {number} y The 'Y' coordinate of the point on the map.

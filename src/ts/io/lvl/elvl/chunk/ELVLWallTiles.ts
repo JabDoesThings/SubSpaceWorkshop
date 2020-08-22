@@ -5,7 +5,7 @@ import ELVLChunk from './ELVLChunk';
  *
  * @author Jab
  */
-export class ELVLWallTiles extends ELVLChunk {
+export default class ELVLWallTiles extends ELVLChunk {
   public static readonly TOP_LEFT_CORNER = 9;
   public static readonly TOP_JUNCTION = 13;
   public static readonly TOP_RIGHT_CORNER = 12;
@@ -106,5 +106,3 @@ export class ELVLWallTiles extends ELVLChunk {
     }
   }
 }
-
-export default ELVLWallTiles;

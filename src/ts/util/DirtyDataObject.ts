@@ -1,25 +1,21 @@
-import { UniqueObject } from './UniqueObject';
-import { Dirtable } from './Dirtable';
-import { Updatable } from './Updatable';
+import UniqueObject from './UniqueObject';
+import Dirtable from './Dirtable';
+import Updatable from './Updatable';
 
 /**
  * The <i>DirtyDataObject</i> class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class DirtyDataObject extends UniqueObject implements Dirtable, Updatable {
-
-  private dirty: boolean;
+export default abstract class DirtyDataObject extends UniqueObject implements Dirtable, Updatable {
+  private dirty: boolean = false;
 
   /**
-   * @constructor
-   *
    * @param {string} name The name of the object.
    * @param {string} id The ID of the object.
    */
   protected constructor(name: string, id: string = null) {
     super(name, id);
-    this.dirty = false;
   }
 
   /** @override */

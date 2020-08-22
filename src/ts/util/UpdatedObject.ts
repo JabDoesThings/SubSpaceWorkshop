@@ -1,26 +1,21 @@
-import { Dirtable } from './Dirtable';
-import { UniqueObject } from './UniqueObject';
+import Dirtable from './Dirtable';
+import UniqueObject from './UniqueObject';
 
 /**
  * The <i>UpdatedObject</i> class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class UpdatedObject extends UniqueObject implements Dirtable {
-
-  private dirty: boolean;
-  private dirtyUpdate: boolean;
+export default abstract class UpdatedObject extends UniqueObject implements Dirtable {
+  private dirty: boolean = false;
+  private dirtyUpdate: boolean = true;
 
   /**
-   * @constructor
-   *
    * @param {string} name
    * @param {string} id
    */
   protected constructor(name: string = null, id: string = null) {
     super(name, id);
-    this.dirty = false;
-    this.dirtyUpdate = true;
   }
 
   /** @override */
@@ -65,5 +60,4 @@ export abstract class UpdatedObject extends UniqueObject implements Dirtable {
    * @return {boolean} Return 'true' if the update is successful.
    */
   protected abstract onUpdate(delta: number): boolean;
-
 }

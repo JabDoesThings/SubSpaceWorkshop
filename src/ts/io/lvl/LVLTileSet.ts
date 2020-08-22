@@ -1,4 +1,4 @@
-import { Dirtable } from '../../util/Dirtable';
+import Dirtable from '../../util/Dirtable';
 import { HSVtoRGB, RGBtoHSV } from '../../util/ColorUtils';
 import { inTilesetRange, validateTileImage } from './LVLUtils';
 
@@ -7,24 +7,19 @@ import { inTilesetRange, validateTileImage } from './LVLUtils';
  *
  * @author Jab
  */
-export class LVLTileSet implements Dirtable {
-
+export default class LVLTileSet implements Dirtable {
   private readonly tiles: PIXI.Texture[] = [];
   private readonly tileCoordinates: number[][] = [];
   readonly tileColor: number[][] = [];
   readonly defaultTileColor: number[] = [170, 170, 170];
-
   texture: PIXI.Texture;
   canvas: HTMLCanvasElement;
   borderTile: PIXI.Texture;
   bitCount: number;
   canDestroyBaseTexture: boolean = false;
-
   private dirty: boolean;
 
   /**
-   * @constructor
-   *
    * @param {HTMLCanvasElement | PIXI.Texture} canvasOrTexture The image source to import.
    */
   constructor(canvasOrTexture: HTMLCanvasElement | PIXI.Texture) {
@@ -256,5 +251,3 @@ export class LVLTileSet implements Dirtable {
     this.setDirty(true);
   }
 }
-
-export default LVLTileSet;

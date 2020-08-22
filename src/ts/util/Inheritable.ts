@@ -3,7 +3,7 @@
  *
  * @author Jab
  */
-export interface Inheritable {
+export default interface Inheritable {
 
   /////////////////
   // PARENT CODE //

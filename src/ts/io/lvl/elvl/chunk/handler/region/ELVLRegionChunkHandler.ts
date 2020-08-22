@@ -5,7 +5,7 @@ import ELVLRegionChunk from '../../region/ELVLRegionChunk';
  *
  * @author Jab
  */
-abstract class ELVLRegionChunkHandler<C extends ELVLRegionChunk> {
+export default abstract class ELVLRegionChunkHandler<C extends ELVLRegionChunk> {
 
   /** The unique ID of the region. */
   id: string;
@@ -31,5 +31,3 @@ abstract class ELVLRegionChunkHandler<C extends ELVLRegionChunk> {
    */
   abstract write(chunk: C): Buffer;
 }
-
-export default ELVLRegionChunkHandler;

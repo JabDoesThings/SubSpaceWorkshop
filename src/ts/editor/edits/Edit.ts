@@ -1,15 +1,11 @@
-import { EditManager } from '../EditManager';
+import EditManager from '../EditManager';
 
 /**
  * The <i>Edit</i> abstract class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class Edit {
-
-  /** @constructor */
-  protected constructor() {
-  }
+export default abstract class Edit {
 
   /**
    * Redoes the edit.

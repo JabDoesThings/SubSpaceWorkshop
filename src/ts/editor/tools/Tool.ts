@@ -1,24 +1,18 @@
-import { MapMouseEvent } from '../../common/Renderer';
-import { Project } from '../Project';
-import { TileCache } from '../../util/map/TileCache';
-import { Edit } from '../edits/Edit';
+import Project from '../Project';
+import TileCache from '../../util/map/TileCache';
+import Edit from '../edits/Edit';
+import MapMouseEvent from '../../common/MapMouseEvent';
 
 /**
  * The <i>Tool</i> abstract class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class Tool {
-
+export default abstract class Tool {
   isSelector: boolean = false;
-  protected readonly tileCache: TileCache;
+  protected readonly tileCache: TileCache = new TileCache();
   protected last: { x: number, y: number, tileX: number, tileY: number };
   protected down: { x: number, y: number, tileX: number, tileY: number };
-
-  /** @constructor */
-  protected constructor() {
-    this.tileCache = new TileCache();
-  }
 
   start(project: Project, event: MapMouseEvent): Edit[] {
     const edits = this.onStart(project, event);

@@ -5,7 +5,7 @@ import ELVLChunk from '../ELVLChunk';
  *
  * @author Jab
  */
-abstract class ELVLChunkHandler<C extends ELVLChunk> {
+export default abstract class ELVLChunkHandler<C extends ELVLChunk> {
   id: string;
 
   protected constructor(id: string) {
@@ -16,5 +16,3 @@ abstract class ELVLChunkHandler<C extends ELVLChunk> {
 
   abstract write(chunk: C): Buffer;
 }
-
-export default ELVLChunkHandler;

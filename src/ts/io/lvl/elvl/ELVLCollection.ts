@@ -7,7 +7,7 @@ import ELVLAttribute from './chunk/ELVLAttribute';
  *
  * @author Jab
  */
-export class ELVLCollection {
+export default class ELVLCollection {
   readonly chunks: ELVLChunk[] = [];
   readonly regions: ELVLRegion[] = [];
   readonly attributes: ELVLAttribute[] = [];
@@ -90,5 +90,3 @@ export class ELVLCollection {
     return this.chunks;
   }
 }
-
-export default ELVLCollection;

@@ -1,6 +1,6 @@
-import { GeneratedLayer } from './GeneratedLayer';
-import { LayerManager } from './LayerManager';
-import { TileData } from '../../util/map/TileData';
+import GeneratedLayer from './GeneratedLayer';
+import LayerManager from './LayerManager';
+import TileData from '../../util/map/TileData';
 import { Zip } from '../../io/Zip';
 
 /**
@@ -8,15 +8,12 @@ import { Zip } from '../../io/Zip';
  *
  * @author Jab
  */
-export class WallTileLayer extends GeneratedLayer {
-
+export default class WallTileLayer extends GeneratedLayer {
   private wallTileData: TileData[];
   private idToValueMap: { [id: string]: number };
   private valueToIdMap: { [value: number]: string };
 
   /**
-   * @constructor
-   *
    * @param {LayerManager} manager
    * @param {string} id
    * @param {string} name

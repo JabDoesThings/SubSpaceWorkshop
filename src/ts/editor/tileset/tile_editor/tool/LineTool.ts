@@ -1,12 +1,11 @@
 import TileEditTool from './TileEditTool';
 import TileEditor from '../TileEditor';
 import TileEdit from '../TileEdit';
-import { TileEditorEvent } from '../TileEditorEvents';
 import CircleBrush from '../brush/CircleBrush';
 import Brush from '../brush/Brush';
+import TileEditorEvent from '../TileEditorEvent';
 
-class LineTool extends TileEditTool {
-
+export default class LineTool extends TileEditTool {
   private middleDown: boolean = false;
   private brush: Brush;
   private down: { x: number, y: number };
@@ -82,5 +81,3 @@ class LineTool extends TileEditTool {
   }
 
 }
-
-export default LineTool;

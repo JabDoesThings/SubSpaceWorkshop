@@ -5,7 +5,7 @@ import ELVLChunk from './ELVLChunk';
  *
  * @author Jab
  */
-export class ELVLRawChunk extends ELVLChunk {
+export default class ELVLRawChunk extends ELVLChunk {
   data: Buffer;
 
   /**
@@ -32,5 +32,3 @@ export class ELVLRawChunk extends ELVLChunk {
     }
   }
 }
-
-export default ELVLRawChunk;

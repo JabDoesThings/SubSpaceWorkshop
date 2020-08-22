@@ -1,22 +1,19 @@
-import { Editor } from '../../Editor';
 import { LVLTileSet, toTilesetCoords } from '../../../io/LVL';
+import { drawAspect } from '../../../util/DrawUtils';
+import Editor from '../../Editor';
 import MouseDownEvent = JQuery.MouseDownEvent;
 import MouseMoveEvent = JQuery.MouseMoveEvent;
-import { drawAspect } from '../../../util/DrawUtils';
 import UIInnerWindow from '../../../ui/component/UIInnerWindow';
 import TileEditor from '../tile_editor/TileEditor';
 
-class TilesetEditor extends UIInnerWindow {
-
+export default class TilesetEditor extends UIInnerWindow {
   private readonly selection: number[] = [0, 0, 0, 0];
   private editor: Editor;
-  private canvas: HTMLCanvasElement;
+  private readonly canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-
-  private sourceCanvas: HTMLCanvasElement;
+  private readonly sourceCanvas: HTMLCanvasElement;
   private sourceCtx: CanvasRenderingContext2D;
-
-  private selectionCanvas: HTMLCanvasElement;
+  private readonly selectionCanvas: HTMLCanvasElement;
   private selectionCtx: CanvasRenderingContext2D;
   private tileEditor: TileEditor;
   private tileset: LVLTileSet;
@@ -190,5 +187,3 @@ class TilesetEditor extends UIInnerWindow {
     return this.selection[0] !== -1;
   }
 }
-
-export default TilesetEditor;

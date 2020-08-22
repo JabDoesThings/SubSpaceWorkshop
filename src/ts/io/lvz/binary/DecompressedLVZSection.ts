@@ -6,8 +6,7 @@ import CompressedLVZSection from './CompressedLVZSection';
  *
  * @author Jab
  */
-export class DecompressedLVZSection {
-
+export default class DecompressedLVZSection {
   public readonly decompressSize: number;
   public readonly fileTime: number;
   public readonly compressSize: number;
@@ -45,5 +44,3 @@ export class DecompressedLVZSection {
     return new CompressedLVZSection(decompressSize, fileTime, compressSize, fileName, compressedData);
   }
 }
-
-export default DecompressedLVZSection;

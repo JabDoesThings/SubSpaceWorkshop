@@ -1,16 +1,14 @@
 import { Zip } from '../../../io/Zip';
-import { LibraryAsset, LibraryAssetLoader } from './Library';
+import LibraryAsset from './LibraryAsset';
 
 /**
  * The <i>Stamp</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Stamp extends LibraryAsset {
+export default class Stamp extends LibraryAsset {
 
   /**
-   * @constructor
-   *
    * @param {string} id
    * @param {string} name
    */
@@ -38,20 +36,3 @@ export class Stamp extends LibraryAsset {
   protected onPostUpdate(): void {
   }
 }
-
-/**
- * The <i>StampLoader</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class StampLoader extends LibraryAssetLoader {
-
-  /** @override */
-  onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Stamp {
-    let asset = new Stamp(id, json.name);
-    asset.load(json, projectZip);
-    return asset;
-  }
-}
-
-LibraryAssetLoader.set('stamp', new StampLoader());

@@ -1,4 +1,4 @@
-import { BufferUtils } from '../../../../../../util/BufferUtils';
+import BufferUtils from '../../../../../../util/BufferUtils';
 import ELVLChunkHandler from '../ELVLChunkHandler';
 import ELVLRegion from '../../region/ELVLRegion';
 import ELVLRegionChunk from '../../region/ELVLRegionChunk';
@@ -16,7 +16,7 @@ import ELVLRegionAutoWarpHandler from './ELVLRegionAutoWarpHandler';
  *
  * @author Jab
  */
-export class ELVLRegionHandler extends ELVLChunkHandler<ELVLRegion> {
+export default class ELVLRegionHandler extends ELVLChunkHandler<ELVLRegion> {
 
   constructor() {
     super('REGN');
@@ -95,5 +95,3 @@ export class ELVLRegionHandler extends ELVLChunkHandler<ELVLRegion> {
     return null;
   }
 }
-
-export default ELVLRegionHandler;

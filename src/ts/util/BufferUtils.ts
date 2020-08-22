@@ -3,7 +3,7 @@
  *
  * @author Jab
  */
-export class BufferUtils {
+export default class BufferUtils {
 
   static readFixedString(buffer: Buffer, offset: number, length: number): string {
     let s: string = '';

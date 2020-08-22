@@ -1,16 +1,11 @@
-/**
- * The <i>Boundary</i> class. TODO: Document.
- *
- * @author Jab
- */
-import { CoordinateType } from './CoordinateType';
+import CoordinateType from './CoordinateType';
 
 /**
  * The <i>Boundary</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class MapArea {
+export default class MapArea {
   readonly type: CoordinateType;
   readonly x1: number;
   readonly y1: number;
@@ -18,8 +13,6 @@ export class MapArea {
   readonly y2: number;
 
   /**
-   * @constructor
-   *
    * @param {CoordinateType} type
    * @param {number} x1
    * @param {number} y1

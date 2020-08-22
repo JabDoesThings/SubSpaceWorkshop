@@ -1,27 +1,24 @@
-import { Project } from '../Project';
-import { MapMouseEvent } from '../../common/Renderer';
-import { Selection } from '../../ui/component/Selection';
-import { Edit } from '../edits/Edit';
-import { EditTiles } from '../edits/EditTiles';
-import { DrawTool } from './DrawTool';
-import { TileData } from '../../util/map/TileData';
-import { Layer } from '../layers/Layer';
 import { TILE_DIMENSIONS } from '../../io/LVL';
+import Project from '../Project';
+import Selection from '../ui/Selection';
+import Edit from '../edits/Edit';
+import EditTiles from '../edits/EditTiles';
+import DrawTool from './DrawTool';
+import TileData from '../../util/map/TileData';
+import Layer from '../layers/Layer';
+import MapMouseEvent from '../../common/MapMouseEvent';
 
 /**
  * The <i>BrushTool</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class PencilTool extends DrawTool {
-
+export default class PencilTool extends DrawTool {
   slots: boolean[][] = [];
-  apply: { x: number, y: number, from: number, to: number }[];
+  apply: { x: number, y: number, from: number, to: number }[] = [];
 
-  /** @constructor */
   constructor() {
     super(true);
-    this.apply = [];
   }
 
   /** @override */

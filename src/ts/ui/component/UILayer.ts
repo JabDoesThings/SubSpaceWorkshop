@@ -1,9 +1,9 @@
-import { InheritedObject } from '../../util/InheritedObject';
-import { Inheritable } from '../../util/Inheritable';
-import { Dirtable } from '../../util/Dirtable';
+import InheritedObject from '../../util/InheritedObject';
+import Inheritable from '../../util/Inheritable';
+import Dirtable from '../../util/Dirtable';
 import LayersPanel from '../../editor/ui/LayersPanel';
 
-export class UILayer extends InheritedObject<UILayer> implements Inheritable, Dirtable {
+class UILayer extends InheritedObject<UILayer> implements Inheritable, Dirtable {
   element: HTMLDivElement;
   titleLabel: HTMLLabelElement;
   visibilityElement: HTMLDivElement;

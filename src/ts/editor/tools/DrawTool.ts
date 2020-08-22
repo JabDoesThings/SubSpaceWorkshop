@@ -1,24 +1,22 @@
-import { Tool } from './Tool';
-import { Project } from '../Project';
-import { MapMouseEvent } from '../../common/Renderer';
-import { Edit } from '../edits/Edit';
-import { Selection, SelectionType } from '../../ui/UI';
+import Tool from './Tool';
+import Project from '../Project';
+import Edit from '../edits/Edit';
+import Selection from '../ui/Selection';
+import SelectionType from '../ui/SelectionType';
+import MapMouseEvent from '../../common/MapMouseEvent';
 
 /**
  * The <i>DrawTool</i> class. TODO: Document.
  *
  * @author Jab
  */
-export abstract class DrawTool extends Tool {
-
+export default abstract class DrawTool extends Tool {
   private readonly clearOnDraw: boolean;
 
   /**
-   * @constructor
-   *
    * @param {boolean} clearOnDraw
    */
-  protected constructor(clearOnDraw: boolean = false) {
+  constructor(clearOnDraw: boolean = false) {
     super();
     this.clearOnDraw = clearOnDraw;
   }

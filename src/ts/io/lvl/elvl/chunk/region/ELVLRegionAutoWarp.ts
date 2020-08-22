@@ -5,7 +5,7 @@ import ELVLRegionChunk from './ELVLRegionChunk';
  *
  * @author Jab
  */
-export class ELVLRegionAutoWarp extends ELVLRegionChunk {
+export default class ELVLRegionAutoWarp extends ELVLRegionChunk {
   x: number;
   y: number;
   arena: string;
@@ -50,5 +50,3 @@ export class ELVLRegionAutoWarp extends ELVLRegionChunk {
     }
   }
 }
-
-export default ELVLRegionAutoWarp;

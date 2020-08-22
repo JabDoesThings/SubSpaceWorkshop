@@ -1,13 +1,12 @@
 import TileEdit from './TileEdit';
-import { TileEditManager } from './TileEditManager';
+import TileEditManager from './TileEditManager';
 
 /**
  * The <i>TileEditSection</i> class. TODO: Document.
  *
  * @author Jab
  */
-class TileEditSection extends TileEdit {
-
+export default class TileEditSection extends TileEdit {
   private readonly before: ImageData;
   private readonly after: ImageData;
   private readonly x: number;
@@ -43,5 +42,3 @@ class TileEditSection extends TileEdit {
     tileEditor.project();
   }
 }
-
-export default TileEditSection;

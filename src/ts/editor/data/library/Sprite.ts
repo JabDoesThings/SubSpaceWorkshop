@@ -1,16 +1,15 @@
 import { Zip } from '../../../io/Zip';
-import { LibraryAsset, LibraryAssetLoader } from './Library';
+import LibraryAsset from './LibraryAsset';
+import LibraryAssetLoader from './LibraryAssetLoader';
 
 /**
  * The <i>Sprite</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Sprite extends LibraryAsset {
+export default class Sprite extends LibraryAsset {
 
   /**
-   * @constructor
-   *
    * @param {string} id
    * @param {string} name
    */

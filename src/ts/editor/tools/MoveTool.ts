@@ -1,29 +1,23 @@
-import { Tool } from './Tool';
-import { Project } from '../Project';
-import { MapMouseEvent } from '../../common/Renderer';
-import { Edit } from '../edits/Edit';
-import { CoordinateType } from '../../util/map/CoordinateType';
-import { Layer } from '../layers/Layer';
-import { MapPoint } from '../../util/map/MapPoint';
-import { EditSelectionMove } from '../edits/EditSelectionMove';
-import { EditTiles } from '../edits/EditTiles';
+import Tool from './Tool';
+import Project from '../Project';
+import Edit from '../edits/Edit';
+import CoordinateType from '../../util/map/CoordinateType';
+import Layer from '../layers/Layer';
+import MapPoint from '../../util/map/MapPoint';
+import EditSelectionMove from '../edits/EditSelectionMove';
+import EditTiles from '../edits/EditTiles';
+import MapMouseEvent from '../../common/MapMouseEvent';
 
 /**
  * The <i>MoveTool</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class MoveTool extends Tool {
-
+export default class MoveTool extends Tool {
   mDown: number[];
   mDelta: number[];
   mDeltaLast: number[];
   private activeLayer: Layer;
-
-  /** @constructor */
-  constructor() {
-    super();
-  }
 
   /** @override */
   protected onStart(project: Project, event: MapMouseEvent): Edit[] {

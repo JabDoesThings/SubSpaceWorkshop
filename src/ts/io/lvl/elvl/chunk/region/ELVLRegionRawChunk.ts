@@ -5,7 +5,7 @@ import ELVLRegionChunk from './ELVLRegionChunk';
  *
  * @author Jab
  */
-export class ELVLRegionRawChunk extends ELVLRegionChunk {
+export default class ELVLRegionRawChunk extends ELVLRegionChunk {
   type: number;
   data: Buffer;
 
@@ -26,5 +26,3 @@ export class ELVLRegionRawChunk extends ELVLRegionChunk {
     return other === this;
   }
 }
-
-export default ELVLRegionRawChunk;

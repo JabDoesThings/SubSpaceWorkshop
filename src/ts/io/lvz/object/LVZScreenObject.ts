@@ -1,5 +1,5 @@
-import { Validatable } from '../../../util/Validatable';
-import { Dirtable } from '../../../util/Dirtable';
+import Validatable from '../../../util/Validatable';
+import Dirtable from '../../../util/Dirtable';
 import LVZImage from './LVZImage';
 import { LVZDisplayMode, LVZRenderLayer, LVZXType, LVZYType } from '../LVZProperties';
 
@@ -8,8 +8,7 @@ import { LVZDisplayMode, LVZRenderLayer, LVZXType, LVZYType } from '../LVZProper
  *
  * @author Jab
  */
-export class LVZScreenObject implements Validatable, Dirtable {
-
+export default class LVZScreenObject implements Validatable, Dirtable {
   private image: LVZImage;
   private x: number;
   private y: number;
@@ -22,8 +21,6 @@ export class LVZScreenObject implements Validatable, Dirtable {
   private dirty: boolean;
 
   /**
-   * @constructor
-   *
    * @param {LVZImage} image The LVZ image object to display.
    * @param x {number} The X coordinate of the object. (In pixels)
    * @param y {number} The Y coordinate of the object. (In pixels)
@@ -244,5 +241,3 @@ export class LVZScreenObject implements Validatable, Dirtable {
     }
   }
 }
-
-export default LVZScreenObject;

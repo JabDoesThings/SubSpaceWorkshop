@@ -1,19 +1,16 @@
 import * as PIXI from "pixi.js";
+import { CustomEventListener, ItemSelectorEvent, ItemSelectorAction, ItemSelectorListener} from '../../ui/UI';
 import Item from './Item';
-import ItemSelectorListener from '../ItemSelectorListener';
-import { Dirtable } from '../../util/Dirtable';
-import { PalettePanel } from './PalettePanel';
-import { Selection } from './Selection';
-import { CustomEventListener } from '../CustomEventListener';
-import { ItemSelectorEvent } from '../UIEvents';
-import { ItemSelectorAction } from '../UIProperties';
+import Dirtable from '../../util/Dirtable';
+import PalettePanel from './PalettePanel';
+import Selection from './Selection';
 
 /**
  * The <i>ItemSelector</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class ItemSelector extends CustomEventListener<ItemSelectorEvent> implements Dirtable {
+export default class ItemSelector extends CustomEventListener<ItemSelectorEvent> implements Dirtable {
   items: { [id: string]: Item };
   maxWidthTiles: number;
   maxHeightTiles: number;
@@ -311,5 +308,3 @@ export class ItemSelector extends CustomEventListener<ItemSelectorEvent> impleme
     this.dirty = flag;
   }
 }
-
-export default ItemSelector;

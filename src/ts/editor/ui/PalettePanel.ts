@@ -1,21 +1,20 @@
-import UIPanelTab from './UIPanelTab';
-import UIPanelSection from './UIPanelSection';
+import { UIPanelTab, UIPanelSection, CustomEvent, ItemSelectorEvent, ItemSelectorAction } from '../../ui/UI';
 import SpriteItem from './SpriteItem';
 import TileSection from './TileSection';
-import { MapRenderer } from '../../editor/render/MapRenderer';
-import { MapSprite } from '../../editor/render/MapSprite';
-import { Project } from '../../editor/Project';
-import { ItemSelector } from './ItemSelector';
-import { EditorAction, EditorProjectEvent } from '../../editor/Editor';
-import { CustomEvent, ItemSelectorEvent } from '../UIEvents';
-import { ItemSelectorAction, SelectionType } from '../UIProperties';
+import MapRenderer from '../render/MapRenderer';
+import MapSprite from '../render/MapSprite';
+import Project from '../Project';
+import ItemSelector from './ItemSelector';
+import SelectionType from './SelectionType';
+import EditorProjectEvent from '../EditorProjectEvent';
+import EditorAction from '../EditorAction';
 
 /**
  * The <i>PalettePanel</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class PalettePanel extends UIPanelTab {
+class PalettePanel extends UIPanelTab {
   renderer: MapRenderer;
   selectorStandardTile: TileSection;
   selectorSpecialTile: ItemSelector;

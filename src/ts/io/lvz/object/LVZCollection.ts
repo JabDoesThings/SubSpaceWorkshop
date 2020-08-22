@@ -1,7 +1,7 @@
-import { Dirtable } from '../../../util/Dirtable';
-import { Validatable } from '../../../util/Validatable';
-import { MapArea } from '../../../util/map/MapArea';
-import { CoordinateType } from '../../../util/map/CoordinateType';
+import Dirtable from '../../../util/Dirtable';
+import Validatable from '../../../util/Validatable';
+import MapArea from '../../../util/map/MapArea';
+import CoordinateType from '../../../util/map/CoordinateType';
 import LVZMapObject from './LVZMapObject';
 import LVZScreenObject from './LVZScreenObject';
 
@@ -10,7 +10,7 @@ import LVZScreenObject from './LVZScreenObject';
  *
  * @author Jab
  */
-export class LVZCollection implements Dirtable, Validatable {
+export default class LVZCollection implements Dirtable, Validatable {
   private mapObjects: LVZMapObject[] = [];
   private screenObjects: LVZScreenObject[] = [];
   private dirty: boolean = true;
@@ -271,5 +271,3 @@ export class LVZCollection implements Dirtable, Validatable {
     }
   }
 }
-
-export default LVZCollection;

@@ -1,13 +1,13 @@
+import * as fs from "fs";
+import SCALE_MODES = PIXI.SCALE_MODES;
+import { DEFAULT_TILESET, TILESET_DIMENSIONS } from '../LVL';
+import { readELVL } from './elvl/ELVLUtils';
+import { Bitmap } from '../Bitmap';
 import LVLMap from './LVLMap';
 import LVLTileSet from './LVLTileSet';
 import ELVLCollection from './elvl/ELVLCollection';
-import * as fs from "fs";
-import { BufferUtils } from '../../util/BufferUtils';
-import { TileData } from '../../util/map/TileData';
-import { Bitmap } from '../Bitmap';
-import { DEFAULT_TILESET, TILESET_DIMENSIONS } from '../LVL';
-import SCALE_MODES = PIXI.SCALE_MODES;
-import { readELVL } from './elvl/ELVLUtils';
+import BufferUtils from '../../util/BufferUtils';
+import TileData from '../../util/map/TileData';
 
 /**
  * Reads a ".LVL" SubSpace Map file.

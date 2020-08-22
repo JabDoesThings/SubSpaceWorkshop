@@ -1,42 +1,35 @@
-import { Layer } from './Layer';
-import { Project } from '../Project';
-import { MapRenderer } from '../render/MapRenderer';
-import { TileData } from '../../util/map/TileData';
-import { TileRenderer } from '../render/TileRenderer';
-import { MapArea } from '../../util/map/MapArea';
-import { CoordinateType } from '../../util/map/CoordinateType';
+import Layer from './Layer';
+import MapRenderer from '../render/MapRenderer';
+import TileRenderer from '../render/TileRenderer';
+import TileData from '../../util/map/TileData';
+import MapArea from '../../util/map/MapArea';
+import CoordinateType from '../../util/map/CoordinateType';
+import Project from '../Project';
 
 /**
  * The <i>LayerManager</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class LayerManager {
-
+export default class LayerManager {
   readonly drawTileLayer: Layer;
-  readonly layers: Layer[];
+  readonly layers: Layer[] = [];
   readonly project: Project;
+  active: Layer = null;
   private readonly _combinedTileRenderer: TileRenderer;
   private readonly _combinedTileData: TileData;
   private readonly _drawTileRenderer: TileRenderer;
-
-  active: Layer;
-  private updatingUI: boolean;
+  private updatingUI: boolean = false;
 
   /**
-   * @constructor
-   *
    * @param {Project} project
    */
   constructor(project: Project) {
     this.project = project;
-    this.layers = [];
-    this.active = null;
     this._combinedTileData = new TileData();
     this._combinedTileRenderer = new TileRenderer(project, this._combinedTileData);
     this.drawTileLayer = new Layer('default', 'drawTileLayer', 'drawTileLayer');
     this._drawTileRenderer = new TileRenderer(project, this.drawTileLayer.tiles);
-    this.updatingUI = false;
   }
 
   updateUI(): void {
@@ -243,7 +236,6 @@ export class LayerManager {
 
   update(delta: number): void {
     let tileDirty = false;
-
     if (this.layers.length !== 0) {
       for (let index = 0; index < this.layers.length; index++) {
         const next = this.layers[index];

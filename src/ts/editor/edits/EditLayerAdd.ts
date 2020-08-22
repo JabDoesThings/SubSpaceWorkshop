@@ -1,28 +1,24 @@
-import { Edit } from './Edit';
-import { EditManager } from '../EditManager';
-import { Layer } from '../layers/Layer';
+import Edit from './Edit';
+import EditManager from '../EditManager';
+import Layer from '../layers/Layer';
 
 /**
  * The <i>EditLayerAdd</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EditLayerAdd extends Edit {
-
+export default class EditLayerAdd extends Edit {
   private readonly layer: Layer;
   private readonly setActive: boolean;
   private lastActive: Layer;
-  private done: boolean;
+  private done: boolean = false;
 
   /**
-   * @constructor
-   *
    * @param {Layer} layer
    * @param {boolean} setActive
    */
   constructor(layer: Layer, setActive: boolean) {
     super();
-    this.done = false;
     this.layer = layer;
     this.setActive = setActive;
   }
@@ -30,7 +26,7 @@ export class EditLayerAdd extends Edit {
   /** @override */
   do(history: EditManager): void {
     if (this.done) {
-      throw new Error('The layer is already added: ' + this.layer.getName() + "'");
+      throw new Error(`The layer is already added: ${this.layer.getName()}'`);
     }
     let layers = history.project.layers;
     if (layers.active != null) {
@@ -43,7 +39,7 @@ export class EditLayerAdd extends Edit {
   /** @override */
   undo(history: EditManager): void {
     if (!this.done) {
-      throw new Error('The layer is not added: ' + this.layer.getName() + "'");
+      throw new Error(`The layer is not added: ${this.layer.getName()}'`);
     }
     let layers = history.project.layers;
     layers.remove(this.layer);

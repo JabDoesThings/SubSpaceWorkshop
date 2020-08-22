@@ -1,14 +1,14 @@
-import { Edit } from './Edit';
-import { EditManager } from '../EditManager';
-import { Layer } from '../layers/Layer';
+import EditManager from '../EditManager';
+import Edit from './Edit';
+import Layer from '../layers/Layer';
+import TileEdit from './TileEdit';
 
 /**
  * The <i>EditTiles</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EditTiles extends Edit {
-
+export default class EditTiles extends Edit {
   readonly tiles: TileEdit[];
   tilesToUndo: TileEdit[];
   private readonly applyDimensions: boolean;
@@ -16,8 +16,6 @@ export class EditTiles extends Edit {
   private readonly ignoreMask: boolean;
 
   /**
-   * @constructor
-   *
    * @param {Layer} layer The layer that the edit is on.
    * @param {TileEdit[]} tiles
    * @param {boolean} applyDimensions
@@ -87,50 +85,5 @@ export class EditTiles extends Edit {
       }
     }
     this.tilesToUndo = null;
-  }
-}
-
-/**
- * The <i>TileEdit</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class TileEdit {
-
-  readonly x: number;
-  readonly y: number;
-  readonly from: number;
-  readonly to: number;
-
-  /**
-   * @constructor
-   *
-   * @param {number} x The 'X' coordinate of the tile to edit.
-   * @param {number} y The 'Y' coordinate of the tile to edit.
-   * @param {number} from The original ID of the tile.
-   * @param {number} to The ID to set for the tile.
-   */
-  constructor(x: number, y: number, from: number, to: number) {
-    if (x == null) {
-      throw new Error('The x coordinate given is null or undefined.');
-    }
-    if (y == null) {
-      throw new Error('The y coordinate given is null or undefined.');
-    }
-    if (from == null) {
-      throw new Error('The "from" tile ID given is null or undefined.');
-    }
-    if (to == null) {
-      throw new Error('The "to" tile ID given is null or undefined.');
-    }
-    this.x = x;
-    this.y = y;
-    this.from = from;
-    this.to = to;
-  }
-
-  /** @override */
-  toString(): string {
-    return `{x: ${this.x}, y: ${this.y}, from: ${this.from}, to: ${this.to}}`;
   }
 }

@@ -1,11 +1,7 @@
-import { TileEditManager } from './TileEditManager';
+import TileEditManager from './TileEditManager';
 
-abstract class TileEdit {
-
+export default abstract class TileEdit {
   private done: boolean = false;
-
-  protected constructor() {
-  }
 
   do(editManager: TileEditManager) {
     if (this.done) {
@@ -35,5 +31,3 @@ abstract class TileEdit {
 
   abstract onUndo(editManager: TileEditManager): void;
 }
-
-export default TileEdit;

@@ -1,8 +1,8 @@
-import { Validatable } from '../../../util/Validatable';
-import { Dirtable } from '../../../util/Dirtable';
+import { validateLVZMapObject } from '../LVZUtils';
+import Validatable from '../../../util/Validatable';
+import Dirtable from '../../../util/Dirtable';
 import LVZImage from './LVZImage';
 import { LVZDisplayMode, LVZErrorStatus, LVZRenderLayer } from '../LVZProperties';
-import { validateLVZMapObject } from '../LVZUtils';
 import {
   DISPLAY_MODE_MAX, DISPLAY_MODE_MIN, DISPLAY_TIME_MAX, DISPLAY_TIME_MIN,
   MAP_OBJECT_COORDINATE_MAX,
@@ -16,8 +16,7 @@ import {
  *
  * @author Jab
  */
-export class LVZMapObject implements Validatable, Dirtable {
-
+export default class LVZMapObject implements Validatable, Dirtable {
   public image: LVZImage;
   public x: number;
   public y: number;
@@ -28,8 +27,6 @@ export class LVZMapObject implements Validatable, Dirtable {
   public dirty: boolean;
 
   /**
-   * @constructor
-   *
    * @param {LVZImage} image The LVZ image object to display.
    * @param {number} x The X coordinate of the object. (In pixels)
    * @param {number} y The Y coordinate of the object. (In pixels)
@@ -215,5 +212,3 @@ export class LVZMapObject implements Validatable, Dirtable {
     }
   }
 }
-
-export default LVZMapObject;

@@ -3,7 +3,7 @@
  *
  * @author Jab
  */
-export abstract class Printable {
+export default abstract class Printable {
 
   /**
    * Prints an object to the console.

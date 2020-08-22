@@ -1,45 +1,27 @@
 import * as PIXI from "pixi.js";
-
-import { ELVLRegion } from '../../io/ELVL';
-import { MapRenderer } from './MapRenderer';
-
-/**
- * The <i>TileEntry</i> interface. TODO: Document.
- *
- * @author Jab
- */
-interface TileEntry {
-  index: number;
-  x: number;
-  y: number;
-}
+import MapRenderer from './MapRenderer';
+import { ELVLRegion } from '../../io/LVL';
+import TileEntry from './TileEntry';
 
 /**
  * The <i>ELVLRegionRender</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class ELVLRegionRender {
-
-  private entries: TileEntry[];
-
-  private region: ELVLRegion;
-
+export default class ELVLRegionRender {
   container: PIXI.Container;
-
+  private entries: TileEntry[] = [];
+  private region: ELVLRegion;
   private bounds: PIXI.Rectangle;
   private view: MapRenderer;
 
   /**
-   * Main constructor.
-   *
    * @param {MapRenderer} view
    * @param {ELVLRegion} region The region to render.
    */
   constructor(view: MapRenderer, region: ELVLRegion) {
     this.view = view;
     this.region = region;
-    this.entries = [];
     this.container = new PIXI.Container();
     this.container.cacheAsBitmap = true;
     this.bounds = new PIXI.Rectangle(0, 0, 0, 0);
@@ -48,7 +30,6 @@ export class ELVLRegionRender {
 
   update(): void {
     const camera = this.view.camera;
-
     if (camera.isDirty()) {
       const cpos = camera.position;
       const cx = cpos.x * 16;

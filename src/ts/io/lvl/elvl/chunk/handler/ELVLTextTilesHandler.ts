@@ -6,7 +6,7 @@ import ELVLTextTiles from '../ELVLTextTiles';
  *
  * @author Jab
  */
-export class ELVLTextTilesHandler extends ELVLChunkHandler<ELVLTextTiles> {
+export default class ELVLTextTilesHandler extends ELVLChunkHandler<ELVLTextTiles> {
 
   constructor() {
     super('DCTT');
@@ -47,5 +47,3 @@ export class ELVLTextTilesHandler extends ELVLChunkHandler<ELVLTextTiles> {
     return buffer;
   }
 }
-
-export default ELVLTextTilesHandler;

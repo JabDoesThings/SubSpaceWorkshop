@@ -1,7 +1,7 @@
 import Palette from '../Palette';
+import BrushOptions from './BrushOptions';
 
-abstract class Brush {
-
+export default abstract class Brush {
   options: BrushOptions = {
     size: 8,
     opacity: 0.5,
@@ -35,10 +35,3 @@ abstract class Brush {
    */
   abstract renderPen(canvas: HTMLCanvasElement, palette: Palette, colorType: 'primary' | 'secondary', pressure: number): void;
 }
-
-export interface BrushOptions {
-  size: number;
-  opacity: number;
-}
-
-export default Brush;

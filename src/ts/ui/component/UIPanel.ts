@@ -1,7 +1,7 @@
 import UIPanelTab from './UIPanelTab';
 import UITabMenu from './UITabMenu';
 import UITab from './UITab';
-import { CustomEventListener } from '../CustomEventListener';
+import CustomEventListener from '../CustomEventListener';
 import { UIPanelEvent, UITabEvent } from '../UIEvents';
 import { PanelOrientation, TabAction, TabOrientation, TabPanelAction } from '../UIProperties';
 import { removeAllChildren } from '../UI';

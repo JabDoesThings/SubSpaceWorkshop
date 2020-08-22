@@ -7,8 +7,7 @@ import { validateDecompressedLVZScreenObject } from '../LVZUtils';
  *
  * @author Jab
  */
-export class CompiledLVZScreenObject {
-
+export default class CompiledLVZScreenObject {
   pkg: LVZPackage;
   id: number;
   xType: number;
@@ -21,8 +20,6 @@ export class CompiledLVZScreenObject {
   mode: number;
 
   /**
-   * @constructor
-   *
    * @param {LVZPackage} pkg
    * @param {number} id
    * @param {number} xType
@@ -66,5 +63,3 @@ export class CompiledLVZScreenObject {
     }
   }
 }
-
-export default CompiledLVZScreenObject;

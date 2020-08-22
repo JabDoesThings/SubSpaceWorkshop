@@ -3,15 +3,15 @@ import MouseMoveEvent = JQuery.MouseMoveEvent;
 import MouseDownEvent = JQuery.MouseDownEvent;
 import Selection from './Selection';
 import { LVLTileSet } from '../../io/LVL';
-import { SelectionSlot, SelectionType } from '../UIProperties';
+import SelectionType from './SelectionType';
+import SelectionSlot from './SelectionSlot';
 
 /**
  * The <i>TileSection</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class TileSection {
-
+export default class TileSection {
   private readonly canvas: HTMLCanvasElement;
   private readonly atlas: number[][];
   private readonly coordinates: number[][];
@@ -169,5 +169,3 @@ export class TileSection {
     }
   }
 }
-
-export default TileSection;

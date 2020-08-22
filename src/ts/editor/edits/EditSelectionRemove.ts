@@ -1,21 +1,17 @@
-import { Edit } from './Edit';
-import { EditManager } from '../EditManager';
-import { MapSection } from '../../util/map/MapSection';
+import Edit from './Edit';
+import EditManager from '../EditManager';
+import MapSection from '../../util/map/MapSection';
 
-export class EditSelectionRemove extends Edit {
-
+export default class EditSelectionRemove extends Edit {
   private readonly selections: MapSection[];
-  private done: boolean;
+  private done: boolean = false;
 
   /**
-   * @constructor
-   *
    * @param {MapSection[]} selections
    */
   constructor(selections: MapSection[]) {
     super();
     this.selections = selections;
-    this.done = false;
   }
 
   /** @override */

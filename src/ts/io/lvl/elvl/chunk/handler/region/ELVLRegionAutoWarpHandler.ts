@@ -1,4 +1,4 @@
-import { BufferUtils } from '../../../../../../util/BufferUtils';
+import BufferUtils from '../../../../../../util/BufferUtils';
 import ELVLRegionChunkHandler from './ELVLRegionChunkHandler';
 import ELVLRegionAutoWarp from '../../region/ELVLRegionAutoWarp';
 
@@ -7,7 +7,7 @@ import ELVLRegionAutoWarp from '../../region/ELVLRegionAutoWarp';
  *
  * @author Jab
  */
-class ELVLRegionAutoWarpHandler extends ELVLRegionChunkHandler<ELVLRegionAutoWarp> {
+export default class ELVLRegionAutoWarpHandler extends ELVLRegionChunkHandler<ELVLRegionAutoWarp> {
 
   constructor() {
     super('rAWP');
@@ -39,5 +39,3 @@ class ELVLRegionAutoWarpHandler extends ELVLRegionChunkHandler<ELVLRegionAutoWar
     return buffer;
   }
 }
-
-export default ELVLRegionAutoWarpHandler;

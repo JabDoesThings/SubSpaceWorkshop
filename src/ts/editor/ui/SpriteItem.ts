@@ -1,16 +1,16 @@
 import Item from './Item';
-import { MapSprite } from '../../editor/render/MapSprite';
-import { ItemSelector } from './ItemSelector';
+import MapSprite from '../render/MapSprite';
+import ItemSelector from './ItemSelector';
 
 /**
  * The <i>SpriteItem</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class SpriteItem extends Item {
+export default class SpriteItem extends Item {
   _sprite: PIXI.Sprite;
   sprite: MapSprite;
-  lastOffset: number;
+  lastOffset: number = -1;
   hoverAlphaMin: number = 0.25;
   hoverAlphaIncrement: number = 0.1;
 
@@ -23,7 +23,6 @@ export class SpriteItem extends Item {
   constructor(selector: ItemSelector, type: string, id: string, sprite: MapSprite) {
     super(selector, type, id);
     this.sprite = sprite;
-    this.lastOffset = -1;
     this._sprite = new PIXI.Sprite();
     this._sprite.width = 0;
     this._sprite.height = 0;
@@ -108,5 +107,3 @@ export class SpriteItem extends Item {
     }
   }
 }
-
-export default SpriteItem;

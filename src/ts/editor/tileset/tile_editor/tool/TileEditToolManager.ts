@@ -1,19 +1,16 @@
 import TileEditor from '../TileEditor';
 import TileTool from './TileEditTool';
-
-import { TileEditorEvent, TileEditorEventType } from '../TileEditorEvents';
 import TileEdit from '../TileEdit';
+import TileEditorEventType from '../TileEditorEventType';
+import TileEditorEvent from '../TileEditorEvent';
 
-class TileEditToolManager {
-
+export default class TileEditToolManager {
   private readonly tools: { [id: string]: TileTool } = {};
-  private tileEditor: TileEditor;
+  private readonly tileEditor: TileEditor;
   private active: string = null;
   private fallback: string = null;
 
   /**
-   * @constructor
-   *
    * @param {TileEditor} tileEditor
    */
   constructor(tileEditor: TileEditor) {
@@ -36,7 +33,6 @@ class TileEditToolManager {
       }
 
       switch (event.type) {
-
         // Pen events.
         case TileEditorEventType.PEN_HOVER:
           break;
@@ -50,7 +46,7 @@ class TileEditToolManager {
           edits = downTool.penStop(tileEditor, event);
           push = reset = true;
           break;
-
+        // Mouse events.
         case TileEditorEventType.DOWN:
           edits = downTool.start(tileEditor, event);
           break;
@@ -61,15 +57,16 @@ class TileEditToolManager {
           edits = downTool.stop(tileEditor, event);
           push = reset = true;
           break;
+        case TileEditorEventType.WHEEL_UP:
+        case TileEditorEventType.WHEEL_DOWN:
+          edits = downTool.wheel(tileEditor, event);
+          break;
+        // General events.
         case TileEditorEventType.ENTER:
           edits = downTool.enter(tileEditor, event);
           break;
         case TileEditorEventType.EXIT:
           edits = downTool.exit(tileEditor, event);
-          break;
-        case TileEditorEventType.WHEEL_UP:
-        case TileEditorEventType.WHEEL_DOWN:
-          edits = downTool.wheel(tileEditor, event);
           break;
       }
 
@@ -113,5 +110,3 @@ class TileEditToolManager {
     this.fallback = id;
   }
 }
-
-export default TileEditToolManager;

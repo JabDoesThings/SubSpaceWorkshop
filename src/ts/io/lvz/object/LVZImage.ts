@@ -1,11 +1,11 @@
-import { Validatable } from '../../../util/Validatable';
-import { Dirtable } from '../../../util/Dirtable';
-import { MapSprite } from '../../../editor/render/MapSprite';
+import { validateLVZImage } from '../LVZUtils';
+import Validatable from '../../../util/Validatable';
+import Dirtable from '../../../util/Dirtable';
+import MapSprite from '../../../editor/render/MapSprite';
 import LVZResource from '../LVZResource';
 import CompiledLVZImage from '../compiled/CompiledLVZImage';
 import LVZPackage from '../compiled/LVZPackage';
 import { LVZErrorStatus } from '../LVZProperties';
-import { validateLVZImage } from '../LVZUtils';
 import {
   IMAGE_ANIMATION_TIME_MAX,
   IMAGE_ANIMATION_TIME_MIN,
@@ -18,8 +18,7 @@ import {
  *
  * @author Jab
  */
-export class LVZImage implements Validatable, Dirtable {
-
+export default class LVZImage implements Validatable, Dirtable {
   private resource: LVZResource;
   private animationTime: number;
   private xFrames: number;
@@ -138,5 +137,3 @@ export class LVZImage implements Validatable, Dirtable {
     return this.xFrames > 1 || this.yFrames > 1;
   }
 }
-
-export default LVZImage;

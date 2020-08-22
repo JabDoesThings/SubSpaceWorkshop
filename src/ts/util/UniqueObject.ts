@@ -1,19 +1,16 @@
 import uuid = require('uuid');
-import { Unique } from './Unique';
+import Unique from './Unique';
 
 /**
  * The <i>UniqueObject</i> class. TODO: Document.
  *
  * @author Jab.
  */
-export abstract class UniqueObject implements Unique {
-
+export default abstract class UniqueObject implements Unique {
   private id: string;
   private name: string;
 
   /**
-   * Main constructor.
-   *
    * @param {string} name The decorative name of the object.
    * @param {string} id The internal ID of the object. If not provided, a UUID V4 is generated.
    */

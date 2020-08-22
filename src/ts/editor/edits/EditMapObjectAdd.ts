@@ -1,17 +1,15 @@
 import { CompiledLVZMapObject, LVZPackage } from '../../io/LVZ';
-import { EditManager } from '../EditManager';
-import { EditMapObject } from './EditMapObject';
+import EditManager from '../EditManager';
+import EditMapObject from './EditMapObject';
 
 /**
  * The <i>EditMapObjectAdd</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EditMapObjectAdd extends EditMapObject {
+export default class EditMapObjectAdd extends EditMapObject {
 
   /**
-   * @constructor
-   *
    * @param {string} layer
    * @param {LVZPackage} lvzPackage
    * @param {CompiledLVZMapObject} object

@@ -1,13 +1,12 @@
+import TileEditor from './TileEditor';
+import TileEdit from './TileEdit';
+
 /**
  * The <i>EditManager</i> class. TODO: Document.
  *
  * @author Jab
  */
-import TileEditor from './TileEditor';
-import TileEdit from './TileEdit';
-
-export class TileEditManager {
-
+export default class TileEditManager {
   static readonly EDITOR_HISTORY_LIMIT = 32;
   edits: TileEdit[][] = [];
   editsToPush: TileEdit[] = [];
@@ -15,8 +14,6 @@ export class TileEditManager {
   readonly tileEditor: TileEditor;
 
   /**
-   * Main constructor.
-   *
    * @param tileEditor The project instance.
    */
   constructor(tileEditor: TileEditor) {

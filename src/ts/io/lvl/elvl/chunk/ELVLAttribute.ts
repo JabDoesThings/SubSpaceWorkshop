@@ -5,7 +5,7 @@ import ELVLChunk from './ELVLChunk';
  *
  * @author Jab
  */
-export class ELVLAttribute extends ELVLChunk {
+export default class ELVLAttribute extends ELVLChunk {
   name: string;
   value: string;
 
@@ -37,5 +37,3 @@ export class ELVLAttribute extends ELVLChunk {
     }
   }
 }
-
-export default ELVLAttribute;

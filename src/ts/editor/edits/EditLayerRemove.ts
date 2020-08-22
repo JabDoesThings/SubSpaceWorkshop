@@ -1,13 +1,13 @@
-import { Edit } from './Edit';
-import { EditManager } from '../EditManager';
-import { Layer } from '../layers/Layer';
+import Edit from './Edit';
+import EditManager from '../EditManager';
+import Layer from '../layers/Layer';
 
 /**
  * The <i>EditLayerRemove</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EditLayerRemove extends Edit {
+export default class EditLayerRemove extends Edit {
 
   private readonly layer: Layer;
   private parent: Layer;

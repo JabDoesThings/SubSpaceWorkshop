@@ -37,8 +37,8 @@ import {
   toTilesetCoords
 } from './lvl/LVLUtils';
 import ELVLRegionHandler from './lvl/elvl/chunk/handler/region/ELVLRegionHandler';
-import { ELVLAttributeHandler } from './lvl/elvl/chunk/handler/ELVLAttributeHandler';
-import { ELVLWallTilesHandler } from './lvl/elvl/chunk/handler/ELVLWallTilesHandler';
+import ELVLAttributeHandler from './lvl/elvl/chunk/handler/ELVLAttributeHandler';
+import ELVLWallTilesHandler from './lvl/elvl/chunk/handler/ELVLWallTilesHandler';
 import ELVLTextTilesHandler from './lvl/elvl/chunk/handler/ELVLTextTilesHandler';
 import ELVLHashCodeHandler from './lvl/elvl/chunk/handler/ELVLHashCodeHandler';
 import ELVLBookmarksHandler from './lvl/elvl/chunk/handler/ELVLBookmarksHandler';

@@ -7,7 +7,7 @@ import { DEBUG } from '../../../ELVLUtils';
  *
  * @author Jab
  */
-export class ELVLRegionTileMapHandler extends ELVLRegionChunkHandler<ELVLRegionTileData> {
+export default class ELVLRegionTileMapHandler extends ELVLRegionChunkHandler<ELVLRegionTileData> {
   private static readonly SMALL_EMPTY_RUN = 0;
   private static readonly LONG_EMPTY_RUN = 1;
   private static readonly SMALL_PRESENT_RUN = 2;
@@ -133,5 +133,3 @@ export class ELVLRegionTileMapHandler extends ELVLRegionChunkHandler<ELVLRegionT
     return null;
   }
 }
-
-export default ELVLRegionTileMapHandler;

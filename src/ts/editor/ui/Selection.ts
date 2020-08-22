@@ -3,7 +3,7 @@
  *
  * @author Jab
  */
-export class Selection {
+export default class Selection {
   type: string;
   id: number | string;
 
@@ -16,5 +16,3 @@ export class Selection {
     this.id = id;
   }
 }
-
-export default Selection;

@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { BufferUtils } from '../../util/BufferUtils';
+import BufferUtils from '../../util/BufferUtils';
 import LVZPackage from './compiled/LVZPackage';
 import DecompressedLVZSection from './binary/DecompressedLVZSection';
 import LVZResource from './LVZResource';

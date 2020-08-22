@@ -1,30 +1,21 @@
-import { LVZDisplayMode, LVZRenderLayer } from '../io/LVZ';
-import { Project } from './Project';
-import { Edit } from './edits/Edit';
+import Project from './Project';
+import Edit from './edits/Edit';
 
 /**
  * The <i>EditManager</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EditManager {
-
+export default class EditManager {
   static readonly EDITOR_HISTORY_LIMIT = 32;
   readonly project: Project;
-  edits: Edit[][];
-  editsToPush: Edit[];
-  private index = 0;
+  edits: Edit[][] = [];
+  editsToPush: Edit[] = [];
+  private index = -1;
 
-  /**
-   * Main constructor.
-   *
-   * @param project The project instance.
-   */
+  /** @param project The project instance. */
   constructor(project: Project) {
     this.project = project;
-    this.edits = [];
-    this.editsToPush = [];
-    this.index = -1;
   }
 
   /**
@@ -64,7 +55,6 @@ export class EditManager {
       this.index++;
     }
   }
-
 
   reset(): void {
     for (let index = this.editsToPush.length - 1; index >= 0; index--) {
@@ -124,31 +114,13 @@ export class EditManager {
     this.project.editor.renderer.radar.setDirty(true);
   }
 
-  /**
-   * @return Returns true if the editor can undo edits.
-   */
+  /** @return Returns true if the editor can undo edits. */
   canUndo(): boolean {
     return this.index > 0;
   }
 
-  /**
-   * @return Returns true if the editor can redo edits.
-   */
+  /** @return Returns true if the editor can redo edits. */
   canRedo(): boolean {
     return this.index < this.edits.length - 1;
   }
-}
-
-/**
- * The <i>LVZMapObjectProperties</i> interface. TODO: Documen.
- *
- * @author Jab
- */
-export interface LVZMapObjectProperties {
-  x: number;
-  y: number;
-  id: number;
-  layer: LVZRenderLayer;
-  mode: LVZDisplayMode;
-  time: number;
 }

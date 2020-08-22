@@ -10,7 +10,7 @@ import { DEFAULT_REGION_OPTIONS } from '../../ELVLUtils';
  *
  * @author Jab
  */
-export class ELVLRegion extends ELVLChunk {
+export default class ELVLRegion extends ELVLChunk {
   chunks: ELVLRegionChunk[];
   tileData: ELVLRegionTileData;
   autoWarp: ELVLRegionAutoWarp;
@@ -88,5 +88,3 @@ export class ELVLRegion extends ELVLChunk {
     }
   }
 }
-
-export default ELVLRegion;

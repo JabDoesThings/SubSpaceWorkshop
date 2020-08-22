@@ -1,21 +1,19 @@
 import { CompiledLVZMapObject, LVZPackage } from '../../io/LVZ';
-import { EditManager, LVZMapObjectProperties } from '../EditManager';
-import { EditMapObject } from './EditMapObject';
+import EditManager from '../EditManager';
+import EditMapObject from './EditMapObject';
+import LVZMapObjectProperties from '../LVZMapObjectProperties';
 
 /**
  * The <i>EditMapObjectTransform</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class EditMapObjectTransform extends EditMapObject {
-
+export default class EditMapObjectTransform extends EditMapObject {
   readonly object: CompiledLVZMapObject;
   readonly transform: LVZMapObjectProperties;
   originalTransform: LVZMapObjectProperties;
 
   /**
-   * @constructor
-   *
    * @param {string} layer The layer that the edit is on.
    * @param {LVZPackage} lvzPackage
    * @param {CompiledLVZMapObject} object

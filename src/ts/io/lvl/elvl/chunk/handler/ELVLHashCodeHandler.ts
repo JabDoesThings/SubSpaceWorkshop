@@ -1,4 +1,4 @@
-import { BufferUtils } from '../../../../../util/BufferUtils';
+import BufferUtils from '../../../../../util/BufferUtils';
 import ELVLChunkHandler from './ELVLChunkHandler';
 import ELVLHashCode from '../ELVLHashCode';
 
@@ -7,7 +7,7 @@ import ELVLHashCode from '../ELVLHashCode';
  *
  * @author Jab
  */
-export class ELVLHashCodeHandler extends ELVLChunkHandler<ELVLHashCode> {
+export default class ELVLHashCodeHandler extends ELVLChunkHandler<ELVLHashCode> {
 
   constructor() {
     super('DCID');
@@ -27,5 +27,3 @@ export class ELVLHashCodeHandler extends ELVLChunkHandler<ELVLHashCode> {
     return buffer;
   }
 }
-
-export default ELVLHashCodeHandler;

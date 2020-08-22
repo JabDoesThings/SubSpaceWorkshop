@@ -3,7 +3,7 @@
  *
  * @author Jab
  */
-export interface Updatable {
+export default interface Updatable {
 
   /**
    * Call this to update the object.

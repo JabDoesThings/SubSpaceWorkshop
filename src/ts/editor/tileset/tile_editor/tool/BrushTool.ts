@@ -1,11 +1,11 @@
 import TileEditor from '../TileEditor';
 import TileEdit from '../TileEdit';
 import TileEditTool from './TileEditTool';
-import { TileEditorEvent } from '../TileEditorEvents';
-import CircleBrush, { CircleBrushOptions } from '../brush/CircleBrush';
+import CircleBrush from '../brush/CircleBrush';
+import CircleBrushOptions from '../brush/CircleBrushOptions';
+import  TileEditorEvent  from '../TileEditorEvent';
 
-class BrushTool extends TileEditTool {
-
+export default class BrushTool extends TileEditTool {
   private readonly _pressures: number[] = [];
   private middleDown: boolean = false;
   private brush: CircleBrush;
@@ -179,5 +179,3 @@ class BrushTool extends TileEditTool {
     }
   }
 }
-
-export default BrushTool;

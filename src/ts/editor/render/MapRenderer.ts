@@ -1,20 +1,19 @@
-import * as PIXI from "pixi.js";
-import { MapGrid } from './MapGrid';
-import { PalettePanel } from '../../ui/component/PalettePanel';
-import { MapMouseEvent, MapMouseEventType, Renderer } from '../../common/Renderer';
-import { Radar } from '../../common/Radar';
-import { PathMode } from '../../util/Path';
-import { Project } from '../Project';
-import { CompiledLVZMapObject, CompiledLVZScreenObject, LVZPackage } from '../../io/LVZ';
-import { MapSprite } from './MapSprite';
-import { ToolManager } from '../tools/ToolManager';
-import { Editor } from '../Editor';
-import { RenderMode } from './RenderMode';
+import MapGrid from './MapGrid';
+import PalettePanel from '../ui/PalettePanel';
+import Renderer from '../../common/render/Renderer';
+import Radar from '../../common/render/Radar';
+import Project from '../Project';
+import ToolManager from '../tools/ToolManager';
+import Editor from '../Editor';
+import RenderMode from './RenderMode';
 import GlassBlur from './GlassBlur';
 import LayersPanel from '../ui/LayersPanel';
+import LayerCluster from './map/LayerCluster';
+import ScreenManager from './map/ScreenManager';
+import PathMode from '../../util/PathMode';
+import MapMouseEventType from '../../common/MapMouseEventType';
+import MapMouseEvent from '../../common/MapMouseEvent';
 import {
-  CustomEvent,
-  CustomEventListener,
   IconToolbarAction,
   PanelOrientation,
   TabOrientation,
@@ -25,7 +24,6 @@ import {
   UIIconToolbar,
   UIIconToolbarEvent,
   UIPanel,
-  UIPanelSection,
   UITool,
   UITooltip
 } from '../../ui/UI';
@@ -35,14 +33,12 @@ import {
  *
  * @author Jab
  */
-export class MapRenderer extends Renderer {
-
+export default class MapRenderer extends Renderer {
   readonly layers: LayerCluster;
   readonly mapLayers: LayerCluster;
   readonly screenLayers: LayerCluster;
 
   mode: RenderMode = RenderMode.NORMAL;
-
   grid: MapGrid;
   project: Project;
   radar: Radar;
@@ -56,12 +52,9 @@ export class MapRenderer extends Renderer {
   screen: ScreenManager;
   toolManager: ToolManager;
   editor: Editor;
-
   glassBlur: GlassBlur;
 
   /**
-   * @constructor
-   *
    * @param {Editor} editor
    */
   public constructor(editor: Editor) {
@@ -354,233 +347,4 @@ export class MapRenderer extends Renderer {
       this.glassBlur.disable();
     }
   }
-}
-
-/**
- * The <i>MapObjectEntryAction</i> enum. TODO: Document.
- *
- * @author Jab
- */
-export enum MapObjectEntryAction {
-}
-
-/**
- * The <i>UIMapObjectEvent</i> interface. TODO: Document.
- *
- * @author Jab
- */
-export interface UIMapObjectEvent extends CustomEvent {
-  mapObjectEntry: UIMapObjectEntry;
-  action: MapObjectEntryAction;
-}
-
-/**
- * The <i>UIMapObjectSection</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class UIMapObjectSection extends UIPanelSection {
-
-  readonly pkgs: LVZPackage[];
-  entries: UIMapObjectEntry[];
-
-  /**
-   * @constructor
-   *
-   * @param {string} id
-   * @param {string} title
-   */
-  constructor(id: string, title: string) {
-    super(id, title);
-    this.pkgs = [];
-    this.entries = [];
-  }
-
-  update(): void {
-    if (!this.isEmpty()) {
-      for (let index = 0; index < this.entries.length; index++) {
-        const next = this.entries[index];
-        this.element.removeChild(next.element);
-      }
-    }
-
-    this.entries = [];
-    if (this.pkgs.length === 0) {
-      return;
-    }
-
-    for (let pkgIndex = 0; pkgIndex < this.pkgs.length; pkgIndex++) {
-      const nextPkg = this.pkgs[pkgIndex];
-      const mapObjects = nextPkg.mapObjects;
-      for (let index = 0; index < mapObjects.length; index++) {
-        const next = mapObjects[index];
-        const entry = new UIMapObjectEntry(next);
-        this.entries.push(entry);
-      }
-    }
-  }
-
-  isEmpty(): boolean {
-    return this.size() !== 0;
-  }
-
-  size(): number {
-    return this.entries.length;
-  }
-}
-
-/**
- * The <i>UIMapObjectEntry</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class UIMapObjectEntry extends CustomEventListener<UIMapObjectEvent> {
-
-  readonly object: CompiledLVZMapObject;
-  readonly element: HTMLDivElement;
-  private readonly nameElement: HTMLDivElement;
-  private readonly nameLabelElement: HTMLLabelElement;
-  private readonly imageElement: HTMLDivElement;
-  private readonly coordinatesElement: HTMLDivElement;
-  private readonly optionsElement: HTMLDivElement;
-
-  /**
-   * Main constructor.
-   *
-   * @param {CompiledLVZMapObject} object
-   */
-  constructor(object: CompiledLVZMapObject) {
-    super();
-    this.object = object;
-    this.nameLabelElement = document.createElement('label');
-    this.nameElement = document.createElement('div');
-    this.nameElement.classList.add('name');
-    this.nameElement.appendChild(this.nameLabelElement);
-    this.imageElement = document.createElement('div');
-    this.imageElement.classList.add('image');
-    this.coordinatesElement = document.createElement('div');
-    this.coordinatesElement.classList.add('coordinates');
-    this.optionsElement = document.createElement('div');
-    this.optionsElement.classList.add('options');
-    this.element = document.createElement('div');
-    this.element.classList.add('map-object-entry');
-    this.element.appendChild(this.nameElement);
-    this.element.appendChild(this.imageElement);
-    this.element.appendChild(this.coordinatesElement);
-    this.element.appendChild(this.optionsElement);
-  }
-
-  update(): void {
-    this.nameLabelElement.innerText = `${this.object.id} (${this.object.pkg.name})`;
-  }
-}
-
-/**
- * The <i>LayerCluster</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class LayerCluster {
-
-  readonly layers: PIXI.Container[];
-
-  /** @constructor */
-  constructor() {
-    this.layers = [];
-    for (let index = 0; index < 8; index++) {
-      let layer = new PIXI.Container();
-      layer.sortableChildren = false;
-      layer.sortDirty = false;
-      layer.interactive = false;
-      layer.interactiveChildren = false;
-      this.layers.push(layer);
-    }
-  }
-
-  clear(): void {
-    for (let index = 0; index < 8; index++) {
-      this.layers[index].removeChildren();
-    }
-  }
-}
-
-/**
- * The <i>ScreenManager</i> class. TODO: Document.
- *
- * @author Jab
- */
-export class ScreenManager {
-
-  private renderer: MapRenderer;
-  private previousScreen: PIXI.Rectangle;
-  private animatedObjects: LVZScreenEntry[];
-  private dirty: boolean;
-
-  /**
-   * @constructor
-   *
-   * @param {MapRenderer} renderer
-   */
-  constructor(renderer: MapRenderer) {
-    this.renderer = renderer;
-    this.previousScreen = new PIXI.Rectangle();
-    this.animatedObjects = [];
-    this.dirty = true;
-  }
-
-  update(): void {
-    const screen = this.renderer.app.screen;
-    if (this.dirty || this.previousScreen.x !== screen.x
-      || this.previousScreen.y !== screen.y
-      || this.previousScreen.width !== screen.width
-      || this.previousScreen.height !== screen.height) {
-      this.draw();
-    }
-    if (this.animatedObjects.length !== 0) {
-      for (let index = 0; index < this.animatedObjects.length; index++) {
-        ScreenManager.drawEntry(this.animatedObjects[index]);
-      }
-    }
-  }
-
-  draw(): void {
-    const screen = this.renderer.app.screen;
-    this.previousScreen.x = screen.x;
-    this.previousScreen.y = screen.y;
-    this.previousScreen.width = screen.width;
-    this.previousScreen.height = screen.height;
-  }
-
-  private static drawEntry(entry: LVZScreenEntry): void {
-    if (entry.sprite == null) {
-      return;
-    }
-    if (entry.sprite.sequence != null) {
-      let offset = entry.sprite.offset;
-      if (entry.sprite.sequence.length > offset) {
-        entry._sprite.texture = entry.sprite.sequence[entry.sprite.offset];
-      }
-    }
-  }
-
-  /** @override */
-  isDirty(): boolean {
-    return this.dirty;
-  }
-
-  /** @Override */
-  setDirty(flag: boolean): void {
-    this.dirty = flag;
-  }
-}
-
-/**
- * The <i>LVZScreenEntry</i> interface. TODO: Document.
- *
- * @author Jab
- */
-export interface LVZScreenEntry {
-  sprite: MapSprite;
-  _sprite: PIXI.Sprite;
-  object: CompiledLVZScreenObject;
 }

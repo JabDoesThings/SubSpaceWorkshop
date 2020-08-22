@@ -3,13 +3,10 @@
  *
  * @author Jab
  */
-export class SeededRandom {
-
+export default class SeededRandom {
   private seed: number;
 
   /**
-   * @constructor
-   *
    * @param {number} seed
    */
   constructor(seed: number) {

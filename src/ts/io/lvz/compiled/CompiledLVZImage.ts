@@ -1,25 +1,21 @@
-import LVZPackage from './LVZPackage';
-import LVZImage from '../object/LVZImage';
 import { validateLVZCompiledImage } from '../LVZUtils';
 import { LVZErrorStatus } from '../LVZProperties';
+import LVZPackage from './LVZPackage';
+import LVZImage from '../object/LVZImage';
 
 /**
  * The <i>CompiledLVZImage</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class CompiledLVZImage {
-
+export default class CompiledLVZImage {
   readonly pkg: LVZPackage;
-
   fileName: string;
   animationTime: number;
   xFrames: number;
   yFrames: number;
 
   /**
-   * @constructor
-   *
    * @param {LVZPackage} pkg
    * @param {string} fileName
    * @param {number} xFrames
@@ -63,5 +59,3 @@ export class CompiledLVZImage {
     return new LVZImage(resource, this.xFrames, this.yFrames, this.animationTime);
   }
 }
-
-export default CompiledLVZImage;

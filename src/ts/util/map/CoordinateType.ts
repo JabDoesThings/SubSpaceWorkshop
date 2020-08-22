@@ -3,8 +3,11 @@
  *
  * @author Jab
  */
-export enum CoordinateType {
+enum CoordinateType {
   CHUNK = 'chunk',
   PIXEL = 'pixel',
   TILE = 'tile'
 }
+
+export default CoordinateType;
+

@@ -1,4 +1,4 @@
-import { MapRenderer } from './MapRenderer';
+import MapRenderer from './MapRenderer';
 
 import { MathUtils } from 'three';
 import ColorMatrixFilter = PIXI.filters.ColorMatrixFilter;
@@ -10,8 +10,7 @@ const lerpRGB = (color1: number[], color2: number[], _lerp: number) => {
   return [lerp(color1[0], color2[0], _lerp), lerp(color1[1], color2[1], _lerp), lerp(color1[2], color2[2], _lerp)];
 };
 
-class GlassBlur {
-
+export default class GlassBlur {
   private renderer: MapRenderer;
   private lerp: number = 0;
   private toggle: boolean = false;
@@ -100,5 +99,3 @@ class GlassBlur {
     this.toggle = false;
   }
 }
-
-export default GlassBlur;

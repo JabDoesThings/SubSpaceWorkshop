@@ -1,27 +1,21 @@
+import PathMode from './PathMode';
+import PathCoordinates from './PathCoordinates';
+
 /**
  * The <i>Path</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class Path {
-
-  tick: number;
-  x: number;
-  y: number;
-  scale: number;
-  ticks: number;
+export default class Path {
+  tick: number = 0;
+  x: number = 0;
+  y: number = 0;
+  scale: number = 1;
+  ticks: number = 1;
+  private callbacks: ((x: number, y: number, scale: number, lerp: number) => void)[] = [];
   private mode: PathMode;
   private _from: PathCoordinates;
   private _to: PathCoordinates;
-  private callbacks: ((x: number, y: number, scale: number, lerp: number) => void)[];
-
-  /** @constructor */
-  constructor() {
-    this.callbacks = [];
-    this.x = 0;
-    this.y = 0;
-    this.scale = 1;
-  }
 
   update(): void {
     if (this._to != null) {
@@ -196,27 +190,4 @@ export class Path {
   isActive(): boolean {
     return this._to != null;
   }
-}
-
-/**
- * The <i>PathMode</i> enum. TODO: Document.
- *
- * @author Jab
- */
-export enum PathMode {
-  LINEAR = 'linear',
-  EASE_OUT = 'ease_out',
-  EASE_IN = 'ease_in',
-  EASE_IN_OUT = 'ease_in_out'
-}
-
-/**
- * The <i>PathCoordinates</i> interface. TODO: Document.
- *
- * @author Jab
- */
-export interface PathCoordinates {
-  x: number;
-  y: number;
-  scale: number;
 }

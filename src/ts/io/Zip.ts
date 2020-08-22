@@ -1,5 +1,4 @@
 import uuid = require('uuid');
-
 const archiver = require('archiver');
 const unzipper = require('unzipper');
 const fs = require('fs');

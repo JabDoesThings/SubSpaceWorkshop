@@ -3,7 +3,7 @@
  *
  * @author Jab
  */
-export abstract class ELVLRegionChunk {
+export default abstract class ELVLRegionChunk {
   readonly id: string;
 
   /**
@@ -13,5 +13,3 @@ export abstract class ELVLRegionChunk {
     this.id = id;
   }
 }
-
-export default ELVLRegionChunk;

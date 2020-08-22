@@ -1,24 +1,18 @@
 import TileEditor from './TileEditor';
+import TileEditorEventType from './TileEditorEventType';
+import TileEditorEvent from './TileEditorEvent';
 import TriggeredEvent = JQuery.TriggeredEvent;
-import TouchStartEvent = JQuery.TouchStartEvent;
-import TouchMoveEvent = JQuery.TouchMoveEvent;
-import TouchEndEvent = JQuery.TouchEndEvent;
-import MouseDownEvent = JQuery.MouseDownEvent;
 
 /**
  * The <i>RenderEvents</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class TileEditorEvents {
-
+export default class TileEditorEvents {
   readonly mouseListeners: ((event: TileEditorEvent) => void)[];
-
   pressureDeadZone: number[] = [0.05, 1];
 
   /**
-   * @constructor
-   *
    * @param {TileEditor} tileEditor
    */
   constructor(tileEditor: TileEditor) {
@@ -266,36 +260,4 @@ export class TileEditorEvents {
     }
     return false;
   }
-}
-
-/**
- * The <i>TileEditorEventType</i> enum. TODO: Document.
- *
- * @author Jab
- */
-export enum TileEditorEventType {
-  DOWN = 'down',
-  UP = 'up',
-  DRAG = 'drag',
-  PEN_DOWN = 'pen_down',
-  PEN_UP = 'pen_up',
-  PEN_DRAG = 'pen_drag',
-  PEN_HOVER = 'pen_hover',
-  HOVER = 'hover',
-  ENTER = 'enter',
-  EXIT = 'exit',
-  WHEEL_UP = 'wheel_up',
-  WHEEL_DOWN = 'wheel_down'
-}
-
-/**
- * The <i>TileEditorEvent</i> interface. TODO: Document.
- *
- * @author Jab
- */
-export interface TileEditorEvent {
-  type: TileEditorEventType;
-  data: { x: number, y: number, pressure: number };
-  button: number;
-  e: any;
 }

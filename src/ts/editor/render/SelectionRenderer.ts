@@ -1,28 +1,24 @@
 import * as PIXI from "pixi.js";
-import { Project } from '../Project';
+import Project from '../Project';
 
 /**
  * The <i>SelectionRenderer</i> class. TODO: Document.
  *
  * @author Jab
  */
-export class SelectionRenderer {
-
+export default class SelectionRenderer {
   project: Project;
-  graphics: PIXI.Graphics;
+  graphics: PIXI.Graphics = new PIXI.Graphics();
   private readonly tops: RunLength[] = [];
   private readonly bottoms: RunLength[] = [];
   private readonly lefts: RunLength[] = [];
   private readonly rights: RunLength[] = [];
 
   /**
-   * @constructor
-   *
    * @param {Project} project
    */
   constructor(project: Project) {
     this.project = project;
-    this.graphics = new PIXI.Graphics();
   }
 
   update(): void {
@@ -31,7 +27,6 @@ export class SelectionRenderer {
     if (selections.isDirty()) {
       this.build();
     }
-
     if (selections.isDirty() || camera.isDirty()) {
       this.draw();
       const cameraPosition = camera.position;
@@ -45,7 +40,6 @@ export class SelectionRenderer {
       this.graphics.x = x * scale;
       this.graphics.y = y * scale;
     }
-
     selections.setDirty(false);
   }
 
@@ -114,7 +108,7 @@ export class SelectionRenderer {
 
         if (!hasTop(x, y)) {
           if (topCurrent == null) {
-            topCurrent = new RunLength(range.x1 + x, range.y1 + y, 1);
+            topCurrent = {x: range.x1 + x, y: range.y1 + y, length: 1};
           } else {
             topCurrent.length++;
           }
@@ -127,7 +121,7 @@ export class SelectionRenderer {
 
         if (!hasBottom(x, y)) {
           if (bottomCurrent == null) {
-            bottomCurrent = new RunLength(range.x1 + x, range.y1 + y, 1);
+            bottomCurrent = {x: range.x1 + x, y: range.y1 + y, length: 1};
           } else {
             bottomCurrent.length++;
           }
@@ -180,7 +174,7 @@ export class SelectionRenderer {
         }
         if (!hasLeft(x, y)) {
           if (leftCurrent == null) {
-            leftCurrent = new RunLength(range.x1 + x, range.y1 + y, 1);
+            leftCurrent = {x: range.x1 + x, y: range.y1 + y, length: 1};
           } else {
             leftCurrent.length++;
           }
@@ -192,7 +186,7 @@ export class SelectionRenderer {
         }
         if (!hasRight(x, y)) {
           if (rightCurrent == null) {
-            rightCurrent = new RunLength(range.x1 + x, range.y1 + y, 1);
+            rightCurrent = {x: range.x1 + x, y: range.y1 + y, length: 1};
           } else {
             rightCurrent.length++;
           }
@@ -255,22 +249,8 @@ export class SelectionRenderer {
   }
 }
 
-export class RunLength {
-
+interface RunLength {
   x: number;
   y: number;
   length: number;
-
-  /**
-   * @constructor
-   *
-   * @param {number} x
-   * @param {number} y
-   * @param {number} length
-   */
-  constructor(x: number, y: number, length: number) {
-    this.x = x;
-    this.y = y;
-    this.length = length;
-  }
 }
