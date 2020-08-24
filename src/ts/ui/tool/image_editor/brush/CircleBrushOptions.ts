@@ -1,5 +1,5 @@
 import BrushOptions from './BrushOptions';
-import PaletteColor from '../PaletteColor';
+import PaletteColor from '../../../util/PaletteColor';
 
 export default interface CircleBrushOptions extends BrushOptions {
   size: number;

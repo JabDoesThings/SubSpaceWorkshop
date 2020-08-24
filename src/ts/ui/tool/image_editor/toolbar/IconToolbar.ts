@@ -1,4 +1,4 @@
-import { CustomEventListener } from '../../ui/UI';
+import CustomEventListener from '../../../CustomEventListener';
 import IconToolbarEvent from './IconToolbarEvent';
 import IconToolbarEventType from './IconToolbarEventType';
 import IconTool from './IconTool';

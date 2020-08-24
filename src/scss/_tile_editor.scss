@@ -5,22 +5,32 @@
   touch-action: none;
   -webkit-user-drag: none;
 
+  .ui-panel {
+    z-index: 7;
+  }
+
   .content {
     position: relative;
     min-width: 800px;
     min-height: 600px;
+    width: 1024px;
+    height: 768px;
     touch-action: none;
     -webkit-user-drag: none;
 
     .canvas-pane-container {
       z-index: 5;
       position: absolute;
-      top: 50%;
-      left: 50%;
-      width: calc(100% - 32px);
+      //top: 50%;
+      //left: 50%;
+      //width: calc(100% - 32px);
+      //height: calc(100% - 32px);
+      //transform: translate(-50%, -50%);
+
+      width: calc(100% - 40px);
       height: calc(100% - 32px);
-      transform: translate(-50%, -50%);
-      overflow: hidden;
+
+      //overflow: hidden;
       background-color: $color1;
       cursor: move;
       touch-action: none;

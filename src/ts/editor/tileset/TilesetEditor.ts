@@ -1,14 +1,14 @@
-import { LVLTileSet, toTilesetCoords } from '../../../io/LVL';
-import { drawAspect } from '../../../util/DrawUtils';
-import Editor from '../../Editor';
+import { LVLTileSet, toTilesetCoords } from '../../io/LVL';
+import { drawAspect } from '../../util/DrawUtils';
+import Editor from '../Editor';
 import MouseDownEvent = JQuery.MouseDownEvent;
 import MouseMoveEvent = JQuery.MouseMoveEvent;
-import UIInnerWindow from '../../../ui/component/UIInnerWindow';
-import TileEditor from '../tile_editor/TileEditor';
+import UIInnerWindow from '../../ui/component/UIInnerWindow';
+import TileEditor from './TileEditor';
 
 export default class TilesetEditor extends UIInnerWindow {
-  private readonly selection: number[] = [0, 0, 0, 0];
-  private editor: Editor;
+  private readonly selection: number[] = [0, 0, 18, 9];
+  editor: Editor;
   private readonly canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private readonly sourceCanvas: HTMLCanvasElement;
@@ -32,7 +32,26 @@ export default class TilesetEditor extends UIInnerWindow {
     this.selectionCtx.fillStyle = 'black';
     this.selectionCtx.fillRect(0, 0, 128, 128);
     this.selectionCtx.imageSmoothingEnabled = false;
-    this.tileEditor = new TileEditor(this);
+    this.tileEditor = new TileEditor();
+  }
+
+  editTiles() {
+    const dim = [
+      this.selection[0] * 16,
+      this.selection[1] * 16,
+      (this.selection[2] + 1 - this.selection[0]) * 16,
+      (this.selection[3] + 1 - this.selection[1]) * 16
+    ];
+
+    this.tileEditor.editImage(this.sourceCanvas, dim, (source => {
+      this.sourceCtx.imageSmoothingEnabled = false;
+      this.sourceCtx.drawImage(source, dim[0], dim[1]);
+      this.draw();
+    }), () => {
+
+    });
+
+    this.tileEditor.open();
   }
 
   /** @override */
@@ -42,27 +61,11 @@ export default class TilesetEditor extends UIInnerWindow {
     this._initCanvasEventListeners();
 
     $('#tileset-editor-button-edit-tiles').on('click', () => {
+      this.editTiles();
+    });
 
-      const dim = [
-        this.selection[0] * 16,
-        this.selection[1] * 16,
-        (this.selection[2] + 1 - this.selection[0]) * 16,
-        (this.selection[3] + 1 - this.selection[1]) * 16
-      ];
-
-      this.tileEditor.setSource(this.sourceCanvas, dim, (source => {
-        this.sourceCtx.imageSmoothingEnabled = false;
-        this.sourceCtx.drawImage(source, dim[0], dim[1]);
-        this.draw();
-      }), () => {
-
-      });
-
-      $('#tileset-editor-save').on('click', () => {
-        this.save();
-      });
-
-      this.tileEditor.open();
+    $('#tileset-editor-save').on('click', () => {
+      this.save();
     });
   }
 
@@ -150,15 +153,24 @@ export default class TilesetEditor extends UIInnerWindow {
       if (!down) {
         return;
       }
-      if (mCurrent) {
-        mLast = mCurrent;
+      if (event.offsetX) {
+        if (mCurrent) {
+          mLast = mCurrent;
+        }
+        mCurrent = toTilesetCoords(event.offsetX, event.offsetY);
+        this.setSelection(mDown, mCurrent);
       }
-      mCurrent = toTilesetCoords(event.offsetX, event.offsetY);
-      this.setSelection(mDown, mCurrent);
     });
   }
 
   setSelection(topLeft: { x: number, y: number }, bottomRight: { x: number, y: number }) {
+    if (!topLeft.x || !topLeft.y) {
+      throw new Error(`The topLeft argument has undefined numbers: [${topLeft.x}, ${topLeft.y}]`);
+    }
+    if (!bottomRight.x || !bottomRight.y) {
+      throw new Error(`The bottomRight argument has undefined numbers: [${bottomRight.x}, ${bottomRight.y}]`);
+    }
+
     let x1 = topLeft.x;
     let y1 = topLeft.y;
     let x2 = bottomRight.x;

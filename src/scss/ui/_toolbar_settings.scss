@@ -1,0 +1,12 @@
+@import '../color';
+
+.ui-toolbar-settings {
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  left: 24px;
+  width: calc(100% - 48px);
+  height: 24px;
+
+  background-color: $color4;
+}

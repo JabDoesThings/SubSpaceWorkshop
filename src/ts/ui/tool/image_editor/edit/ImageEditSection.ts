@@ -1,12 +1,12 @@
-import TileEdit from './TileEdit';
-import TileEditManager from './TileEditManager';
-
 /**
  * The <i>TileEditSection</i> class. TODO: Document.
  *
  * @author Jab
  */
-export default class TileEditSection extends TileEdit {
+import ImageEdit from '../ImageEdit';
+import ImageEditManager from '../ImageEditManager';
+
+export default class ImageEditSection extends ImageEdit {
   private readonly before: ImageData;
   private readonly after: ImageData;
   private readonly x: number;
@@ -29,16 +29,16 @@ export default class TileEditSection extends TileEdit {
   }
 
   /** @override */
-  onDo(editManager: TileEditManager): void {
+  onDo(editManager: ImageEditManager): void {
     const tileEditor = editManager.tileEditor;
-    tileEditor.modCtx.putImageData(this.after, this.x, this.y);
+    tileEditor.modifiedCtx.putImageData(this.after, this.x, this.y);
     tileEditor.project();
   }
 
   /** @override */
-  onUndo(editManager: TileEditManager): void {
+  onUndo(editManager: ImageEditManager): void {
     const tileEditor = editManager.tileEditor;
-    tileEditor.modCtx.putImageData(this.before, this.x, this.y);
+    tileEditor.modifiedCtx.putImageData(this.before, this.x, this.y);
     tileEditor.project();
   }
 }

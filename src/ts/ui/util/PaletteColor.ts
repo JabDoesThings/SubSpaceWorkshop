@@ -1,4 +1,4 @@
-import Path from '../../../util/Path';
+import Path from '../../util/Path';
 
 export default class PaletteColor {
   r: number;

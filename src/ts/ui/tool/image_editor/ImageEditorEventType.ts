@@ -1,9 +1,9 @@
 /**
- * The <i>TileEditorEventType</i> enum. TODO: Document.
+ * The <i>ImageEditorEventType</i> enum. TODO: Document.
  *
  * @author Jab
  */
-enum TileEditorEventType {
+enum ImageEditorEventType {
   DOWN = 'down',
   UP = 'up',
   DRAG = 'drag',
@@ -18,4 +18,4 @@ enum TileEditorEventType {
   WHEEL_DOWN = 'wheel_down'
 }
 
-export default TileEditorEventType;
+export default ImageEditorEventType;

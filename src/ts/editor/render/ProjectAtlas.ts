@@ -18,6 +18,9 @@ export default class ProjectAtlas extends CustomEventListener<CustomEvent> imple
   private readonly project: Project;
   private dirty: boolean = true;
 
+  /**
+   * @param project
+   */
   constructor(project: Project) {
     super();
     this.project = project;

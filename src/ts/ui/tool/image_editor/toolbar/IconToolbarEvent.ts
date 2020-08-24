@@ -1,6 +1,6 @@
-import { CustomEvent } from '../../ui/UI';
 import IconToolbarEventType from './IconToolbarEventType';
 import IconTool from './IconTool';
+import CustomEvent from '../../../CustomEvent';
 
 export default interface IconToolbarEvent extends CustomEvent {
   eventType: string;

@@ -1,18 +1,18 @@
-import TileEditor from '../TileEditor';
-import TileEdit from '../TileEdit';
 import { MathUtils } from 'three';
 import lerp = MathUtils.lerp;
-import Palette from '../Palette';
-import  TileEditorEvent  from '../TileEditorEvent';
+import Palette from '../../../util/Palette';
+import UIImageEditor from '../ImageEditor';
+import ImageEditorEvent from '../ImageEditorEvent';
+import ImageEdit from '../ImageEdit';
 
-export default abstract class TileEditTool {
+export default abstract class ImageTool {
   isSelector: boolean = false;
-  private _tileEditor: TileEditor;
-  private _event: TileEditorEvent;
+  private _tileEditor: UIImageEditor;
+  private _event: ImageEditorEvent;
   private _type: string;
   private _penDown: boolean = false;
 
-  penStart(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  penStart(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'penStart';
@@ -31,7 +31,7 @@ export default abstract class TileEditTool {
     return edits;
   }
 
-  penDrag(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  penDrag(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'penDrag';
@@ -42,7 +42,7 @@ export default abstract class TileEditTool {
     return edits;
   }
 
-  penStop(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  penStop(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'penStop';
@@ -54,7 +54,7 @@ export default abstract class TileEditTool {
     return edits;
   }
 
-  start(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  start(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'start';
@@ -65,7 +65,7 @@ export default abstract class TileEditTool {
     return edits;
   }
 
-  drag(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  drag(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'drag';
@@ -95,7 +95,7 @@ export default abstract class TileEditTool {
     return edits;
   }
 
-  stop(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  stop(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'stop';
@@ -114,7 +114,7 @@ export default abstract class TileEditTool {
     return edits;
   }
 
-  enter(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  enter(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'enter';
@@ -125,7 +125,7 @@ export default abstract class TileEditTool {
     return edits;
   }
 
-  exit(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  exit(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'exit';
@@ -136,7 +136,7 @@ export default abstract class TileEditTool {
     return edits;
   }
 
-  wheel(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  wheel(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'wheel';
@@ -188,7 +188,7 @@ export default abstract class TileEditTool {
   }
 
   drawAsLine(
-    tileEditor: TileEditor,
+    editor: UIImageEditor,
     x1: number,
     y1: number,
     x2: number = null,
@@ -199,29 +199,29 @@ export default abstract class TileEditTool {
     pressure: number = 1
   ): void {
     if (update) {
-      tileEditor.brush.renderPen(tileEditor.brushSourceCanvas, palette, colorType, pressure);
+      editor.brush.renderPen(editor.brushSourceCanvas, palette, colorType, pressure);
     }
     if (!x2 || !y2) {
-      this.draw(tileEditor, x1, y1);
+      this.draw(editor, x1, y1);
       return;
     }
-    const scale = TileEditor.SCALES[tileEditor.scaleIndex];
+    const scale = UIImageEditor.SCALES[editor.scaleIndex];
     const a = x1 - x2;
     const b = y1 - y2;
     const distance = Math.ceil(Math.sqrt(a * a + b * b) / (scale / 2));
     if (distance <= 1) {
-      this.draw(tileEditor, x2, y2);
+      this.draw(editor, x2, y2);
       return;
     }
     for (let position = 0; position <= distance; position++) {
       const _lerp = position / distance;
       const x = lerp(x1, x2, _lerp);
       const y = lerp(y1, y2, _lerp);
-      this.draw(tileEditor, x, y);
+      this.draw(editor, x, y);
     }
   }
 
-  draw(tileEditor: TileEditor, x: number, y: number): void {
+  draw(tileEditor: UIImageEditor, x: number, y: number): void {
     const bx = x - Math.floor(tileEditor.brush.options.size / 2);
     const by = y - Math.floor(tileEditor.brush.options.size / 2);
     const ctx = tileEditor.drawSourceCanvas.getContext('2d');
@@ -230,23 +230,23 @@ export default abstract class TileEditTool {
     ctx.drawImage(tileEditor.brushSourceCanvas, bx, by);
   }
 
-  protected abstract onStart(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[];
+  protected abstract onStart(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
 
-  protected abstract onDrag(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[];
+  protected abstract onDrag(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
 
-  protected abstract onEnter(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[];
+  protected abstract onEnter(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
 
-  protected abstract onExit(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[];
+  protected abstract onExit(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
 
-  protected abstract onStop(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[];
+  protected abstract onStop(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
 
-  protected abstract onWheel(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[];
+  protected abstract onWheel(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
 
-  protected abstract onPenStart(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[];
+  protected abstract onPenStart(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
 
-  protected abstract onPenDrag(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[];
+  protected abstract onPenDrag(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
 
-  protected abstract onPenStop(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[];
+  protected abstract onPenStop(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
 
-  abstract onActivate(tileEditor: TileEditor): void;
+  abstract onActivate(tileEditor: UIImageEditor): void;
 }

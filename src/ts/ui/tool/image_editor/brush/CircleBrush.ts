@@ -1,7 +1,7 @@
 import Brush from './Brush';
 import Path from '../../../../util/Path';
-import PaletteColor from '../PaletteColor';
-import Palette from '../Palette';
+import PaletteColor from '../../../util/PaletteColor';
+import Palette from '../../../util/Palette';
 import CircleBrushOptions from './CircleBrushOptions';
 
 const arcLength = Math.PI * 2;

@@ -28,6 +28,15 @@ import {
   PanelOrientation,
 } from './UIProperties';
 import { removeAllChildren } from './UIUtils';
+import UIMenuBar from './component/UIMenuBar';
+import UIMenuBarItem from './component/UIMenuBarItem';
+import UIMenuBarItemAction from './component/UIMenuBarItemAction';
+
+export {
+  UIMenuBar,
+  UIMenuBarItem,
+  UIMenuBarItemAction
+};
 
 export {
   // Components

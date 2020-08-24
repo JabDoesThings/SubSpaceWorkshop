@@ -1,4 +1,5 @@
 import MouseMoveEvent = JQuery.MouseMoveEvent;
+import UIMenuBar from './UIMenuBar';
 
 const $win = $(window);
 
@@ -9,14 +10,25 @@ const $win = $(window);
  */
 abstract class UIInnerWindow {
   element: HTMLElement;
+  content: HTMLElement;
   private offset: number[] = [0, 0];
   protected enabled: boolean = false;
   protected $element: JQuery;
+
+  menuBar: UIMenuBar;
 
   protected constructor(element: HTMLElement) {
     this.element = element;
     this.$element = $(element);
     this.element.style.display = 'none';
+    this.content = <HTMLElement> this.element.getElementsByClassName('content').item(0);
+
+    const menuBarElementCheck = this.element.getElementsByClassName('menu-bar');
+    if(menuBarElementCheck.length !== 0) {
+      this.menuBar = new UIMenuBar(<HTMLElement> menuBarElementCheck.item(0));
+    } else {
+      this.menuBar = new UIMenuBar();
+    }
   }
 
   init() {
@@ -26,7 +38,7 @@ abstract class UIInnerWindow {
 
   private _initHandleMove(): void {
     const $parent = $(this.element.parentElement);
-    const $title = $(this.element.getElementsByClassName('title').item(0));
+    const $title = $(this.element.getElementsByClassName('window-title').item(0));
     let mDown: number[];
     let mCurrent: number[];
     let ox = 0;
@@ -39,13 +51,17 @@ abstract class UIInnerWindow {
 
     $title.on('mousedown', (e) => {
       e.stopPropagation();
-      if(!this.enabled) return;
+      if (!this.enabled) {
+        return;
+      }
       mDown = mCurrent;
       down = true;
     });
 
     $win.on('mouseup', () => {
-      if(!this.enabled) return;
+      if (!this.enabled) {
+        return;
+      }
       mDown = null;
       down = false;
       if (moved) {
@@ -58,7 +74,9 @@ abstract class UIInnerWindow {
     });
 
     $win.on('mousemove', (event: MouseMoveEvent) => {
-      if(!this.enabled) return;
+      if (!this.enabled) {
+        return;
+      }
       mCurrent = [event.clientX, event.clientY];
       if (!down) {
         return;

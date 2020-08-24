@@ -5,6 +5,8 @@ import UITool from './component/UITool';
 import Item from '../editor/ui/Item';
 import { IconToolbarAction, ItemSelectorAction, TabAction, TabPanelAction, ToolAction } from './UIProperties';
 import CustomEvent from './CustomEvent';
+import UIMenuBarItem from './component/UIMenuBarItem';
+import UIMenuBarItemAction from './component/UIMenuBarItemAction';
 
 /**
  * The <i>ItemSelectorEvent</i> interface. TODO: Document.
@@ -64,4 +66,12 @@ export interface UIIconToolbarEvent {
   toolBar: UIIconToolbar;
   tool: UITool;
   action: IconToolbarAction;
+}
+
+export interface UIMenuBarItemEvent extends CustomEvent {
+  item: UIMenuBarItem;
+  action: UIMenuBarItemAction;
+  eventType: string;
+  forced: boolean;
+  data: any;
 }

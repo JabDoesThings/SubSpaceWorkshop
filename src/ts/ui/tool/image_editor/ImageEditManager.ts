@@ -1,22 +1,20 @@
-import TileEditor from './TileEditor';
-import TileEdit from './TileEdit';
+import UIImageEditor from './ImageEditor';
+import ImageEdit from './ImageEdit';
 
 /**
- * The <i>EditManager</i> class. TODO: Document.
+ * The <i>ImageEditManager</i> class. TODO: Document.
  *
  * @author Jab
  */
-export default class TileEditManager {
+export default class ImageEditManager {
   static readonly EDITOR_HISTORY_LIMIT = 32;
-  edits: TileEdit[][] = [];
-  editsToPush: TileEdit[] = [];
+  readonly tileEditor: UIImageEditor;
+  edits: ImageEdit[][] = [];
+  editsToPush: ImageEdit[] = [];
   private index = -1;
-  readonly tileEditor: TileEditor;
 
-  /**
-   * @param tileEditor The project instance.
-   */
-  constructor(tileEditor: TileEditor) {
+  /** @param tileEditor The project instance. */
+  constructor(tileEditor: UIImageEditor) {
     this.tileEditor = tileEditor;
   }
 
@@ -25,7 +23,7 @@ export default class TileEditManager {
    *
    * @param {TileEdit[]} edits The edits to execute.
    */
-  append(edits: TileEdit[]): void {
+  append(edits: ImageEdit[]): void {
     if (edits.length === 0) {
       return;
     }
@@ -41,7 +39,7 @@ export default class TileEditManager {
   push(): void {
     if (this.edits.length === 0) {
       this.index = -1;
-    } else if (this.edits.length == TileEditManager.EDITOR_HISTORY_LIMIT) {
+    } else if (this.edits.length == ImageEditManager.EDITOR_HISTORY_LIMIT) {
       this.edits.shift();
     } else {
       // If an action is done after previous are undone, remove the actions
@@ -50,7 +48,7 @@ export default class TileEditManager {
         this.edits.pop();
       }
     }
-    console.log('pushed ' + this.editsToPush.length + ' edit(s).');
+    console.debug('pushed ' + this.editsToPush.length + ' edit(s).');
     if (this.editsToPush.length !== 0) {
       this.edits.push(this.editsToPush);
       this.editsToPush = [];

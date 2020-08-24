@@ -1,4 +1,4 @@
-import Palette from '../Palette';
+import Palette from '../../../util/Palette';
 import BrushOptions from './BrushOptions';
 
 export default abstract class Brush {

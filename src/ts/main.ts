@@ -18,10 +18,13 @@ export let start = function () {
     setTimeout(() => {
       console.debug('Starting Editor');
       const editor = new Editor();
-      // editor.new();
-      // setTimeout(() => {
-      //   editor.tilesetEditor.open();
-      // }, 1000);
+      editor.new();
+      setTimeout(() => {
+        editor.tilesetEditor.open();
+        setTimeout(() => {
+          editor.tilesetEditor.editTiles();
+        }, 10);
+      }, 1000);
     }, 10);
   };
 
@@ -33,4 +36,3 @@ export let start = function () {
 
   loader.load();
 };
-

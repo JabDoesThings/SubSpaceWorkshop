@@ -1,23 +1,24 @@
-import TileEditor from './TileEditor';
-import TileEditorEventType from './TileEditorEventType';
-import TileEditorEvent from './TileEditorEvent';
+import ImageEditorEvent from './ImageEditorEvent';
+import TileEditor from '../../../editor/tileset/TileEditor';
+import ImageEditor from './ImageEditor';
+import ImageEditorEventType from './ImageEditorEventType';
 import TriggeredEvent = JQuery.TriggeredEvent;
 
 /**
- * The <i>RenderEvents</i> class. TODO: Document.
+ * The <i>ImageEditorEvents</i> class. TODO: Document.
  *
  * @author Jab
  */
-export default class TileEditorEvents {
-  readonly mouseListeners: ((event: TileEditorEvent) => void)[];
+export default class ImageEditorEvents {
+  readonly mouseListeners: ((event: ImageEditorEvent) => void)[];
   pressureDeadZone: number[] = [0.05, 1];
 
   /**
-   * @param {TileEditor} tileEditor
+   * @param {TileEditor} imageEditor
    */
-  constructor(tileEditor: TileEditor) {
-    const paneContainer = tileEditor.paneContainer;
-    const canvas = tileEditor.canvas;
+  constructor(imageEditor: ImageEditor) {
+    const paneContainer = imageEditor.pane;
+    const canvas = imageEditor.projectedCanvas;
     const $canvas = $(canvas);
     const $paneContainer = $(paneContainer);
     this.mouseListeners = [];
@@ -32,7 +33,7 @@ export default class TileEditorEvents {
         down = false;
         downButton = -999999;
 
-        const type = penDown || e.pointerType === 'pen' ? TileEditorEventType.PEN_UP : TileEditorEventType.UP;
+        const type = penDown || e.pointerType === 'pen' ? ImageEditorEventType.PEN_UP : ImageEditorEventType.UP;
         penDown = false;
 
         this.dispatch({data: {x: -999999, y: -999999, pressure: e.pressure}, type, button: e.button, e: e});
@@ -43,7 +44,7 @@ export default class TileEditorEvents {
       e.stopPropagation();
       this.dispatch({
         data: {x: e.offsetX, y: e.offsetY, pressure: e.originalEvent.pressure},
-        type: TileEditorEventType.ENTER,
+        type: ImageEditorEventType.ENTER,
         button: downButton,
         e: null,
       });
@@ -53,7 +54,7 @@ export default class TileEditorEvents {
       e.stopPropagation();
       this.dispatch({
         data: {x: e.offsetX, y: e.offsetY, pressure: 0},
-        type: TileEditorEventType.EXIT,
+        type: ImageEditorEventType.EXIT,
         button: downButton,
         e: null,
       });
@@ -75,7 +76,7 @@ export default class TileEditorEvents {
 
       e.stopPropagation();
 
-      let type = TileEditorEventType.DOWN;
+      let type = ImageEditorEventType.DOWN;
       const origEvent = e.originalEvent;
       let pressure = origEvent.pressure;
       if (origEvent.pointerType === 'pen') {
@@ -84,7 +85,7 @@ export default class TileEditorEvents {
         //   pressure = 0;
         //   type = TileEditorEventType.PEN_HOVER;
         // } else {
-        type = TileEditorEventType.PEN_DOWN;
+        type = ImageEditorEventType.PEN_DOWN;
         // }
       }
 
@@ -106,10 +107,10 @@ export default class TileEditorEvents {
       e.stopPropagation();
 
       const origEvent = e.originalEvent;
-      let type = TileEditorEventType.UP;
+      let type = ImageEditorEventType.UP;
       let pressure = origEvent.pressure;
       if (penDown && origEvent.pointerType === 'pen') {
-        type = TileEditorEventType.PEN_UP;
+        type = ImageEditorEventType.PEN_UP;
         pressure = clampPressure(pressure);
       }
 
@@ -128,7 +129,7 @@ export default class TileEditorEvents {
     const pointermove = (e: any) => {
       e.stopPropagation();
 
-      let type = down ? TileEditorEventType.DRAG : TileEditorEventType.HOVER;
+      let type = down ? ImageEditorEventType.DRAG : ImageEditorEventType.HOVER;
       const origEvent = e.originalEvent;
       let pressure = origEvent.pressure;
       if (penDown || origEvent.pointerType === 'pen') {
@@ -138,14 +139,14 @@ export default class TileEditorEvents {
           penDown = false;
           this.dispatch({
             data: {x: e.offsetX, y: e.offsetY, pressure},
-            type: TileEditorEventType.PEN_UP,
+            type: ImageEditorEventType.PEN_UP,
             button: e.button,
             e: e
           });
           return;
         }
 
-        type = down ? TileEditorEventType.PEN_DRAG : TileEditorEventType.PEN_HOVER;
+        type = down ? ImageEditorEventType.PEN_DRAG : ImageEditorEventType.PEN_HOVER;
         this.dispatch({
           data: {x: e.offsetX, y: e.offsetY, pressure},
           type,
@@ -165,10 +166,10 @@ export default class TileEditorEvents {
 
     const wheel = (e: any) => {
       e.stopPropagation();
-      if (e.target !== canvas && e.target !== tileEditor.paneContainer) {
+      if (e.target !== canvas && e.target !== imageEditor.pane) {
         return;
       }
-      const type = e.deltaY < 0 ? TileEditorEventType.WHEEL_UP : TileEditorEventType.WHEEL_DOWN;
+      const type = e.deltaY < 0 ? ImageEditorEventType.WHEEL_UP : ImageEditorEventType.WHEEL_DOWN;
       this.dispatch({
         data: {
           x: e.offsetX,
@@ -210,7 +211,7 @@ export default class TileEditorEvents {
     $paneContainer.on('mousewheel', wheel);
   }
 
-  dispatch(event: TileEditorEvent): void {
+  dispatch(event: ImageEditorEvent): void {
     if (this.mouseListeners.length != 0) {
       for (let index = 0; index < this.mouseListeners.length; index++) {
         this.mouseListeners[index](event);
@@ -218,7 +219,7 @@ export default class TileEditorEvents {
     }
   }
 
-  addMouseListener(listener: (event: TileEditorEvent) => void): void {
+  addMouseListener(listener: (event: ImageEditorEvent) => void): void {
     // Make sure that the renderer doesn't have the listener.
     if (this.hasMouseListener(listener)) {
       throw new Error('The mouse listener is already registered.');
@@ -226,7 +227,7 @@ export default class TileEditorEvents {
     this.mouseListeners.push(listener);
   }
 
-  removeMouseListener(listener: (event: TileEditorEvent) => void): void {
+  removeMouseListener(listener: (event: ImageEditorEvent) => void): void {
     // Make sure that the renderer has the listener.
     if (!this.hasMouseListener(listener)) {
       throw new Error('The mouse listener is not registered.');
@@ -236,7 +237,7 @@ export default class TileEditorEvents {
       this.mouseListeners.pop();
       return;
     }
-    const toAdd: ((event: TileEditorEvent) => void)[] = [];
+    const toAdd: ((event: ImageEditorEvent) => void)[] = [];
     // Go through each entry until the one to remove is found.
     while (true) {
       const next = this.mouseListeners.pop();
@@ -251,7 +252,7 @@ export default class TileEditorEvents {
     }
   }
 
-  hasMouseListener(listener: (event: TileEditorEvent) => void) {
+  hasMouseListener(listener: (event: ImageEditorEvent) => void) {
     for (let index = 0; index < this.mouseListeners.length; index++) {
       const next = this.mouseListeners[index];
       if (next === listener) {

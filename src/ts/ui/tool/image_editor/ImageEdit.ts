@@ -1,9 +1,9 @@
-import TileEditManager from './TileEditManager';
+import ImageEditManager from './ImageEditManager';
 
-export default abstract class TileEdit {
+export default abstract class ImageEdit {
   private done: boolean = false;
 
-  do(editManager: TileEditManager) {
+  do(editManager: ImageEditManager) {
     if (this.done) {
       throw new Error(`The edit is already done: ${this}`);
     }
@@ -15,7 +15,7 @@ export default abstract class TileEdit {
     }
   }
 
-  undo(editManager: TileEditManager) {
+  undo(editManager: ImageEditManager) {
     if (!this.done) {
       throw new Error(`The edit is not done: ${this}`);
     }
@@ -27,7 +27,7 @@ export default abstract class TileEdit {
     }
   }
 
-  abstract onDo(editManager: TileEditManager): void;
+  abstract onDo(editManager: ImageEditManager): void;
 
-  abstract onUndo(editManager: TileEditManager): void;
+  abstract onUndo(editManager: ImageEditManager): void;
 }

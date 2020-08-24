@@ -1,9 +1,9 @@
-import TileEditor from '../TileEditor';
-import TileEdit from '../TileEdit';
-import TileEditTool from './TileEditTool';
-import TileEditorEvent from '../TileEditorEvent';
+import ImageTool from './ImageTool';
+import ImageEditor from '../ImageEditor';
+import ImageEditorEvent from '../ImageEditorEvent';
+import ImageEdit from '../ImageEdit';
 
-export default class PanTool extends TileEditTool {
+export default class PanTool extends ImageTool {
   private ox: number = 0;
   private oy: number = 0;
   private moved: boolean = false;
@@ -12,12 +12,12 @@ export default class PanTool extends TileEditTool {
   private mouseCurrent = [0, 0];
 
   /** @override */
-  onActivate(tileEditor: TileEditor): void {
+  onActivate(tileEditor: ImageEditor): void {
     tileEditor.setCursor('move');
   }
 
   /** @override */
-  protected onStart(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  protected onStart(tileEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._down = true;
     this.ox = 0;
     this.oy = 0;
@@ -27,7 +27,7 @@ export default class PanTool extends TileEditTool {
   }
 
   /** @override */
-  protected onStop(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  protected onStop(tileEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this._down = false;
     if (this.moved) {
       tileEditor.paneOffset[0] = this.ox;
@@ -38,7 +38,7 @@ export default class PanTool extends TileEditTool {
   }
 
   /** @override */
-  protected onDrag(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  protected onDrag(tileEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
     this.mouseCurrent[0] = event.e.clientX;
     this.mouseCurrent[1] = event.e.clientY;
     if (!this._down) {
@@ -53,32 +53,32 @@ export default class PanTool extends TileEditTool {
   }
 
   /** @override */
-  protected onEnter(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  protected onEnter(tileEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
     return null;
   }
 
   /** @override */
-  protected onExit(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  protected onExit(tileEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
     return null;
   }
 
   /** @override */
-  protected onWheel(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  protected onWheel(tileEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
     event.e.stopPropagation();
-    const scale = TileEditor.SCALES[tileEditor.scaleIndex];
+    const scale = ImageEditor.SCALES[tileEditor.scaleIndex];
     const x = Math.floor(event.e.offsetX / scale) * scale;
     const y = Math.floor(event.e.offsetY / scale) * scale;
-    if (event.e.target !== tileEditor.canvas) {
+    if (event.e.target !== tileEditor.projectedCanvas) {
       if (event.e.originalEvent.wheelDelta / 120 > 0) {
-        if (tileEditor.scaleIndex >= TileEditor.SCALES.length - 1) {
+        if (tileEditor.scaleIndex >= ImageEditor.SCALES.length - 1) {
           return;
         }
         tileEditor.scaleIndex++;
         tileEditor.project();
         tileEditor.positionBrush(x, y);
         tileEditor.projectBrush();
-        tileEditor.paneOffset[0] = (tileEditor.$content.width() / 2) - (tileEditor.canvas.width / 2);
-        tileEditor.paneOffset[1] = (tileEditor.$content.height() / 2) - (tileEditor.canvas.height / 2);
+        tileEditor.paneOffset[0] = (tileEditor.$parent.width() / 2) - (tileEditor.projectedCanvas.width / 2);
+        tileEditor.paneOffset[1] = (tileEditor.$parent.height() / 2) - (tileEditor.projectedCanvas.height / 2);
         PanTool.css(tileEditor, tileEditor.paneOffset[0], tileEditor.paneOffset[1]);
       } else {
         if (tileEditor.scaleIndex === 0) {
@@ -88,13 +88,13 @@ export default class PanTool extends TileEditTool {
         tileEditor.project();
         tileEditor.positionBrush(x, y);
         tileEditor.projectBrush();
-        tileEditor.paneOffset[0] = (tileEditor.$content.width() / 2) - (tileEditor.canvas.width / 2);
-        tileEditor.paneOffset[1] = (tileEditor.$content.height() / 2) - (tileEditor.canvas.height / 2);
+        tileEditor.paneOffset[0] = (tileEditor.$parent.width() / 2) - (tileEditor.projectedCanvas.width / 2);
+        tileEditor.paneOffset[1] = (tileEditor.$parent.height() / 2) - (tileEditor.projectedCanvas.height / 2);
         PanTool.css(tileEditor, tileEditor.paneOffset[0], tileEditor.paneOffset[1]);
       }
     } else {
       if (event.e.originalEvent.wheelDelta / 120 > 0) {
-        if (tileEditor.scaleIndex >= TileEditor.SCALES.length - 1) {
+        if (tileEditor.scaleIndex >= ImageEditor.SCALES.length - 1) {
           return;
         }
         tileEditor.scaleIndex++;
@@ -114,8 +114,8 @@ export default class PanTool extends TileEditTool {
         tileEditor.project();
         tileEditor.positionBrush(x, y);
         tileEditor.projectBrush();
-        tileEditor.paneOffset[0] = (tileEditor.$content.width() / 2) - (tileEditor.canvas.width / 2);
-        tileEditor.paneOffset[1] = (tileEditor.$content.height() / 2) - (tileEditor.canvas.height / 2);
+        tileEditor.paneOffset[0] = (tileEditor.$parent.width() / 2) - (tileEditor.projectedCanvas.width / 2);
+        tileEditor.paneOffset[1] = (tileEditor.$parent.height() / 2) - (tileEditor.projectedCanvas.height / 2);
         PanTool.css(tileEditor, tileEditor.paneOffset[0], tileEditor.paneOffset[1]);
       }
     }
@@ -123,29 +123,29 @@ export default class PanTool extends TileEditTool {
   }
 
   /** @override */
-  protected onPenDrag(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  protected onPenDrag(tileEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
     return null;
   }
 
   /** @override */
-  protected onPenStart(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  protected onPenStart(tileEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
     return null;
   }
 
   /** @override */
-  protected onPenStop(tileEditor: TileEditor, event: TileEditorEvent): TileEdit[] {
+  protected onPenStop(tileEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
     return null;
   }
 
-  private update(tileEditor: TileEditor): void {
-    const $parent = $(tileEditor.pane.parentElement);
-    const scale = TileEditor.SCALES[tileEditor.scaleIndex];
+  private update(tileEditor: ImageEditor): void {
+    const $parent = $(tileEditor.paneCursor.parentElement);
+    const scale = ImageEditor.SCALES[tileEditor.scaleIndex];
     const limit = 16 * scale;
     // Clamp the offset to the boundaries of the parent container of the inner window.
     const pw = $parent.width();
     const ph = $parent.height();
-    const iww = tileEditor.canvas.width;
-    const iwh = tileEditor.canvas.height;
+    const iww = tileEditor.projectedCanvas.width;
+    const iwh = tileEditor.projectedCanvas.height;
     const xMaxLimit = pw - limit;
     const xMinLimit = -iww + limit;
     const yMaxLimit = ph - limit;
@@ -163,8 +163,8 @@ export default class PanTool extends TileEditTool {
     PanTool.css(tileEditor, this.ox, this.oy);
   }
 
-  private static css(tileEditor: TileEditor, x: number, y: number): void {
-    tileEditor.pane.style.top = `${y}px`;
-    tileEditor.pane.style.left = `${x}px`;
+  private static css(tileEditor: ImageEditor, x: number, y: number): void {
+    tileEditor.paneCursor.style.top = `${y}px`;
+    tileEditor.paneCursor.style.left = `${x}px`;
   }
 }
