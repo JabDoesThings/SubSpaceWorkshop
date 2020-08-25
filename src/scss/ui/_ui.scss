@@ -59,6 +59,49 @@ body {
   }
 }
 
+.ui-slider {
+  -webkit-appearance: none;
+  left: 6px;
+  width: calc(100% - 16px);
+  height: 6px;
+  border-radius: 5px;
+  background: $color5;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: $color8;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  &:focus, &:active {
+    opacity: 1;
+
+    &::-webkit-slider-thumb {
+      //width: 16px;
+      //height: 16px;
+      background-color: $color6;
+      box-shadow: 0 0 2px 2px rgba(0,0,0,0.25);
+
+      &:active {
+        box-shadow: 0 0 2px 1px rgba(255,255,255,1);
+      }
+      transition: all 0s;
+    }
+
+    transition: opacity 0s;
+  }
+}
+
+
 .center {
   top: 50%;
   left: 50%;

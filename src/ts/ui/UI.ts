@@ -1,7 +1,7 @@
 // Contents
 import UIIcon from './component/UIIcon';
 import UIIconToolbar from './component/UIIconToolbar';
-import UIInnerWindow from './component/UIInnerWindow';
+import UIInnerWindow from './component/frame/UIInnerWindow';
 import UILayer from './component/UILayer';
 import UIPanel from './component/UIPanel';
 import UIPanelSection from './component/UIPanelSection';

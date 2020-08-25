@@ -1,5 +1,5 @@
 import MouseMoveEvent = JQuery.MouseMoveEvent;
-import UIMenuBar from './UIMenuBar';
+import UIMenuBar from '../UIMenuBar';
 
 const $win = $(window);
 

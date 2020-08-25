@@ -134,7 +134,7 @@ export default class CircleBrush extends Brush {
       ctx.fillStyle = gradient;
     }
 
-    ctx.globalAlpha = options.opacity;
+    // ctx.globalAlpha = options.opacity;
 
     // Draw.
     ctx.beginPath();

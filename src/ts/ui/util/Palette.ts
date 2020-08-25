@@ -6,7 +6,7 @@ export default class Palette {
   secondary: PaletteColor;
 
   constructor() {
-    for (let index = 0; index < 256; index++) {
+    for (let index = 0; index < 122; index++) {
       this.colors.push(new PaletteColor(1, 1, 1));
     }
     this.primary = new PaletteColor(1, 0, 0);

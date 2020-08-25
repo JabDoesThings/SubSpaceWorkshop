@@ -12,6 +12,7 @@ $panelWidth: 320px;
   margin-top: -1px;
   background-color: $color4;
   transition: all $panelTime;
+  cursor: unset;
 
   .ui-panel-overflow-container {
     position: relative;
@@ -177,6 +178,8 @@ $panelWidth: 320px;
     overflow: hidden;
     background-color: $color3;
     transition: max-height 0.2s ease-out;
+    border-left: 1px solid $color4;
+    border-right: 1px solid $color4;
 
     .contents {
       padding: 7px;

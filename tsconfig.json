@@ -21,7 +21,8 @@
       "node_modules/pixi-tilemap/dist/pixi-tilemap.d.ts",
       "node_modules/@types/stats/index.d.ts"
     ],
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "target": "ES6"
   },
   "files": [
     "src/ts/main.ts"
@@ -30,5 +31,4 @@
     "es6",
     "dom"
   ]
-
 }

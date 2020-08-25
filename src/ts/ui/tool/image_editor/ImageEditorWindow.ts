@@ -2,7 +2,7 @@ import ImageEditor from './ImageEditor';
 import UIMenuBarItem from '../../component/UIMenuBarItem';
 import { UIMenuBarItemEvent } from '../../UIEvents';
 import UIMenuBarItemAction from '../../component/UIMenuBarItemAction';
-import UIInnerWindow from '../../component/UIInnerWindow';
+import UIInnerWindow from '../../component/frame/UIInnerWindow';
 
 export default class ImageEditorWindow extends UIInnerWindow {
 

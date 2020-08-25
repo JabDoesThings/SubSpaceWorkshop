@@ -8,17 +8,19 @@ import ImageEditorEvent from '../ImageEditorEvent';
 export default class BrushTool extends ImageTool {
   private readonly _pressures: number[] = [];
   private middleDown: boolean = false;
-  private brush: CircleBrush;
+  brush: CircleBrush;
   private down: { x: number, y: number };
   private last: { x: number, y: number };
   private penDown: boolean = false;
 
+  constructor() {
+    super();
+    this.brush = new CircleBrush();
+  }
+
   /** @override */
   onActivate(imageEditor: ImageEditor): void {
     imageEditor.setCursor('none');
-    if (!this.brush) {
-      this.brush = new CircleBrush();
-    }
     imageEditor.setBrush(this.brush);
     this.brush.renderMouse(imageEditor.brushSourceCanvas, imageEditor.palette, 'primary');
     imageEditor.projectBrush();

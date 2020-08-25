@@ -13,6 +13,9 @@ import IconToolbarEventType from './toolbar/IconToolbarEventType';
 import IconToolbar from './toolbar/IconToolbar';
 import ImageEdit from './ImageEdit';
 import ImageEditSection from './edit/ImageEditSection';
+import BrushPanelSection from './panel/BrushPanelSection';
+import PalettePanelSection from './panel/PalettePanelSection';
+import ColorPanelSection from './panel/ColorPanelSection';
 
 export default class ImageEditor {
   static SCALES = [1, 2, 4, 8, 16];
@@ -25,6 +28,7 @@ export default class ImageEditor {
   readonly modifiedCtx: CanvasRenderingContext2D;
   readonly brushSourceCanvas: HTMLCanvasElement;
   readonly drawSourceCanvas: HTMLCanvasElement;
+  readonly drawSourceCtx: CanvasRenderingContext2D;
   readonly $projectedCanvas: JQuery<HTMLCanvasElement>;
   pane: HTMLElement;
   paneCursor: HTMLElement;
@@ -99,20 +103,30 @@ export default class ImageEditor {
     this.brushSourceCanvas = document.createElement('canvas');
     // The draw source canvas to store the currently drawn result to apply to the modified canvas.
     this.drawSourceCanvas = document.createElement('canvas');
+    this.drawSourceCtx = this.drawSourceCanvas.getContext('2d');
 
     this.leftToolbar = new IconToolbar(toolbarElement);
     this.editManager = new ImageEditManager(this);
     this.events = new ImageEditorEvents(this);
 
     this.toolManager = new ToolManager(this);
-    this.toolManager.addTool('brush', new BrushTool());
+
+    const brushTool = new BrushTool();
+    this.toolManager.addTool('brush', brushTool);
     this.toolManager.addTool('pan', new PanTool());
     this.toolManager.setFallback('pan');
 
     this.rightPanel = new UIPanel(null, null, PanelOrientation.RIGHT, TabOrientation.RIGHT);
 
     const paletteTab = new UIPanelTab('palette-tab');
-    const paletteSection = paletteTab.createSection('palette-section', 'Palette');
+
+    const colorPanelSection = new ColorPanelSection(this.palette);
+    const palettePanelSection = new PalettePanelSection(this.palette);
+    const brushPanelSection = new BrushPanelSection(this, brushTool.brush);
+    paletteTab.add(colorPanelSection);
+    paletteTab.add(palettePanelSection);
+    paletteTab.add(brushPanelSection);
+    // const paletteSection = paletteTab.createSection('palette-section', 'Palette');
     this.rightPanel.add(paletteTab, 'Palette', true);
     this.parent.appendChild(this.rightPanel.element);
   }
@@ -174,8 +188,19 @@ export default class ImageEditor {
       x = o.x;
       y = o.y;
     }
-    this.projectedBrushCanvas.style.top = `${(y) - Math.floor(this.projectedBrushCanvas.height / 2)}px`;
-    this.projectedBrushCanvas.style.left = `${(x) - Math.floor(this.projectedBrushCanvas.width / 2)}px`;
+    const scale = ImageEditor.SCALES[this.scaleIndex];
+    let radiusW = this.brushSourceCanvas.width;
+    let radiusH = this.brushSourceCanvas.width;
+    let px = (x - Math.floor(this.projectedBrushCanvas.width / 2));
+    let py = (y - Math.floor(this.projectedBrushCanvas.height / 2));
+    if (radiusW % 2 == 0 /* even */) {
+      px -= Math.floor(scale / 2);
+    }
+    if (radiusH % 2 == 0 /* even */) {
+      py -= Math.floor(scale / 2);
+    }
+    this.projectedBrushCanvas.style.top = `${(py)}px`;
+    this.projectedBrushCanvas.style.left = `${(px)}px`;
   }
 
   editImage(
@@ -197,6 +222,7 @@ export default class ImageEditor {
     this._projectSource();
     this.project();
     setTimeout(() => {
+      this.rightPanel.getOpenTab().openAllSections();
       this._centerPane();
       this.setTool('brush');
     }, 10);
@@ -350,6 +376,11 @@ export default class ImageEditor {
     const ctx = this.projectedBrushCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, width, height);
+
+    if (this.brush) {
+      ctx.globalAlpha = this.brush.options.opacity;
+    }
+
     ctx.drawImage(
       this.brushSourceCanvas,
       0,
@@ -361,6 +392,8 @@ export default class ImageEditor {
       width,
       height
     );
+
+    ctx.globalAlpha = 1;
   }
 
   projectDraw(antialias: boolean = false) {
@@ -419,8 +452,7 @@ export default class ImageEditor {
   }
 
   clearDraw(): void {
-    const ctx = this.drawSourceCanvas.getContext('2d');
-    ctx.clearRect(0, 0, this.drawSourceCanvas.width, this.drawSourceCanvas.height);
+    this.drawSourceCtx.clearRect(0, 0, this.drawSourceCanvas.width, this.drawSourceCanvas.height);
   }
 
   setTool(id: string): void {
@@ -428,3 +460,4 @@ export default class ImageEditor {
     this.leftToolbar.setActive(id);
   }
 }
+

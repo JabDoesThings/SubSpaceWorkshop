@@ -3,7 +3,7 @@ import { drawAspect } from '../../util/DrawUtils';
 import Editor from '../Editor';
 import MouseDownEvent = JQuery.MouseDownEvent;
 import MouseMoveEvent = JQuery.MouseMoveEvent;
-import UIInnerWindow from '../../ui/component/UIInnerWindow';
+import UIInnerWindow from '../../ui/component/frame/UIInnerWindow';
 import TileEditor from './TileEditor';
 
 export default class TilesetEditor extends UIInnerWindow {
