@@ -1,0 +1,106 @@
+@import "../color";
+
+.ui-popup {
+  display: inline-block;
+  position: absolute;
+  border-radius: 3px;;
+
+  z-index: 10;
+  width: 64px;
+  height: 64px;
+  top: -9999px;
+  left: -9999px;
+
+  padding: 8px;
+
+  box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.5);
+
+  &:before {
+    position: absolute;
+    z-index: -1;
+    width: 16px;
+    height: 16px;
+    content: '';
+  }
+
+}
+
+.ui-popup.dark {
+  border: 1px solid $color4;
+  background-color: $color1;
+
+  &:before {
+    border-color: $color4;
+    background-color: $color1;
+  }
+}
+
+.ui-popup.medium {
+  border: 1px solid $color5;
+  background-color: $color2;
+
+  &:before {
+    border-color: $color5;
+    background-color: $color2;
+  }
+}
+
+.ui-popup.top {
+  transform: translate(-50%, calc(-100% - 16px));
+
+  &:before {
+    position: absolute;
+    bottom: -9px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-right-width: 1px;
+    border-right-style: solid;
+  }
+}
+
+.ui-popup.bottom {
+  transform: translate(-50%, 10px);
+
+  &:before {
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-left-width: 1px;
+    border-left-style: solid;
+  }
+}
+
+.ui-popup.left {
+  transform: translate(calc(-100% - 16px), -50%);
+
+  &:before {
+    position: absolute;
+    top: 50%;
+    right: -9px;
+    transform: translateY(-50%) rotate(45deg);
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-right-width: 1px;
+    border-right-style: solid;
+  }
+}
+
+.ui-popup.right {
+  transform: translate(10px, -50%);
+
+  &:before {
+    position: absolute;
+    top: 50%;
+    left: -9px;
+    transform: translateY(-50%) rotate(45deg);
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-left-width: 1px;
+    border-left-style: solid;
+  }
+}
