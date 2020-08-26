@@ -24,4 +24,10 @@ export default class UIMenuBar {
     this.items[item.id] = item;
     this.element.appendChild(item.element);
   }
+
+  addSeparator() {
+    const element = document.createElement('div');
+    element.classList.add('menu-separator');
+    this.element.appendChild(element);
+  }
 }

@@ -18,8 +18,10 @@ import PalettePanelSection from './panel/PalettePanelSection';
 import ColorPanelSection from './panel/ColorPanelSection';
 import PaletteEvent from '../../util/PaletteEvent';
 import PaletteAction from '../../util/PaletteAction';
+import CustomEventListener from '../../CustomEventListener';
+import ImageEditorEvent from './ImageEditorEvent';
 
-export default class ImageEditor {
+export default class ImageEditor extends CustomEventListener<ImageEditorEvent> {
   static SCALES = [1, 2, 4, 8, 16];
   readonly editManager: ImageEditManager;
   readonly toolManager: ToolManager;
@@ -52,9 +54,11 @@ export default class ImageEditor {
   private _onCancel: () => void;
   private _bufferCanvas: HTMLCanvasElement = document.createElement('canvas');
   private _bufferCtx = this._bufferCanvas.getContext('2d');
+  private cursor: { x: number, y: number } = {x: 0, y: 0};
 
   /** @param {HTMLElement} parentElement */
   constructor(parentElement: HTMLElement) {
+    super();
     if (!parentElement) {
       throw new Error('Parent element given is null or undefined.');
     }
@@ -194,17 +198,44 @@ export default class ImageEditor {
     };
   }
 
-  positionBrush(x: number | { x: number, y: number }, y?: number): void {
-    if (typeof x === 'object') {
+  positionBrush(
+    x: number | { x: number, y: number } | null = null,
+    y: number | null = null
+  ): void {
+    let _x: number = 0;
+    let _y: number = 0;
+    if (x && typeof x === 'object' && x.x != null && x.y != null) {
       const o = x;
-      x = o.x;
-      y = o.y;
+      _x = o.x;
+      _y = o.y;
     }
+
+    let xMissing = false;
+    let yMissing = false;
+    if (!_x && !_y) {
+      xMissing = true;
+      yMissing = true;
+    } else if (!_x) {
+      xMissing = true;
+    } else if (!_y) {
+      yMissing = true;
+    }
+    if (xMissing) {
+      _x = this.cursor.x;
+    } else {
+      this.cursor.x = _x;
+    }
+    if (yMissing) {
+      _y = this.cursor.y;
+    } else {
+      this.cursor.y = _y;
+    }
+
     const scale = ImageEditor.SCALES[this.scaleIndex];
     let radiusW = this.brushSourceCanvas.width;
     let radiusH = this.brushSourceCanvas.width;
-    let px = (x - Math.floor(this.projectedBrushCanvas.width / 2));
-    let py = (y - Math.floor(this.projectedBrushCanvas.height / 2));
+    let px = (_x - Math.floor(this.projectedBrushCanvas.width / 2));
+    let py = (_y - Math.floor(this.projectedBrushCanvas.height / 2));
     if (radiusW % 2 == 0 /* even */) {
       px -= Math.floor(scale / 2);
     }
@@ -363,6 +394,7 @@ export default class ImageEditor {
     this.modifiedCtx.fillRect(0, 0, 16, 16);
 
     this.toolManager.setActive('brush');
+    this.editManager.clear();
 
     this._centerPane();
     this.project();
@@ -375,13 +407,7 @@ export default class ImageEditor {
     this.paneCursor.style.left = `${this.paneOffset[0]}px`;
   }
 
-  setBrush(brush: Brush) {
-    console.log(`setBrush(brush: ${brush})`);
-    this.brush = brush;
-  }
-
   projectBrush() {
-    console.log('projectBrush()');
     const scale = ImageEditor.SCALES[this.scaleIndex];
     const width = this.brushSourceCanvas.width * scale;
     const height = this.brushSourceCanvas.height * scale;
@@ -472,6 +498,22 @@ export default class ImageEditor {
   setTool(id: string): void {
     this.toolManager.setActive(id);
     this.leftToolbar.setActive(id);
+  }
+
+  canUndo(): boolean {
+    return this.editManager.canUndo();
+  }
+
+  canRedo(): boolean {
+    return this.editManager.canRedo();
+  }
+
+  undo(): void {
+    this.editManager.undo();
+  }
+
+  redo(): void {
+    this.editManager.redo();
   }
 }
 

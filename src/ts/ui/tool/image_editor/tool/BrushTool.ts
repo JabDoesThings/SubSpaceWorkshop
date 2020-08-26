@@ -3,12 +3,12 @@ import CircleBrushOptions from '../brush/CircleBrushOptions';
 import ImageTool from './ImageTool';
 import ImageEditor from '../ImageEditor';
 import ImageEdit from '../ImageEdit';
-import ImageEditorEvent from '../ImageEditorEvent';
+import ImageEditorInputEvent from '../ImageEditorInputEvent';
 
 export default class BrushTool extends ImageTool {
+  brush: CircleBrush;
   private readonly _pressures: number[] = [];
   private middleDown: boolean = false;
-  brush: CircleBrush;
   private down: { x: number, y: number };
   private last: { x: number, y: number };
   private penDown: boolean = false;
@@ -21,13 +21,13 @@ export default class BrushTool extends ImageTool {
   /** @override */
   onActivate(imageEditor: ImageEditor): void {
     imageEditor.setCursor('none');
-    imageEditor.setBrush(this.brush);
+    imageEditor.brush = this.brush;
     this.brush.renderMouse(imageEditor.brushSourceCanvas, imageEditor.palette, 'primary');
     imageEditor.projectBrush();
   }
 
   /** @override */
-  protected onStart(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onStart(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     if (event.button === 1) {
       this.middleDown = true;
       this.fallback();
@@ -46,24 +46,22 @@ export default class BrushTool extends ImageTool {
   }
 
   /** @override */
-  protected onStop(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onStop(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     if (event.button === 1) {
       this.middleDown = false;
       this.fallback();
       return;
     }
-
     this.last = null;
     this.down = null;
     this.penDown = null;
-
     const edits = [imageEditor.applyDraw(true)];
     imageEditor.clearDraw();
     return edits;
   }
 
   /** @override */
-  protected onDrag(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onDrag(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     if (this.middleDown) {
       this.fallback();
       return;
@@ -85,26 +83,23 @@ export default class BrushTool extends ImageTool {
   }
 
   /** @override */
-  protected onEnter(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onEnter(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     return null;
   }
 
   /** @override */
-  protected onExit(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onExit(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     return null;
   }
 
   /** @override */
-  protected onWheel(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
-    if (this.down !== null) {
-      return null;
-    }
+  protected onWheel(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     this.fallback();
     return null;
   }
 
   /** @override */
-  protected onPenStart(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onPenStart(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     const type = event.button === 0 ? 'primary' : 'secondary';
     const c = imageEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
     this.down = {x: c.x, y: c.y};
@@ -125,7 +120,7 @@ export default class BrushTool extends ImageTool {
   }
 
   /** @override */
-  protected onPenDrag(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onPenDrag(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     const c = imageEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
     if (c.x === this.last.x && c.y === this.last.y) {
       return;
@@ -144,7 +139,7 @@ export default class BrushTool extends ImageTool {
   }
 
   /** @override */
-  protected onPenStop(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onPenStop(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     this.last = null;
     this.down = null;
     this.penDown = null;

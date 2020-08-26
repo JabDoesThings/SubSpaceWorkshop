@@ -30,14 +30,14 @@ export default class ImageEditSection extends ImageEdit {
 
   /** @override */
   onDo(editManager: ImageEditManager): void {
-    const tileEditor = editManager.tileEditor;
+    const tileEditor = editManager.imageEditor;
     tileEditor.modifiedCtx.putImageData(this.after, this.x, this.y);
     tileEditor.project();
   }
 
   /** @override */
   onUndo(editManager: ImageEditManager): void {
-    const tileEditor = editManager.tileEditor;
+    const tileEditor = editManager.imageEditor;
     tileEditor.modifiedCtx.putImageData(this.before, this.x, this.y);
     tileEditor.project();
   }

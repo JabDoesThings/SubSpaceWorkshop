@@ -20,14 +20,14 @@ export default class ColorSelection extends SectionElement {
     this.element.appendChild(this.secondaryElement);
 
     $(this.primaryElement).on('click', () => {
-      colorPicker.pick(this.primaryElement, 'bottom', 200, palette.primary, (color => {
+      colorPicker.pick(this.primaryElement, 'bottom', 0, palette.primary, (color => {
         palette.setPrimary(color);
         this.fromPalette();
       }));
     });
 
     $(this.secondaryElement).on('click', () => {
-      colorPicker.pick(this.secondaryElement, 'bottom', 200, palette.secondary, (color => {
+      colorPicker.pick(this.secondaryElement, 'bottom', 0, palette.secondary, (color => {
         palette.setSecondary(color);
         this.fromPalette();
       }));

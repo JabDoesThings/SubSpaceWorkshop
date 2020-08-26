@@ -1,13 +1,12 @@
+import CustomEvent from '../../CustomEvent';
+import ImageEditorAction from './ImageEditorAction';
+
 /**
  * The <i>ImageEditorEvent</i> interface. TODO: Document.
  *
  * @author Jab
  */
-import ImageEditorEventType from './ImageEditorEventType';
-
-export default interface ImageEditorEvent {
-  type: ImageEditorEventType;
-  data: { x: number, y: number, pressure: number };
-  button: number;
+export default interface ImageEditorEvent extends CustomEvent {
+  action: ImageEditorAction;
   e: any;
 }

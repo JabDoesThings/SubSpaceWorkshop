@@ -14,7 +14,7 @@ abstract class UIInnerWindow {
   private offset: number[] = [0, 0];
   protected enabled: boolean = false;
   protected $element: JQuery;
-
+  isOpen: boolean;
   menuBar: UIMenuBar;
 
   protected constructor(element: HTMLElement) {

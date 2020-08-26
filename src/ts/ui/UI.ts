@@ -32,6 +32,16 @@ import UIMenuBar from './component/UIMenuBar';
 import UIMenuBarItem from './component/UIMenuBarItem';
 import UIMenuBarItemAction from './component/UIMenuBarItemAction';
 
+// const $document = $(document);
+//
+// const prevent = (id: string, events: string[]): void => {
+//   events.forEach(e => {
+//     $document.on(e, id, (event: any) => {
+//       event.stopPropagation();
+//     });
+//   });
+// };
+
 export {
   UIMenuBar,
   UIMenuBarItem,

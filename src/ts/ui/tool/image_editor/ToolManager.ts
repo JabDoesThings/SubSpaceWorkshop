@@ -1,6 +1,6 @@
 import UIImageEditor from './ImageEditor';
 import ImageEdit from './ImageEdit';
-import ImageEditorEvent from './ImageEditorEvent';
+import ImageEditorInputEvent from './ImageEditorInputEvent';
 import ImageEditorEventType from './ImageEditorEventType';
 import ImageTool from './tool/ImageTool';
 
@@ -18,7 +18,7 @@ export default class ToolManager {
 
     let downTool: ImageTool;
 
-    editor.events.addMouseListener((event: ImageEditorEvent) => {
+    editor.events.addMouseListener((event: ImageEditorInputEvent) => {
       let edits: ImageEdit[];
       let push = false;
       let reset = false;

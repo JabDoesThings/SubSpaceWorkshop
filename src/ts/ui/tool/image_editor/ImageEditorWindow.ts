@@ -3,11 +3,18 @@ import UIMenuBarItem from '../../component/UIMenuBarItem';
 import { UIMenuBarItemEvent } from '../../UIEvents';
 import UIMenuBarItemAction from '../../component/UIMenuBarItemAction';
 import UIInnerWindow from '../../component/frame/UIInnerWindow';
+import ImageEditorEvent from './ImageEditorEvent';
+import ImageEditorAction from './ImageEditorAction';
+import KeyDownEvent = JQuery.KeyDownEvent;
 
 export default class ImageEditorWindow extends UIInnerWindow {
 
   imageEditor: ImageEditor;
   private uiImageEditorElement: HTMLDivElement;
+  private openIcon: UIMenuBarItem;
+  private saveIcon: UIMenuBarItem;
+  private undoIcon: UIMenuBarItem;
+  private redoIcon: UIMenuBarItem;
 
   /**
    *
@@ -38,27 +45,68 @@ export default class ImageEditorWindow extends UIInnerWindow {
 
   /** @override */
   onInit(): void {
-    const open = new UIMenuBarItem(null, ['fas', 'fa-folder-open']);
-    const save = new UIMenuBarItem(null, ['fas', 'fa-save']);
-    this.menuBar.addItem(open);
-    this.menuBar.addItem(save);
-
-    open.addEventListener((event: UIMenuBarItemEvent) => {
-      // TODO: Implement open image dialog. -Jab
-    });
-
-    save.addEventListener((event: UIMenuBarItemEvent) => {
-      if (event.action === UIMenuBarItemAction.CLICK) {
-        this.imageEditor.save();
-        this.close();
-      }
-    });
+    this.openIcon = new UIMenuBarItem(null, ['fas', 'fa-folder-open']);
+    this.saveIcon = new UIMenuBarItem(null, ['fas', 'fa-save']);
+    this.undoIcon = new UIMenuBarItem(null, ['fas', 'fa-undo-alt']);
+    this.redoIcon = new UIMenuBarItem(null, ['fas', 'fa-redo-alt']);
+    this.menuBar.addItem(this.openIcon);
+    this.menuBar.addItem(this.saveIcon);
+    this.menuBar.addSeparator();
+    this.menuBar.addItem(this.undoIcon);
+    this.menuBar.addItem(this.redoIcon);
 
     this.uiImageEditorElement = document.createElement('div');
     this.uiImageEditorElement.classList.add('ui-image-editor');
     this.content.appendChild(this.uiImageEditorElement);
     this.imageEditor = new ImageEditor(this.uiImageEditorElement);
     this.imageEditor.init();
+
+    this.openIcon.addEventListener((event: UIMenuBarItemEvent) => {
+      // TODO: Implement open image dialog. -Jab
+    });
+
+    this.saveIcon.addEventListener((event: UIMenuBarItemEvent) => {
+      if (event.action === UIMenuBarItemAction.CLICK) {
+        this.imageEditor.save();
+        this.close();
+      }
+    });
+
+    this.undoIcon.addEventListener((event: UIMenuBarItemEvent) => {
+      if (event.action === UIMenuBarItemAction.CLICK && this.imageEditor.canUndo()) {
+        this.imageEditor.undo();
+      }
+      this._checkUndoRedo();
+    });
+
+    this.redoIcon.addEventListener((event: UIMenuBarItemEvent) => {
+      if (event.action === UIMenuBarItemAction.CLICK && this.imageEditor.canRedo()) {
+        this.imageEditor.redo();
+      }
+      this._checkUndoRedo();
+    });
+
+    this._checkUndoRedo();
+
+    this.imageEditor.addEventListener((event: ImageEditorEvent) => {
+      if (event.action === ImageEditorAction.REDO || event.action === ImageEditorAction.UNDO || event.action == ImageEditorAction.EDIT) {
+        this._checkUndoRedo();
+      }
+    });
+
+    $(window).on('keydown', (event: KeyDownEvent) => {
+      if (!this.enabled) {
+        return;
+      }
+      const key = event.key.toLowerCase();
+      if (key === 'z' && event.ctrlKey) {
+        if (event.shiftKey) {
+          this.redoIcon.click();
+        } else {
+          this.undoIcon.click();
+        }
+      }
+    });
   }
 
   /** @override */
@@ -67,6 +115,28 @@ export default class ImageEditorWindow extends UIInnerWindow {
 
   /** @override */
   onClose(): void {
+    this._checkUndoRedo();
+  }
+
+  private _checkUndoRedo() {
+    if (this.imageEditor.canUndo()) {
+      if (!this.undoIcon.enabled) {
+        this.undoIcon.enable();
+      }
+    } else {
+      if (this.undoIcon.enabled) {
+        this.undoIcon.disable();
+      }
+    }
+    if (this.imageEditor.canRedo()) {
+      if (!this.redoIcon.enabled) {
+        this.redoIcon.enable();
+      }
+    } else {
+      if (this.redoIcon.enabled) {
+        this.redoIcon.disable();
+      }
+    }
   }
 
   editImage(

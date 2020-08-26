@@ -1,5 +1,7 @@
 import UIImageEditor from './ImageEditor';
 import ImageEdit from './ImageEdit';
+import ImageEditorAction from './ImageEditorAction';
+import ImageEditorEvent from './ImageEditorEvent';
 
 /**
  * The <i>ImageEditManager</i> class. TODO: Document.
@@ -8,14 +10,14 @@ import ImageEdit from './ImageEdit';
  */
 export default class ImageEditManager {
   static readonly EDITOR_HISTORY_LIMIT = 32;
-  readonly tileEditor: UIImageEditor;
+  readonly imageEditor: UIImageEditor;
   edits: ImageEdit[][] = [];
   editsToPush: ImageEdit[] = [];
   private index = -1;
 
   /** @param tileEditor The project instance. */
   constructor(tileEditor: UIImageEditor) {
-    this.tileEditor = tileEditor;
+    this.imageEditor = tileEditor;
   }
 
   /**
@@ -54,8 +56,18 @@ export default class ImageEditManager {
       this.editsToPush = [];
       this.index++;
     }
+
+    this.imageEditor.dispatch(<ImageEditorEvent> {
+      forced: false,
+      eventType: 'ImageEditorEvent',
+      action: ImageEditorAction.EDIT
+    });
   }
 
+  clear(): void {
+    this.edits.length = 0;
+    this.index = -1;
+  }
 
   reset(): void {
     for (let index = this.editsToPush.length - 1; index >= 0; index--) {
@@ -72,7 +84,7 @@ export default class ImageEditManager {
    * Redoes the history of the project.
    *
    * @throws Error Thrown if the history is already at the latest edit.<br/>
-   * <b>NOTE</b>: Use {@link TileEditManager#canRedo() canRedo()} to check if redo is possible.
+   * <b>NOTE</b>: Use {@link ImageEditManager#canRedo() canRedo()} to check if redo is possible.
    */
   redo(): void {
     // Make sure that the edit history isn't set at the latest edit.
@@ -89,13 +101,19 @@ export default class ImageEditManager {
         console.error(e);
       }
     }
+
+    this.imageEditor.dispatch(<ImageEditorEvent> {
+      forced: false,
+      eventType: 'ImageEditorEvent',
+      action: ImageEditorAction.REDO
+    });
   }
 
   /**
    * Undoes the history of the project.
    *
    * @throws Error Thrown if the history is already at the earliest edit.<br/>
-   * <b>NOTE</b>: Use {@link TileEditManager#canUndo() canUndo()} to check if undo is possible.
+   * <b>NOTE</b>: Use {@link ImageEditManager#canUndo() canUndo()} to check if undo is possible.
    */
   undo(): void {
     if (this.index < 0) {
@@ -111,13 +129,19 @@ export default class ImageEditManager {
       }
     }
     this.index--;
+
+    this.imageEditor.dispatch(<ImageEditorEvent> {
+      forced: false,
+      eventType: 'ImageEditorEvent',
+      action: ImageEditorAction.UNDO
+    });
   }
 
   /**
    * @return Returns true if the editor can undo edits.
    */
   canUndo(): boolean {
-    return this.index > 0;
+    return this.index > -1;
   }
 
   /**

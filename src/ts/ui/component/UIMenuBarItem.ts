@@ -62,6 +62,7 @@ export default class UIMenuBarItem extends CustomEventListener<UIMenuBarItemEven
     })) {
       return;
     }
+    this.element.classList.remove('disabled');
     this.enabled = true;
   }
 
@@ -78,6 +79,7 @@ export default class UIMenuBarItem extends CustomEventListener<UIMenuBarItemEven
     })) {
       return;
     }
+    this.element.classList.add('disabled');
     this.enabled = false;
   }
 
@@ -116,5 +118,16 @@ export default class UIMenuBarItem extends CustomEventListener<UIMenuBarItemEven
         }
       }
     }
+  }
+
+  click() {
+    if (!this.enabled) {
+      return;
+    }
+    this.element.click();
+    this.element.classList.add('active');
+    setTimeout(() => {
+      this.element.classList.remove('active');
+    }, 50);
   }
 }

@@ -2,17 +2,17 @@ import { MathUtils } from 'three';
 import lerp = MathUtils.lerp;
 import Palette from '../../../util/Palette';
 import UIImageEditor from '../ImageEditor';
-import ImageEditorEvent from '../ImageEditorEvent';
+import ImageEditorInputEvent from '../ImageEditorInputEvent';
 import ImageEdit from '../ImageEdit';
 
 export default abstract class ImageTool {
   isSelector: boolean = false;
   private _tileEditor: UIImageEditor;
-  private _event: ImageEditorEvent;
+  private _event: ImageEditorInputEvent;
   private _type: string;
   private _penDown: boolean = false;
 
-  penStart(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  penStart(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'penStart';
@@ -31,7 +31,7 @@ export default abstract class ImageTool {
     return edits;
   }
 
-  penDrag(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  penDrag(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'penDrag';
@@ -42,7 +42,7 @@ export default abstract class ImageTool {
     return edits;
   }
 
-  penStop(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  penStop(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'penStop';
@@ -54,7 +54,8 @@ export default abstract class ImageTool {
     return edits;
   }
 
-  start(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  start(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    console.log('start');
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'start';
@@ -65,7 +66,8 @@ export default abstract class ImageTool {
     return edits;
   }
 
-  drag(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  drag(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    console.log('drag');
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'drag';
@@ -95,7 +97,8 @@ export default abstract class ImageTool {
     return edits;
   }
 
-  stop(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  stop(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    console.log('stop');
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'stop';
@@ -114,7 +117,7 @@ export default abstract class ImageTool {
     return edits;
   }
 
-  enter(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  enter(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'enter';
@@ -125,7 +128,7 @@ export default abstract class ImageTool {
     return edits;
   }
 
-  exit(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  exit(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'exit';
@@ -136,7 +139,7 @@ export default abstract class ImageTool {
     return edits;
   }
 
-  wheel(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  wheel(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'wheel';
@@ -230,23 +233,23 @@ export default abstract class ImageTool {
     ctx.drawImage(tileEditor.brushSourceCanvas, bx, by);
   }
 
-  protected abstract onStart(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
+  protected abstract onStart(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onDrag(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
+  protected abstract onDrag(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onEnter(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
+  protected abstract onEnter(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onExit(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
+  protected abstract onExit(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onStop(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
+  protected abstract onStop(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onWheel(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
+  protected abstract onWheel(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onPenStart(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
+  protected abstract onPenStart(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onPenDrag(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
+  protected abstract onPenDrag(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onPenStop(tileEditor: UIImageEditor, event: ImageEditorEvent): ImageEdit[];
+  protected abstract onPenStop(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
   abstract onActivate(tileEditor: UIImageEditor): void;
 }

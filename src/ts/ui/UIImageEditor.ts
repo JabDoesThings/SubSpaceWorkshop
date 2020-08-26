@@ -19,7 +19,7 @@ import IconToolbarEventType from './tool/image_editor/toolbar/IconToolbarEventTy
 import ImageEdit from './tool/image_editor/ImageEdit';
 import ImageEditManager from './tool/image_editor/ImageEditManager';
 import ImageEditor from './tool/image_editor/ImageEditor';
-import ImageEditorEvent from './tool/image_editor/ImageEditorEvent';
+import ImageEditorInputEvent from './tool/image_editor/ImageEditorInputEvent';
 import ImageEditorEvents from './tool/image_editor/ImageEditorEvents';
 import ImageEditorEventType from './tool/image_editor/ImageEditorEventType';
 import ImageEditorWindow from './tool/image_editor/ImageEditorWindow';
@@ -47,7 +47,7 @@ export {
   ImageEdit,
   ImageEditManager,
   ImageEditor,
-  ImageEditorEvent,
+  ImageEditorInputEvent,
   ImageEditorEvents,
   ImageEditorEventType,
   ImageEditorWindow,

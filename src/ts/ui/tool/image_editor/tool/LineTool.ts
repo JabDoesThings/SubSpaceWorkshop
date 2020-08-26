@@ -2,7 +2,7 @@ import CircleBrush from '../brush/CircleBrush';
 import Brush from '../brush/Brush';
 import ImageTool from './ImageTool';
 import ImageEditor from '../ImageEditor';
-import ImageEditorEvent from '../ImageEditorEvent';
+import ImageEditorInputEvent from '../ImageEditorInputEvent';
 import ImageEdit from '../ImageEdit';
 
 export default class LineTool extends ImageTool {
@@ -24,7 +24,7 @@ export default class LineTool extends ImageTool {
   }
 
   /** @override */
-  protected onStart(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onStart(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     if (event.button === 1) {
       this.middleDown = true;
       this.fallback();
@@ -41,42 +41,42 @@ export default class LineTool extends ImageTool {
   }
 
   /** @override */
-  protected onDrag(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onDrag(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     return [];
   }
 
   /** @override */
-  protected onStop(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onStop(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     return [];
   }
 
   /** @override */
-  protected onEnter(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onEnter(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     return [];
   }
 
   /** @override */
-  protected onExit(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onExit(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     return [];
   }
 
   /** @override */
-  protected onWheel(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onWheel(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     return [];
   }
 
   /** @override */
-  protected onPenStart(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onPenStart(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     return [];
   }
 
   /** @override */
-  protected onPenDrag(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onPenDrag(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     return [];
   }
 
   /** @override */
-  protected onPenStop(imageEditor: ImageEditor, event: ImageEditorEvent): ImageEdit[] {
+  protected onPenStop(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     return [];
   }
 

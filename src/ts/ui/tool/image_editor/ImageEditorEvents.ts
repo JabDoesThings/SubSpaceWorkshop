@@ -1,4 +1,4 @@
-import ImageEditorEvent from './ImageEditorEvent';
+import ImageEditorInputEvent from './ImageEditorInputEvent';
 import TileEditor from '../../../editor/tileset/TileEditor';
 import ImageEditor from './ImageEditor';
 import ImageEditorEventType from './ImageEditorEventType';
@@ -10,7 +10,7 @@ import TriggeredEvent = JQuery.TriggeredEvent;
  * @author Jab
  */
 export default class ImageEditorEvents {
-  readonly mouseListeners: ((event: ImageEditorEvent) => void)[];
+  readonly mouseListeners: ((event: ImageEditorInputEvent) => void)[];
   pressureDeadZone: number[] = [0.05, 1];
 
   /**
@@ -36,13 +36,22 @@ export default class ImageEditorEvents {
         const type = penDown || e.pointerType === 'pen' ? ImageEditorEventType.PEN_UP : ImageEditorEventType.UP;
         penDown = false;
 
-        this.dispatch({data: {x: -999999, y: -999999, pressure: e.pressure}, type, button: e.button, e: e});
+        this.dispatch({
+          forced: true,
+          eventType: 'ImageEditorInputEvent',
+          data: {x: -999999, y: -999999, pressure: e.pressure},
+          type,
+          button: e.button,
+          e
+        });
       }
     };
 
     const pointerEnter = (e: any) => {
       e.stopPropagation();
       this.dispatch({
+        forced: true,
+        eventType: 'ImageEditorInputEvent',
         data: {x: e.offsetX, y: e.offsetY, pressure: e.originalEvent.pressure},
         type: ImageEditorEventType.ENTER,
         button: downButton,
@@ -53,6 +62,8 @@ export default class ImageEditorEvents {
     const pointerLeave = (e: TriggeredEvent<HTMLElement, undefined>) => {
       e.stopPropagation();
       this.dispatch({
+        forced: true,
+        eventType: 'ImageEditorInputEvent',
         data: {x: e.offsetX, y: e.offsetY, pressure: 0},
         type: ImageEditorEventType.EXIT,
         button: downButton,
@@ -92,6 +103,8 @@ export default class ImageEditorEvents {
       down = true;
       downButton = e.button;
       this.dispatch({
+        forced: true,
+        eventType: 'ImageEditorInputEvent',
         data: {x: e.offsetX, y: e.offsetY, pressure},
         type,
         button: e.button,
@@ -100,7 +113,7 @@ export default class ImageEditorEvents {
     };
 
     const pointerUp = (e: any) => {
-      if (down) {
+      if (!down) {
         return;
       }
 
@@ -119,6 +132,8 @@ export default class ImageEditorEvents {
       downButton = -999999;
 
       this.dispatch({
+        forced: true,
+        eventType: 'ImageEditorInputEvent',
         data: {x: e.offsetX, y: e.offsetY, pressure},
         type,
         button: e.button,
@@ -129,6 +144,10 @@ export default class ImageEditorEvents {
     const pointermove = (e: any) => {
       e.stopPropagation();
 
+      if (e.target !== canvas && e.target !== paneContainer) {
+        return;
+      }
+
       let type = down ? ImageEditorEventType.DRAG : ImageEditorEventType.HOVER;
       const origEvent = e.originalEvent;
       let pressure = origEvent.pressure;
@@ -138,6 +157,8 @@ export default class ImageEditorEvents {
           down = false;
           penDown = false;
           this.dispatch({
+            forced: true,
+            eventType: 'ImageEditorInputEvent',
             data: {x: e.offsetX, y: e.offsetY, pressure},
             type: ImageEditorEventType.PEN_UP,
             button: e.button,
@@ -148,6 +169,8 @@ export default class ImageEditorEvents {
 
         type = down ? ImageEditorEventType.PEN_DRAG : ImageEditorEventType.PEN_HOVER;
         this.dispatch({
+          forced: true,
+          eventType: 'ImageEditorInputEvent',
           data: {x: e.offsetX, y: e.offsetY, pressure},
           type,
           button: downButton,
@@ -157,6 +180,8 @@ export default class ImageEditorEvents {
       }
 
       this.dispatch({
+        forced: true,
+        eventType: 'ImageEditorInputEvent',
         data: {x: e.offsetX, y: e.offsetY, pressure},
         type,
         button: downButton,
@@ -171,6 +196,8 @@ export default class ImageEditorEvents {
       }
       const type = e.deltaY < 0 ? ImageEditorEventType.WHEEL_UP : ImageEditorEventType.WHEEL_DOWN;
       this.dispatch({
+        forced: true,
+        eventType: 'ImageEditorInputEvent',
         data: {
           x: e.offsetX,
           y: e.offsetY,
@@ -211,7 +238,7 @@ export default class ImageEditorEvents {
     $paneContainer.on('mousewheel', wheel);
   }
 
-  dispatch(event: ImageEditorEvent): void {
+  dispatch(event: ImageEditorInputEvent): void {
     if (this.mouseListeners.length != 0) {
       for (let index = 0; index < this.mouseListeners.length; index++) {
         this.mouseListeners[index](event);
@@ -219,7 +246,7 @@ export default class ImageEditorEvents {
     }
   }
 
-  addMouseListener(listener: (event: ImageEditorEvent) => void): void {
+  addMouseListener(listener: (event: ImageEditorInputEvent) => void): void {
     // Make sure that the renderer doesn't have the listener.
     if (this.hasMouseListener(listener)) {
       throw new Error('The mouse listener is already registered.');
@@ -227,7 +254,7 @@ export default class ImageEditorEvents {
     this.mouseListeners.push(listener);
   }
 
-  removeMouseListener(listener: (event: ImageEditorEvent) => void): void {
+  removeMouseListener(listener: (event: ImageEditorInputEvent) => void): void {
     // Make sure that the renderer has the listener.
     if (!this.hasMouseListener(listener)) {
       throw new Error('The mouse listener is not registered.');
@@ -237,7 +264,7 @@ export default class ImageEditorEvents {
       this.mouseListeners.pop();
       return;
     }
-    const toAdd: ((event: ImageEditorEvent) => void)[] = [];
+    const toAdd: ((event: ImageEditorInputEvent) => void)[] = [];
     // Go through each entry until the one to remove is found.
     while (true) {
       const next = this.mouseListeners.pop();
@@ -252,7 +279,7 @@ export default class ImageEditorEvents {
     }
   }
 
-  hasMouseListener(listener: (event: ImageEditorEvent) => void) {
+  hasMouseListener(listener: (event: ImageEditorInputEvent) => void) {
     for (let index = 0; index < this.mouseListeners.length; index++) {
       const next = this.mouseListeners[index];
       if (next === listener) {
