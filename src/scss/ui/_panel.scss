@@ -12,7 +12,7 @@ $panelWidth: 320px;
   margin-top: -1px;
   background-color: $color4;
   transition: all $panelTime;
-  cursor: unset;
+  cursor: default;
 
   .ui-panel-overflow-container {
     position: relative;

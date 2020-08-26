@@ -4,22 +4,16 @@ import type Dirtable from '../../util/Dirtable';
 import MapRenderer from '../../editor/render/MapRenderer';
 import Editor from '../../editor/Editor';
 import PathMode from '../../util/PathMode';
-import { HSVtoRGB, RGBtoHSV } from '../../util/ColorUtils';
 import { Vector2 } from 'three';
 import type Renderer from './Renderer';
+import { processTileColor } from '../../io/lvl/LVLTileSet';
 
-const hsv216 = RGBtoHSV(75, 50, 37);
-const hsv217 = RGBtoHSV(75, 50, 37);
-const hsv218 = RGBtoHSV(75, 50, 37);
-const hsv219 = RGBtoHSV(75, 75, 75);
-const hsv220 = RGBtoHSV(113, 0, 102);
-const hsvMisc = RGBtoHSV(238, 238, 238);
-const rgb216 = HSVtoRGB(hsv216.h, hsv216.s, hsv216.v < 0.5 ? 0.5 : hsv216.v);
-const rgb217 = HSVtoRGB(hsv217.h, hsv217.s, hsv217.v < 0.5 ? 0.5 : hsv217.v);
-const rgb218 = HSVtoRGB(hsv218.h, hsv218.s, hsv218.v < 0.5 ? 0.5 : hsv218.v);
-const rgb219 = HSVtoRGB(hsv219.h, hsv219.s, hsv219.v < 0.5 ? 0.5 : hsv219.v);
-const rgb220 = HSVtoRGB(hsv220.h, hsv220.s, hsv220.v < 0.5 ? 0.5 : hsv220.v);
-const rgbMisc = HSVtoRGB(hsvMisc.h, hsvMisc.s, hsvMisc.v < 0.5 ? 0.5 : hsvMisc.v);
+const rgb216 = processTileColor({r: 75, g: 50, b: 37});
+const rgb217 = processTileColor({r: 75, g: 50, b: 37});
+const rgb218 = processTileColor({r: 75, g: 50, b: 37});
+const rgb219 = processTileColor({r: 75, g: 75, b: 75});
+const rgb220 = processTileColor({r: 113, g: 0, b: 102});
+const rgbMisc = processTileColor({r: 238, g: 238, b: 238});
 
 /**
  * The <i>Radar</i> class. TODO: Document.

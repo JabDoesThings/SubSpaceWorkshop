@@ -5,6 +5,6 @@ import UIPopupAction from './UIPopupAction';
 export default interface UIPopupEvent extends CustomEvent {
   eventType: string;
   forced: boolean;
-  popup: UIPopup;
+  popup: UIPopup<UIPopupEvent>;
   action: UIPopupAction;
 }

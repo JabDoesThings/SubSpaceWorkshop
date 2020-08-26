@@ -1,0 +1,92 @@
+@import '../color';
+
+.ui-color-picker {
+  position: relative;
+  width: auto;
+  height: auto;
+  background-color: transparent;
+  z-index: 50;
+  box-shadow: 0 0 18px -2px black;
+  transform: none;
+
+  .ui-color-picker-wheel {
+    position: relative;
+    width: 128px;
+    height: 128px;
+    margin: 0;
+    background: -webkit-linear-gradient(top, #fff 0, rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0) 50%, #000 100%), -webkit-linear-gradient(left, gray 0, rgba(128, 128, 128, 0) 100%);
+    z-index: 3;
+    -webkit-user-drag: none;
+    cursor: pointer;
+
+    .cursor-position {
+      position: absolute;
+      top: 50%;
+      left: calc(100% - 1px);
+      width: 1px;
+      height: 1px;
+      user-select: none;
+      -webkit-user-drag: none;
+      z-index: 3;
+
+      .cursor {
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        width: 8px;
+        height: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.6);
+        background-color: white;
+        border-radius: 50%;
+        user-select: none;
+        -webkit-user-drag: none;
+        transition: all 100ms;
+        z-index: 3;
+      }
+
+      .cursor.focus {
+        top: -8px;
+        left: -8px;
+        width: 16px;
+        height: 16px;
+        transition: all 0ms;
+        box-shadow: 0 0 3px 3px rgba(0, 0, 0, 0.15);
+      }
+    }
+  }
+}
+
+.ui-color-picker-slider {
+  position: relative;
+  margin: 0;
+  width: 128px;
+  height: 16px;
+  vertical-align: center;
+  z-index: 2;
+  user-select: none;
+  -webkit-user-drag: none;
+  cursor: pointer;
+
+  background: -webkit-linear-gradient(left, #F00 0%, #FF0 16.66%, #0F0 33.33%, #0FF 50%, #00F 66.66%, #F0F 83.33%, #F00 100%);
+
+  .ui-color-picker-slide {
+    position: absolute;
+    left: 60px;
+    top: -1px;
+    width: 6px;
+    height: 16px;
+    border: 1px solid black;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, .5);
+    z-index: 3;
+    user-select: none;
+    -webkit-user-drag: none;
+    transition: all 100ms, border 100ms, border-radius 100ms;
+  }
+
+  .ui-color-picker-slide.focus {
+    box-shadow: 0 0 8px 3px rgba(0, 0, 0, 0.4);
+    transition: box-shadow 50ms, border 50ms, border-radius 50ms;
+    border-radius: 0;
+  }
+}

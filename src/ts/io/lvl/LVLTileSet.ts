@@ -1,6 +1,18 @@
 import Dirtable from '../../util/Dirtable';
-import { HSVtoRGB, RGBtoHSV } from '../../util/ColorUtils';
+import { asRGB255, asRGBFloat, HSL2RGB, RGB2HSL } from '../../util/ColorUtils';
 import { inTilesetRange, validateTileImage } from './LVLUtils';
+
+/**
+ * Prettifies tile colors by softening their luminosity.
+ *
+ * @param {r: color, g: color, b: color} color The RGB values as [0, 255]
+ *
+ * @return {r: color, g: color, b: color} Returns the processed RGB values as [0, 255]
+ */
+export const processTileColor = (color: { r: number, g: number, b: number }): { r: number, g: number, b: number } => {
+  const hsl = RGB2HSL(asRGBFloat(color));
+  return asRGB255(HSL2RGB({h: hsl.h, s: hsl.s, l: (hsl.l < 0.5 ? 0.5 : hsl.l)}));
+};
 
 /**
  * The <i>Tileset</i> class. TODO: Document.
@@ -87,8 +99,7 @@ export default class LVLTileSet implements Dirtable {
         }
         let finalColor;
         if (pixelCount !== 0) {
-          const hsv = RGBtoHSV(color[0], color[1], color[2]);
-          finalColor = HSVtoRGB(hsv.h, hsv.s, hsv.v < 0.25 ? 0.25 : hsv.v);
+          finalColor = processTileColor({r: color[0], g: color[1], b: color[2]});
         } else {
           finalColor = {r: 0, g: 0, b: 0};
         }
@@ -239,8 +250,7 @@ export default class LVLTileSet implements Dirtable {
         }
         let finalColor;
         if (pixelCount !== 0) {
-          const hsv = RGBtoHSV(color[0], color[1], color[2]);
-          finalColor = HSVtoRGB(hsv.h, hsv.s, hsv.v < 0.25 ? 0.25 : hsv.v);
+          finalColor = processTileColor({r: color[0], g: color[1], b: color[2]});
         } else {
           finalColor = {r: 0, g: 0, b: 0};
         }

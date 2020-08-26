@@ -1,11 +1,12 @@
 import Path from '../../util/Path';
+import { clampRGBA } from '../../util/ColorUtils';
 
 export default class PaletteColor {
+  color: string;
   r: number;
   g: number;
   b: number;
   a: number;
-  color: string;
 
   /**
    * @param {number} r
@@ -33,10 +34,11 @@ export default class PaletteColor {
     this.g = g;
     this.b = b;
     this.a = a;
-    this.clamp();
+    clampRGBA(this);
     this.compile();
   }
 
+  /** @return {r: number, g: number, b: number, a: number} Returns the color as 0-255 integer values. */
   get255(): { r: number, g: number, b: number, a: number } {
     return {
       r: Math.floor(this.r * 255.0),
@@ -46,21 +48,30 @@ export default class PaletteColor {
     };
   }
 
+  /**
+   *
+   * @param {number} r
+   * @param {number} g
+   * @param {number} b
+   * @param {number} a
+   */
   set255(r: number, g: number, b: number, a: number = 255): void {
     this.r = r / 255.0;
     this.g = g / 255.0;
     this.b = b / 255.0;
     this.a = a / 255.0;
-    this.clamp();
+    clampRGBA(this);
     this.compile();
   }
 
-  private compile(): void {
-    const _255 = this.get255();
-    this.color = `rgba(${_255.r},${_255.g},${_255.b},${this.a})`;
-  }
-
-  toString(alpha: number = null): string {
+  /**
+   * Converts the color to a CSS-formatted rgba() string.
+   *
+   * @param {number | null} alpha (Optional) Overrides the stored alpha value of the color.
+   *
+   * @return {string} Returns a CSS-formatted rgba() string of the color.
+   */
+  toString(alpha: number | null = null): string {
     if (alpha == null) {
       alpha = this.a;
     }
@@ -88,26 +99,8 @@ export default class PaletteColor {
     return new PaletteColor(r, g, b, a);
   }
 
-  private clamp() {
-    if (this.r > 1) {
-      this.r = 1;
-    } else if (this.r < 0) {
-      this.r = 0;
-    }
-    if (this.g > 1) {
-      this.g = 1;
-    } else if (this.g < 0) {
-      this.g = 0;
-    }
-    if (this.b > 1) {
-      this.b = 1;
-    } else if (this.b < 0) {
-      this.b = 0;
-    }
-    if (this.a > 1) {
-      this.a = 1;
-    } else if (this.a < 0) {
-      this.a = 0;
-    }
+  private compile(): void {
+    const _255 = this.get255();
+    this.color = `rgba(${_255.r},${_255.g},${_255.b},${this.a})`;
   }
 }

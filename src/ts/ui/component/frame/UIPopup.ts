@@ -1,15 +1,17 @@
 import CustomEventListener from '../../CustomEventListener';
-import UIPopupEvent from './UIPopupEvent';
+import CustomEvent from '../../CustomEvent';
 
-export default class UIPopup extends CustomEventListener<UIPopupEvent> {
+export default class UIPopup<E extends CustomEvent> extends CustomEventListener<E> {
   readonly id: string;
   readonly element: HTMLElement;
   readonly $element: JQuery;
   readonly content: HTMLElement;
   side: 'top' | 'bottom' | 'left' | 'right' | 'none' = 'none';
   theme: 'dark' | 'medium' | 'light';
-  private isOpen: boolean = false;
+  isOpen: boolean = false;
 
+  protected timeOpened: number = 0;
+  private timeClosed: number = 0;
   closeOnClickOutside: boolean = true;
 
   constructor(id: string, theme: 'dark' | 'medium' | 'light' = 'medium', element?: HTMLElement | null) {
@@ -25,32 +27,19 @@ export default class UIPopup extends CustomEventListener<UIPopupEvent> {
       this.element.appendChild(this.content);
     } else {
       this.element = element;
+      const find = element.getElementsByClassName('ui-popup-content');
+      if (find.length === 0) {
+        this.content = document.createElement('div');
+        this.content.classList.add('ui-popup-content');
+        this.element.appendChild(this.content);
+      } else {
+        this.content = <HTMLElement> find.item(0);
+      }
     }
     this.$element = $(this.element);
     document.body.appendChild(this.element);
 
-    this.$element.on('click', (event) => {
-      event.stopPropagation();
-    });
-
-    this.$element.on('pointerdown', (event) => {
-      event.stopPropagation();
-    });
-
-    const $wildcard = $('*');
-
-    const ctx = this;
-    $wildcard.on('click', function() {
-      if(ctx.closeOnClickOutside && !ctx.element.contains(this)) {
-        ctx.close(200);
-      }
-    });
-
-    $wildcard.on('pointerdown', function() {
-      if(ctx.closeOnClickOutside && !ctx.element.contains(this)) {
-        ctx.close(200);
-      }
-    });
+    this.registerOpenCloseEventListeners();
   }
 
   private position(
@@ -115,6 +104,11 @@ export default class UIPopup extends CustomEventListener<UIPopupEvent> {
       throw new Error(`fadeTimeMs can only be 0 or positive integer values. (${fadeTimeMs} given)`);
     }
 
+    // Make sure not to re-open the popup if it has just closed.
+    if (new Date().getTime() - this.timeClosed <= 300) {
+      return;
+    }
+
     if (position) {
       if (position instanceof HTMLElement) {
         const elm = position;
@@ -136,6 +130,7 @@ export default class UIPopup extends CustomEventListener<UIPopupEvent> {
       this.$element.show();
     }
 
+    this.timeOpened = new Date().getTime();
     this.isOpen = true;
   }
 
@@ -153,7 +148,48 @@ export default class UIPopup extends CustomEventListener<UIPopupEvent> {
       this.$element.hide();
     }
 
+    this.timeClosed = new Date().getTime();
     this.isOpen = false;
   }
 
+  canClose(): boolean {
+    return true;
+  }
+
+  protected registerOpenCloseEventListeners() {
+    this.$element.on('click', (event) => {
+      event.stopPropagation();
+    });
+
+    this.$element.on('pointerdown', (event) => {
+      event.stopPropagation();
+    });
+
+    const $wildcard = $('*');
+
+    const ctx = this;
+    $wildcard.on('click', function () {
+      if (!ctx.canClose()) {
+        console.log(`Can't close.`);
+        return;
+      }
+      if (ctx.closeOnClickOutside && !ctx.element.contains(this)) {
+        if (ctx.isOpen && new Date().getTime() - ctx.timeOpened > 300) {
+          ctx.close(200);
+        }
+      }
+    });
+
+    $wildcard.on('pointerdown', function () {
+      if (!ctx.canClose()) {
+        console.log(`Can't close.`);
+        return;
+      }
+      if (ctx.closeOnClickOutside && !ctx.element.contains(this)) {
+        if (ctx.isOpen && new Date().getTime() - ctx.timeOpened > 300) {
+          ctx.close(200);
+        }
+      }
+    });
+  }
 }

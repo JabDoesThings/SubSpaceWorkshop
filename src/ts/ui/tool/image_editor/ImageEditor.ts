@@ -16,6 +16,8 @@ import ImageEditSection from './edit/ImageEditSection';
 import BrushPanelSection from './panel/BrushPanelSection';
 import PalettePanelSection from './panel/PalettePanelSection';
 import ColorPanelSection from './panel/ColorPanelSection';
+import PaletteEvent from '../../util/PaletteEvent';
+import PaletteAction from '../../util/PaletteAction';
 
 export default class ImageEditor {
   static SCALES = [1, 2, 4, 8, 16];
@@ -56,6 +58,7 @@ export default class ImageEditor {
     if (!parentElement) {
       throw new Error('Parent element given is null or undefined.');
     }
+
     this.palette = new Palette();
 
     // This canvas will project the modified canvas.
@@ -126,9 +129,18 @@ export default class ImageEditor {
     paletteTab.add(colorPanelSection);
     paletteTab.add(palettePanelSection);
     paletteTab.add(brushPanelSection);
-    // const paletteSection = paletteTab.createSection('palette-section', 'Palette');
+
     this.rightPanel.add(paletteTab, 'Palette', true);
     this.parent.appendChild(this.rightPanel.element);
+
+    this.palette.addEventListener((event: PaletteEvent) => {
+      if (event.action === PaletteAction.SET_PRIMARY) {
+        if (this.brush) {
+          this.brush.renderMouse(this.brushSourceCanvas, this.palette, 'primary');
+        }
+        this.projectBrush();
+      }
+    });
   }
 
   /** @override */
@@ -364,10 +376,12 @@ export default class ImageEditor {
   }
 
   setBrush(brush: Brush) {
+    console.log(`setBrush(brush: ${brush})`);
     this.brush = brush;
   }
 
   projectBrush() {
+    console.log('projectBrush()');
     const scale = ImageEditor.SCALES[this.scaleIndex];
     const width = this.brushSourceCanvas.width * scale;
     const height = this.brushSourceCanvas.height * scale;

@@ -28,9 +28,11 @@ export default class CircleBrush extends Brush {
   }
 
   /** @override */
-  renderMouse(canvas: HTMLCanvasElement, palette: Palette, colorType: 'primary' | 'secondary'): void {
+  renderMouse(canvas: HTMLCanvasElement, palette: Palette, colorType: PaletteColor | 'primary' | 'secondary'): void {
     let color;
-    if (colorType === 'primary') {
+    if (colorType instanceof PaletteColor) {
+      color = colorType;
+    } else if (colorType === 'primary') {
       color = palette.primary;
     } else if (colorType === 'secondary') {
       color = palette.secondary;
@@ -39,7 +41,7 @@ export default class CircleBrush extends Brush {
   }
 
   /** @override */
-  renderPen(canvas: HTMLCanvasElement, palette: Palette, colorType: 'primary' | 'secondary', pressure: number): void {
+  renderPen(canvas: HTMLCanvasElement, palette: Palette, colorType: PaletteColor | 'primary' | 'secondary', pressure: number): void {
     const brushOptions = <CircleBrushOptions> this.options;
     const options: CircleBrushOptions = {
       size: brushOptions.size,
@@ -54,7 +56,9 @@ export default class CircleBrush extends Brush {
 
     // Pen color.
     let color;
-    if (colorType === 'primary') {
+    if (colorType instanceof PaletteColor) {
+      color = colorType;
+    } else if (colorType === 'primary') {
       if (this.colorPressure) {
         color = palette.secondary.lerp(palette.primary, pressure * pressure * pressure * pressure);
       } else {

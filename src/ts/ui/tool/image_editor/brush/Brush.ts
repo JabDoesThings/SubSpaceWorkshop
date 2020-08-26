@@ -1,5 +1,6 @@
 import Palette from '../../../util/Palette';
 import BrushOptions from './BrushOptions';
+import PaletteColor from '../../../util/PaletteColor';
 
 export default abstract class Brush {
   options: BrushOptions = {
@@ -23,7 +24,7 @@ export default abstract class Brush {
    * @param {Palette} palette
    * @param {'primary'|'secondary'} colorType
    */
-  abstract renderMouse(canvas: HTMLCanvasElement, palette: Palette, colorType: 'primary' | 'secondary'): void;
+  abstract renderMouse(canvas: HTMLCanvasElement, palette: Palette, colorType: PaletteColor | 'primary' | 'secondary'): void;
 
   /**
    * TODO: Document.
@@ -33,5 +34,5 @@ export default abstract class Brush {
    * @param {'primary'|'secondary'} colorType
    * @param {number} pressure
    */
-  abstract renderPen(canvas: HTMLCanvasElement, palette: Palette, colorType: 'primary' | 'secondary', pressure: number): void;
+  abstract renderPen(canvas: HTMLCanvasElement, palette: Palette, colorType: PaletteColor | 'primary' | 'secondary', pressure: number): void;
 }

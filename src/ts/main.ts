@@ -2,6 +2,7 @@ import Editor from './editor/Editor';
 import * as PIXI from "pixi.js";
 import { DEFAULT_ATLAS, DEFAULT_TEXTURES } from './editor/render/SubSpaceAtlas';
 import UIPopup from './ui/component/frame/UIPopup';
+import { colorPicker } from './ui/tool/color_picker/ColorPicker';
 
 // Entry Point from HTML.
 export let start = function () {
@@ -25,11 +26,7 @@ export let start = function () {
         setTimeout(() => {
           editor.tilesetEditor.editTiles();
 
-          const popup = new UIPopup('test', 'medium');
-          // @ts-ignore
-          window.popup = popup;
-
-          popup.open({top: 64, left: 64}, 'top', 200);
+          // colorPicker.open({top: 256, left: 256}, 'top', 200);
 
         }, 10);
       }, 1000);

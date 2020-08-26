@@ -1,5 +1,6 @@
 import SectionElement from './SectionElement';
 import Palette from '../../../../util/Palette';
+import { colorPicker } from '../../../color_picker/ColorPicker';
 
 export default class ColorSelection extends SectionElement {
   private readonly primaryElement: HTMLElement;
@@ -17,6 +18,21 @@ export default class ColorSelection extends SectionElement {
     this.element.classList.add('ui-color');
     this.element.appendChild(this.primaryElement);
     this.element.appendChild(this.secondaryElement);
+
+    $(this.primaryElement).on('click', () => {
+      colorPicker.pick(this.primaryElement, 'bottom', 200, palette.primary, (color => {
+        palette.setPrimary(color);
+        this.fromPalette();
+      }));
+    });
+
+    $(this.secondaryElement).on('click', () => {
+      colorPicker.pick(this.secondaryElement, 'bottom', 200, palette.secondary, (color => {
+        palette.setSecondary(color);
+        this.fromPalette();
+      }));
+    });
+
     this.fromPalette();
   }
 

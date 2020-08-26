@@ -1,6 +1,7 @@
 import Renderer from './Renderer';
 import MapMouseEventType from '../MapMouseEventType';
 import MapMouseEvent from '../MapMouseEvent';
+import { colorPicker } from '../../ui/tool/color_picker/ColorPicker';
 
 /**
  * The <i>RenderEvents</i> class. TODO: Document.
@@ -67,7 +68,11 @@ class RenderEvents {
       const sh = this.renderer.app.screen.height;
       const mapSpace = this.renderer.camera.toMapSpace(sx, sy, sw, sh);
 
-      this.dispatch({data: mapSpace, type: MapMouseEventType.DOWN, button: e.button, e: e});
+      if(colorPicker.isOpen) {
+        colorPicker.close(200);
+      }
+
+      this.dispatch({data: mapSpace, type: MapMouseEventType.DOWN, button: e.button, e});
     });
 
     this.renderer.app.view.addEventListener('pointerup', (e) => {
