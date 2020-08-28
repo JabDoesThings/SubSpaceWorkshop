@@ -14,6 +14,10 @@ import MapMouseEvent from '../../common/MapMouseEvent';
  * @author Jab
  */
 export default class LineTool extends DrawTool {
+  
+  constructor() {
+    super(true);
+  }
 
   /** @override */
   protected drawTile(project: Project, selection: Selection, event: MapMouseEvent, useActiveLayer: boolean): Edit[] {
