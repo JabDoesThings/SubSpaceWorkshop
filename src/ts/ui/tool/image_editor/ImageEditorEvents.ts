@@ -13,14 +13,12 @@ export default class ImageEditorEvents {
   readonly mouseListeners: ((event: ImageEditorInputEvent) => void)[];
   pressureDeadZone: number[] = [0.05, 1];
 
-  /**
-   * @param {TileEditor} imageEditor
-   */
+  /** @param {TileEditor} imageEditor */
   constructor(imageEditor: ImageEditor) {
-    const paneContainer = imageEditor.pane;
-    const canvas = imageEditor.projectedCanvas;
-    const $canvas = $(canvas);
+    const paneContainer = imageEditor.content;
+    const canvas = imageEditor.projectedDrawCanvas;
     const $paneContainer = $(paneContainer);
+    // const $canvas = $(canvas);
     this.mouseListeners = [];
 
     let penDown = false;
@@ -49,10 +47,14 @@ export default class ImageEditorEvents {
 
     const pointerEnter = (e: any) => {
       e.stopPropagation();
+      let coords = {x: e.offsetX, y: e.offsetY};
+      if (e.target === paneContainer) {
+        coords = imageEditor.camera.canvasToPaneCoordinates(coords.x, coords.y);
+      }
       this.dispatch({
         forced: true,
         eventType: 'ImageEditorInputEvent',
-        data: {x: e.offsetX, y: e.offsetY, pressure: e.originalEvent.pressure},
+        data: {x: coords.x, y: coords.y, pressure: e.originalEvent.pressure},
         type: ImageEditorEventType.ENTER,
         button: downButton,
         e: null,
@@ -61,10 +63,14 @@ export default class ImageEditorEvents {
 
     const pointerLeave = (e: TriggeredEvent<HTMLElement, undefined>) => {
       e.stopPropagation();
+      let coords = {x: e.offsetX, y: e.offsetY};
+      if (e.target === paneContainer) {
+        coords = imageEditor.camera.canvasToPaneCoordinates(coords.x, coords.y);
+      }
       this.dispatch({
         forced: true,
         eventType: 'ImageEditorInputEvent',
-        data: {x: e.offsetX, y: e.offsetY, pressure: 0},
+        data: {x: coords.x, y: coords.y, pressure: 0},
         type: ImageEditorEventType.EXIT,
         button: downButton,
         e: null,
@@ -87,6 +93,13 @@ export default class ImageEditorEvents {
 
       e.stopPropagation();
 
+      let coords = {x: e.offsetX, y: e.offsetY};
+      if (e.target === paneContainer) {
+        coords = imageEditor.camera.canvasToPaneCoordinates(coords.x, coords.y);
+      }
+
+      // console.log(`from: {x: ${e.offsetX}, y: ${e.offsetY}} to: {x: ${coords.x}, y: ${coords.y}}`);
+
       let type = ImageEditorEventType.DOWN;
       const origEvent = e.originalEvent;
       let pressure = origEvent.pressure;
@@ -105,7 +118,7 @@ export default class ImageEditorEvents {
       this.dispatch({
         forced: true,
         eventType: 'ImageEditorInputEvent',
-        data: {x: e.offsetX, y: e.offsetY, pressure},
+        data: {x: coords.x, y: coords.y, pressure},
         type,
         button: e.button,
         e: e
@@ -118,6 +131,11 @@ export default class ImageEditorEvents {
       }
 
       e.stopPropagation();
+
+      let coords = {x: e.offsetX, y: e.offsetY};
+      if (e.target === paneContainer) {
+        coords = imageEditor.camera.canvasToPaneCoordinates(coords.x, coords.y);
+      }
 
       const origEvent = e.originalEvent;
       let type = ImageEditorEventType.UP;
@@ -134,7 +152,7 @@ export default class ImageEditorEvents {
       this.dispatch({
         forced: true,
         eventType: 'ImageEditorInputEvent',
-        data: {x: e.offsetX, y: e.offsetY, pressure},
+        data: {x: coords.x, y: coords.y, pressure},
         type,
         button: e.button,
         e: e
@@ -142,11 +160,18 @@ export default class ImageEditorEvents {
     };
 
     const pointermove = (e: any) => {
-      e.stopPropagation();
-
       if (e.target !== canvas && e.target !== paneContainer) {
         return;
       }
+
+      e.stopPropagation();
+
+      let coords = {x: e.offsetX, y: e.offsetY};
+      if (e.target === paneContainer) {
+        coords = imageEditor.camera.canvasToPaneCoordinates(coords.x, coords.y);
+      }
+      // console.log(`from: {x: ${e.offsetX}, y: ${e.offsetY}} to: {x: ${coords.x}, y: ${coords.y}}`);
+
 
       let type = down ? ImageEditorEventType.DRAG : ImageEditorEventType.HOVER;
       const origEvent = e.originalEvent;
@@ -159,7 +184,7 @@ export default class ImageEditorEvents {
           this.dispatch({
             forced: true,
             eventType: 'ImageEditorInputEvent',
-            data: {x: e.offsetX, y: e.offsetY, pressure},
+            data: {x: coords.x, y: coords.y, pressure},
             type: ImageEditorEventType.PEN_UP,
             button: e.button,
             e: e
@@ -171,7 +196,7 @@ export default class ImageEditorEvents {
         this.dispatch({
           forced: true,
           eventType: 'ImageEditorInputEvent',
-          data: {x: e.offsetX, y: e.offsetY, pressure},
+          data: {x: coords.x, y: coords.y, pressure},
           type,
           button: downButton,
           e: e,
@@ -182,7 +207,7 @@ export default class ImageEditorEvents {
       this.dispatch({
         forced: true,
         eventType: 'ImageEditorInputEvent',
-        data: {x: e.offsetX, y: e.offsetY, pressure},
+        data: {x: coords.x, y: coords.y, pressure},
         type,
         button: downButton,
         e: e,
@@ -191,16 +216,22 @@ export default class ImageEditorEvents {
 
     const wheel = (e: any) => {
       e.stopPropagation();
-      if (e.target !== canvas && e.target !== imageEditor.pane) {
+      if (e.target !== canvas && e.target !== paneContainer) {
         return;
       }
+
+      let coords = {x: e.offsetX, y: e.offsetY};
+      if (e.target === paneContainer) {
+        coords = imageEditor.camera.canvasToPaneCoordinates(coords.x, coords.y);
+      }
+
       const type = e.deltaY < 0 ? ImageEditorEventType.WHEEL_UP : ImageEditorEventType.WHEEL_DOWN;
       this.dispatch({
         forced: true,
         eventType: 'ImageEditorInputEvent',
         data: {
-          x: e.offsetX,
-          y: e.offsetY,
+          x: coords.x,
+          y: coords.y,
           pressure: 0
         },
         type: type,
@@ -225,17 +256,23 @@ export default class ImageEditorEvents {
     // $canvas.on('touchend', touchend);
 
     window.addEventListener('pointerup', pointerup);
-    $canvas.on('pointermove', pointermove);
-    $canvas.on('mousewheel', wheel);
-    $canvas.on('pointerleave', pointerLeave);
-    $canvas.on('pointerenter', pointerEnter);
-    $canvas.on('pointerdown', pointerDown);
-    $canvas.on('pointerup', pointerUp);
+    // $canvas.on('pointermove', pointermove);
+    // $canvas.on('mousewheel', wheel);
+    // $canvas.on('pointerleave', pointerLeave);
+    // $canvas.on('pointerenter', pointerEnter);
+    // $canvas.on('pointerdown', pointerDown);
+    // $canvas.on('pointerup', pointerUp);
+    // $paneContainer.on('pointerdown', pointerDown);
+    // $paneContainer.on('pointermove', pointermove);
+    // $paneContainer.on('pointerup', pointerUp);
+    // $paneContainer.on('mousewheel', wheel);
 
-    $paneContainer.on('pointerdown', pointerDown);
     $paneContainer.on('pointermove', pointermove);
-    $paneContainer.on('pointerup', pointerUp);
     $paneContainer.on('mousewheel', wheel);
+    $paneContainer.on('pointerleave', pointerLeave);
+    $paneContainer.on('pointerenter', pointerEnter);
+    $paneContainer.on('pointerdown', pointerDown);
+    $paneContainer.on('pointerup', pointerUp);
   }
 
   dispatch(event: ImageEditorInputEvent): void {

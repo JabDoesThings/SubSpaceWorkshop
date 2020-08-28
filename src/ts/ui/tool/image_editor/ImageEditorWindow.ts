@@ -7,6 +7,11 @@ import ImageEditorEvent from './ImageEditorEvent';
 import ImageEditorAction from './ImageEditorAction';
 import KeyDownEvent = JQuery.KeyDownEvent;
 
+/**
+ * The <i>ImageEditorWindow</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class ImageEditorWindow extends UIInnerWindow {
 
   imageEditor: ImageEditor;
@@ -55,10 +60,10 @@ export default class ImageEditorWindow extends UIInnerWindow {
     this.menuBar.addItem(this.undoIcon);
     this.menuBar.addItem(this.redoIcon);
 
-    this.uiImageEditorElement = document.createElement('div');
-    this.uiImageEditorElement.classList.add('ui-image-editor');
-    this.content.appendChild(this.uiImageEditorElement);
-    this.imageEditor = new ImageEditor(this.uiImageEditorElement);
+    // this.uiImageEditorElement = document.createElement('div');
+    // this.uiImageEditorElement.classList.add('ui-image-editor');
+    // this.content.appendChild(this.uiImageEditorElement);
+    this.imageEditor = new ImageEditor(this.content);
     this.imageEditor.init();
 
     this.openIcon.addEventListener((event: UIMenuBarItemEvent) => {
@@ -158,6 +163,7 @@ export default class ImageEditorWindow extends UIInnerWindow {
     // Content.
     const content = document.createElement('div');
     content.classList.add('content');
+    content.style.padding = '0 0 0 0';
     // Main window.
     const innerWindow = document.createElement('div');
     innerWindow.id = id;

@@ -22,6 +22,11 @@ const html = '<div id="color-picker" class="ui-popup medium bottom">\n' +
   '    </div>\n' +
   '</div>';
 
+/**
+ * The <i>ColorPicker</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class ColorPicker extends UIPopup<ColorPickerEvent> {
   color: PaletteColor;
   private wheel: HTMLElement;

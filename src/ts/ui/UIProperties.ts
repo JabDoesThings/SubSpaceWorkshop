@@ -68,6 +68,8 @@ export enum TabOrientation {
  * @author Jab
  */
 export enum TabPanelAction {
+  OPEN = 'open',
+  CLOSE = 'close',
   SORT = 'sort',
   ADD = 'add',
   REMOVE = 'remove',

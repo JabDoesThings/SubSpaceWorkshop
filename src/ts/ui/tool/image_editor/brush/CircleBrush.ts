@@ -6,6 +6,11 @@ import CircleBrushOptions from './CircleBrushOptions';
 
 const arcLength = Math.PI * 2;
 
+/**
+ * The <i>CircleBrush</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class CircleBrush extends Brush {
   // Pen pressure fields.
   hardnessPressure: boolean = true;

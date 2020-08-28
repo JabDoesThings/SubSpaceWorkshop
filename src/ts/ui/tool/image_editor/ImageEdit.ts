@@ -1,5 +1,10 @@
 import ImageEditManager from './ImageEditManager';
 
+/**
+ * The <i>ImageEdit</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default abstract class ImageEdit {
   private done: boolean = false;
 

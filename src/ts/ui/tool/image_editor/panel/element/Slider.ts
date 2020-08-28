@@ -11,6 +11,11 @@ function clamp(value: number, min: number = 0, max: number = 1): number {
   return value;
 }
 
+/**
+ * The <i>Slider</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class Slider extends SectionElement {
   private _value: number = 50;
   private _valueLast: number = 50;

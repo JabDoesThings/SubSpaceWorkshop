@@ -3,6 +3,7 @@ import * as PIXI from "pixi.js";
 import { DEFAULT_ATLAS, DEFAULT_TEXTURES } from './editor/render/SubSpaceAtlas';
 import UIPopup from './ui/component/frame/UIPopup';
 import { colorPicker } from './ui/tool/color_picker/ColorPicker';
+import UIPanelFrame from './ui/component/frame/UIPanelFrame';
 
 // Entry Point from HTML.
 export let start = function () {
@@ -17,20 +18,20 @@ export let start = function () {
   loader.add(DEFAULT_TEXTURES);
 
   const init = () => {
+  setTimeout(() => {
+  console.debug('Starting Editor');
+  const editor = new Editor();
+  editor.new();
+  setTimeout(() => {
+    editor.tilesetEditor.open();
     setTimeout(() => {
-      console.debug('Starting Editor');
-      const editor = new Editor();
-      editor.new();
-      setTimeout(() => {
-        editor.tilesetEditor.open();
-        setTimeout(() => {
-          editor.tilesetEditor.editTiles();
+      editor.tilesetEditor.editTiles();
 
-          // colorPicker.open({top: 256, left: 256}, 'top', 200);
+      // colorPicker.open({top: 256, left: 256}, 'top', 200);
 
-        }, 10);
-      }, 1000);
     }, 10);
+  }, 1000);
+  }, 10);
   };
 
   console.debug('Loading textures..');
@@ -40,4 +41,11 @@ export let start = function () {
   });
 
   loader.load();
+
+  // const panelFrame = new UIPanelFrame();
+  // document.body.appendChild(panelFrame.element);
+  // panelFrame.panelLeft.createPanel('test', 'Test');
+  // panelFrame.panelRight.createPanel('test', 'Test');
+  // panelFrame.panelLeft.open();
+  // panelFrame.panelRight.open();
 };

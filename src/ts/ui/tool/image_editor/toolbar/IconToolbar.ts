@@ -3,6 +3,11 @@ import IconToolbarEvent from './IconToolbarEvent';
 import IconToolbarEventType from './IconToolbarEventType';
 import IconTool from './IconTool';
 
+/**
+ * The <i>IconToolbar</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class IconToolbar extends CustomEventListener<IconToolbarEvent> {
   private readonly tools: { [id: string]: IconTool } = {};
   private element: HTMLElement;

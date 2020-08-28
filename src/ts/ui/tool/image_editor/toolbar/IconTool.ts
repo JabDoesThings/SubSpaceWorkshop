@@ -1,6 +1,11 @@
 import IconToolbar from './IconToolbar';
 import MouseDownEvent = JQuery.MouseDownEvent;
 
+/**
+ * The <i>IconTool</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class IconTool {
   readonly id: string;
   private readonly toolbar: IconToolbar;

@@ -58,10 +58,12 @@ export default class ImageEditManager {
     }
 
     this.imageEditor.dispatch(<ImageEditorEvent> {
-      forced: false,
+      forced: true,
       eventType: 'ImageEditorEvent',
       action: ImageEditorAction.EDIT
     });
+
+    this.imageEditor.renderer.clearDraw();
   }
 
   clear(): void {

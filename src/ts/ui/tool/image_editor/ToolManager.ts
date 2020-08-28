@@ -4,19 +4,25 @@ import ImageEditorInputEvent from './ImageEditorInputEvent';
 import ImageEditorEventType from './ImageEditorEventType';
 import ImageTool from './tool/ImageTool';
 
+/**
+ * The <i>ToolManager</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class ToolManager {
   private readonly tools: { [id: string]: ImageTool } = {};
   private readonly editor: UIImageEditor;
   private active: string = null;
   private fallback: string = null;
 
-  /**
-   * @param {UIImageEditor} editor
-   */
+  /** @param {UIImageEditor} editor */
   constructor(editor: UIImageEditor) {
     this.editor = editor;
-
     let downTool: ImageTool;
+
+    const test = (target: HTMLElement): boolean => {
+      return target === editor.projectedCanvas || target === editor.content;
+    };
 
     editor.events.addMouseListener((event: ImageEditorInputEvent) => {
       let edits: ImageEdit[];
@@ -24,10 +30,9 @@ export default class ToolManager {
       let reset = false;
 
       downTool = this.getActive();
-      const target = event.e ? event.e.target : null;
-      if (event.type !== ImageEditorEventType.EXIT && event.type !== ImageEditorEventType.ENTER && target !== editor.projectedCanvas) {
-        downTool = this.tools[this.fallback];
-      }
+      // const target = event.e ? event.e.target : null;
+      // if (event.type !== ImageEditorEventType.EXIT && event.type !== ImageEditorEventType.ENTER /*&& target !==
+      // editor.projectedCanvas*/) { downTool = this.tools[this.fallback]; }
       if (downTool == null) {
         return;
       }

@@ -6,6 +6,11 @@ import CircleBrush from '../brush/CircleBrush';
 import ImageEditor from '../ImageEditor';
 import CircleBrushOptions from '../brush/CircleBrushOptions';
 
+/**
+ * The <i>BrushPanelSection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class BrushPanelSection extends EditorPanelSection {
   private readonly brush: CircleBrush;
 
@@ -24,7 +29,7 @@ export default class BrushPanelSection extends EditorPanelSection {
       if (event.action === SliderAction.VALUE_CHANGE) {
         brush.options.size = event.data.value;
         brush.renderMouse(imageEditor.brushSourceCanvas, imageEditor.palette, 'primary');
-        imageEditor.projectBrush();
+        imageEditor.camera.projectBrush();
       }
     });
 
@@ -32,7 +37,7 @@ export default class BrushPanelSection extends EditorPanelSection {
       if (event.action === SliderAction.VALUE_CHANGE) {
         (<CircleBrushOptions> brush.options).hardness = event.element.floatValue;
         brush.renderMouse(imageEditor.brushSourceCanvas, imageEditor.palette, 'primary');
-        imageEditor.projectBrush();
+        imageEditor.camera.projectBrush();
       }
     });
 
@@ -41,7 +46,7 @@ export default class BrushPanelSection extends EditorPanelSection {
         imageEditor.drawSourceCtx.globalAlpha = event.element.floatValue;
         brush.options.opacity = event.element.floatValue;
         brush.renderMouse(imageEditor.brushSourceCanvas, imageEditor.palette, 'primary');
-        imageEditor.projectBrush();
+        imageEditor.camera.projectBrush();
       }
     });
 

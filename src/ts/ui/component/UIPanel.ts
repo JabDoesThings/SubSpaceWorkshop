@@ -348,6 +348,13 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
       this.element.classList.add('open');
     }
     this.element.style.width = `${this.width}px`;
+
+    this.dispatch(<UIPanelEvent> {
+      forced: true,
+      eventType: 'UIPanelEvent',
+      tabPanel: null,
+      action: TabPanelAction.OPEN
+    });
   }
 
   close(): void {
@@ -358,6 +365,12 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
       this.element.classList.remove('open');
     }
     this.element.style.width = '0';
+    this.dispatch(<UIPanelEvent> {
+      forced: true,
+      eventType: 'UIPanelEvent',
+      tabPanel: null,
+      action: TabPanelAction.CLOSE
+    });
   }
 }
 

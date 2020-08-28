@@ -1,11 +1,11 @@
+import ImageEdit from '../ImageEdit';
+import ImageEditManager from '../ImageEditManager';
+
 /**
  * The <i>TileEditSection</i> class. TODO: Document.
  *
  * @author Jab
  */
-import ImageEdit from '../ImageEdit';
-import ImageEditManager from '../ImageEditManager';
-
 export default class ImageEditSection extends ImageEdit {
   private readonly before: ImageData;
   private readonly after: ImageData;
@@ -13,8 +13,6 @@ export default class ImageEditSection extends ImageEdit {
   private readonly y: number;
 
   /**
-   * @constructor
-   *
    * @param {ImageData} before
    * @param {ImageData} after
    * @param {number} x
@@ -32,13 +30,13 @@ export default class ImageEditSection extends ImageEdit {
   onDo(editManager: ImageEditManager): void {
     const tileEditor = editManager.imageEditor;
     tileEditor.modifiedCtx.putImageData(this.after, this.x, this.y);
-    tileEditor.project();
+    tileEditor.renderer.render();
   }
 
   /** @override */
   onUndo(editManager: ImageEditManager): void {
     const tileEditor = editManager.imageEditor;
     tileEditor.modifiedCtx.putImageData(this.before, this.x, this.y);
-    tileEditor.project();
+    tileEditor.renderer.render();
   }
 }

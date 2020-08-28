@@ -2,6 +2,11 @@ import Palette from '../../../util/Palette';
 import BrushOptions from './BrushOptions';
 import PaletteColor from '../../../util/PaletteColor';
 
+/**
+ * The <i>Brush</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default abstract class Brush {
   options: BrushOptions = {
     size: 8,

@@ -5,6 +5,11 @@ import ImageEditor from '../ImageEditor';
 import ImageEdit from '../ImageEdit';
 import ImageEditorInputEvent from '../ImageEditorInputEvent';
 
+/**
+ * The <i>BrushTool</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class BrushTool extends ImageTool {
   brush: CircleBrush;
   private readonly _pressures: number[] = [];
@@ -19,16 +24,19 @@ export default class BrushTool extends ImageTool {
   }
 
   /** @override */
-  onActivate(imageEditor: ImageEditor): void {
-    imageEditor.setCursor('none');
-    imageEditor.brush = this.brush;
-    this.brush.renderMouse(imageEditor.brushSourceCanvas, imageEditor.palette, 'primary');
-    imageEditor.projectBrush();
+  onActivate(editor: ImageEditor): void {
+    // imageEditor.setCursor('none');
+    editor.brush = this.brush;
+    editor.showBrush();
+    this.brush.renderMouse(editor.brushSourceCanvas, editor.palette, 'primary');
+    editor.camera.projectBrush();
+
   }
 
   /** @override */
-  protected onStart(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  protected onStart(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     if (event.button === 1) {
+      editor.setCursor('move');
       this.middleDown = true;
       this.fallback();
       return;
@@ -36,17 +44,16 @@ export default class BrushTool extends ImageTool {
 
     const type = event.button === 0 ? 'primary' : 'secondary';
 
-    this.down = imageEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
+    this.down = editor.camera.asPixelCoordinates(event.data.x, event.data.y);
     this.last = {x: this.down.x, y: this.down.y};
 
-    this.brush.renderMouse(imageEditor.brushSourceCanvas, imageEditor.palette, type);
-    this.draw(imageEditor, this.down.x, this.down.y);
-
+    this.brush.renderMouse(editor.brushSourceCanvas, editor.palette, type);
+    this.draw(editor, this.down.x, this.down.y);
     return null;
   }
 
   /** @override */
-  protected onStop(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  protected onStop(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     if (event.button === 1) {
       this.middleDown = false;
       this.fallback();
@@ -55,27 +62,28 @@ export default class BrushTool extends ImageTool {
     this.last = null;
     this.down = null;
     this.penDown = null;
-    const edits = [imageEditor.applyDraw(true)];
-    imageEditor.clearDraw();
+    const edits = [editor.applyDraw(true)];
     return edits;
   }
 
   /** @override */
-  protected onDrag(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  protected onDrag(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     if (this.middleDown) {
       this.fallback();
       return;
     }
 
-    const c = imageEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
-    if (c.x === this.last.x && c.y === this.last.y) {
+    const c = editor.camera.asPixelCoordinates(event.data.x, event.data.y);
+    if (this.last == null) {
+      this.last = {x: c.x, y: c.y};
+    } else if (c.x === this.last.x && c.y === this.last.y) {
       return;
     }
 
     const type = event.button === 0 ? 'primary' : 'secondary';
 
-    this.drawAsLine(imageEditor, this.last.x, this.last.y, c.x, c.y, imageEditor.palette, type, null, 1);
-    imageEditor.projectDraw();
+    this.drawAsLine(editor, this.last.x, this.last.y, c.x, c.y, editor.palette, type, null, 1);
+    editor.camera.projectDraw();
 
     this.last.x = c.x;
     this.last.y = c.y;
@@ -83,25 +91,28 @@ export default class BrushTool extends ImageTool {
   }
 
   /** @override */
-  protected onEnter(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  protected onEnter(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    editor.showBrush();
     return null;
   }
 
   /** @override */
-  protected onExit(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  protected onExit(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    this.last = null;
+    editor.hideBrush();
     return null;
   }
 
   /** @override */
-  protected onWheel(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  protected onWheel(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     this.fallback();
     return null;
   }
 
   /** @override */
-  protected onPenStart(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  protected onPenStart(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     const type = event.button === 0 ? 'primary' : 'secondary';
-    const c = imageEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
+    const c = editor.camera.asPixelCoordinates(event.e.offsetX, event.e.offsetY);
     this.down = {x: c.x, y: c.y};
     this.last = {x: c.x, y: c.y};
 
@@ -113,23 +124,23 @@ export default class BrushTool extends ImageTool {
       this.clearAveragePressure();
     }
 
-    this.brush.renderPen(imageEditor.brushSourceCanvas, imageEditor.palette, type, pressure);
-    this.draw(imageEditor, c.x, c.y);
-    imageEditor.projectDraw();
+    this.brush.renderPen(editor.brushSourceCanvas, editor.palette, type, pressure);
+    this.draw(editor, c.x, c.y);
+    editor.camera.projectDraw();
     return;
   }
 
   /** @override */
-  protected onPenDrag(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
-    const c = imageEditor.toPixelCoordinates(event.e.offsetX, event.e.offsetY);
+  protected onPenDrag(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    const c = editor.camera.asPixelCoordinates(event.e.offsetX, event.e.offsetY);
     if (c.x === this.last.x && c.y === this.last.y) {
       return;
     }
 
     const type = event.button === 0 ? 'primary' : 'secondary';
     const pressure = event.data.pressure;
-    this.drawAsLine(imageEditor, this.last.x, this.last.y, c.x, c.y, imageEditor.palette, type, true, pressure);
-    imageEditor.projectDraw();
+    this.drawAsLine(editor, this.last.x, this.last.y, c.x, c.y, editor.palette, type, true, pressure);
+    editor.camera.projectDraw();
 
     this.clearAveragePressure();
 
@@ -139,16 +150,15 @@ export default class BrushTool extends ImageTool {
   }
 
   /** @override */
-  protected onPenStop(imageEditor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  protected onPenStop(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     this.last = null;
     this.down = null;
     this.penDown = null;
 
-    const edits = [imageEditor.applyDraw(true)];
-    imageEditor.clearDraw();
+    const edits = [editor.applyDraw(true)];
 
     const type = event.button === 0 ? 'primary' : 'secondary';
-    this.brush.renderMouse(imageEditor.brushSourceCanvas, imageEditor.palette, type);
+    this.brush.renderMouse(editor.brushSourceCanvas, editor.palette, type);
 
     return edits;
   }

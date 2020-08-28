@@ -3,6 +3,11 @@ import Palette from '../../../util/Palette';
 import PaletteSelection from './element/PaletteSelection';
 import ColorSelection from './element/ColorSelection';
 
+/**
+ * The <i>ColorPanelSection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class ColorPanelSection extends EditorPanelSection {
   private palette: Palette;
 

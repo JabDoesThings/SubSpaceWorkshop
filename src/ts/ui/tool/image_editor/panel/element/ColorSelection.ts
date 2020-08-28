@@ -2,11 +2,17 @@ import SectionElement from './SectionElement';
 import Palette from '../../../../util/Palette';
 import { colorPicker } from '../../../color_picker/ColorPicker';
 
+/**
+ * The <i>ColorSelection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class ColorSelection extends SectionElement {
   private readonly primaryElement: HTMLElement;
   private readonly secondaryElement: HTMLElement;
   private readonly palette: Palette;
 
+  /** @param {Palette} palette */
   constructor(palette: Palette) {
     super('tile-editor-color-selection');
     this.palette = palette;

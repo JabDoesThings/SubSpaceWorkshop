@@ -1,6 +1,11 @@
 import SectionElement from './SectionElement';
 import Palette from '../../../../util/Palette';
 
+/**
+ * The <i>PaletteSelection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class PaletteSelection extends SectionElement {
   private readonly colors: HTMLElement[] = [];
   private readonly palette: Palette;

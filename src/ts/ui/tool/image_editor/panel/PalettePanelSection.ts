@@ -2,6 +2,11 @@ import EditorPanelSection from './EditorPanelSection';
 import Palette from '../../../util/Palette';
 import PaletteSelection from './element/PaletteSelection';
 
+/**
+ * The <i>PalettePanelSection</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default class PalettePanelSection extends EditorPanelSection {
   private palette: Palette;
 

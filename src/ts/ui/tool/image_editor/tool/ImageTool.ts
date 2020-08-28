@@ -5,6 +5,11 @@ import UIImageEditor from '../ImageEditor';
 import ImageEditorInputEvent from '../ImageEditorInputEvent';
 import ImageEdit from '../ImageEdit';
 
+/**
+ * The <i>ImageTool</i> class. TODO: Document.
+ *
+ * @author Jab
+ */
 export default abstract class ImageTool {
   isSelector: boolean = false;
   private _tileEditor: UIImageEditor;
@@ -55,7 +60,7 @@ export default abstract class ImageTool {
   }
 
   start(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
-    console.log('start');
+    // console.log('start');
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'start';
@@ -67,7 +72,7 @@ export default abstract class ImageTool {
   }
 
   drag(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
-    console.log('drag');
+    // console.log('drag');
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'drag';
@@ -98,7 +103,7 @@ export default abstract class ImageTool {
   }
 
   stop(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
-    console.log('stop');
+    // console.log('stop');
     this._tileEditor = tileEditor;
     this._event = event;
     this._type = 'stop';
@@ -208,7 +213,7 @@ export default abstract class ImageTool {
       this.draw(editor, x1, y1);
       return;
     }
-    const scale = UIImageEditor.SCALES[editor.scaleIndex];
+    const scale = editor.camera.getScale();
     const a = x1 - x2;
     const b = y1 - y2;
     const distance = Math.ceil(Math.sqrt(a * a + b * b) / (scale / 2));
