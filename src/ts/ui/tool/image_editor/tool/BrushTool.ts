@@ -111,6 +111,7 @@ export default class BrushTool extends ImageTool {
 
   /** @override */
   protected onPenStart(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    // console.log('penStart');
     const type = event.button === 0 ? 'primary' : 'secondary';
     const c = editor.camera.asPixelCoordinates(event.data.x, event.data.y);
     this.down = {x: c.x, y: c.y};
@@ -132,8 +133,13 @@ export default class BrushTool extends ImageTool {
 
   /** @override */
   protected onPenDrag(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    // console.log('penDrag');
     const c = editor.camera.asPixelCoordinates(event.data.x, event.data.y);
-    if (c.x === this.last.x && c.y === this.last.y) {
+    if (!this.last || (c.x === this.last.x && c.y === this.last.y)) {
+      this.last = {
+        x: c.x,
+        y: c.y
+      };
       return;
     }
 
@@ -151,6 +157,8 @@ export default class BrushTool extends ImageTool {
 
   /** @override */
   protected onPenStop(editor: ImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    // console.log('penStop');
+
     this.last = null;
     this.down = null;
     this.penDown = null;
