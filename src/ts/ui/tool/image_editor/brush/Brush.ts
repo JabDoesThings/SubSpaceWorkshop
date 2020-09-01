@@ -40,4 +40,18 @@ export default abstract class Brush {
    * @param {number} pressure
    */
   abstract renderPen(canvas: HTMLCanvasElement, palette: Palette, colorType: PaletteColor | 'primary' | 'secondary', pressure: number): void;
+
+  static getColor(palette: Palette, colorType: PaletteColor | 'primary' | 'secondary'): PaletteColor {
+    let color: PaletteColor;
+    if (colorType instanceof PaletteColor) {
+      color = colorType;
+    } else {
+      if (colorType === 'primary') {
+        color = palette.primary;
+      } else {
+        color = palette.secondary;
+      }
+    }
+    return color;
+  }
 }

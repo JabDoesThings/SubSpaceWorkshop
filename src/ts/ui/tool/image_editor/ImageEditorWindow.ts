@@ -5,7 +5,9 @@ import UIMenuBarItemAction from '../../component/UIMenuBarItemAction';
 import UIInnerWindow from '../../component/frame/UIInnerWindow';
 import ImageEditorEvent from './ImageEditorEvent';
 import ImageEditorAction from './ImageEditorAction';
+import { Anchor } from '../../UIProperties';
 import KeyDownEvent = JQuery.KeyDownEvent;
+import WindowDimensions from '../../component/frame/WindowDimensions';
 
 /**
  * The <i>ImageEditorWindow</i> class. TODO: Document.
@@ -15,7 +17,6 @@ import KeyDownEvent = JQuery.KeyDownEvent;
 export default class ImageEditorWindow extends UIInnerWindow {
 
   imageEditor: ImageEditor;
-  private uiImageEditorElement: HTMLDivElement;
   private openIcon: UIMenuBarItem;
   private saveIcon: UIMenuBarItem;
   private undoIcon: UIMenuBarItem;
@@ -45,7 +46,22 @@ export default class ImageEditorWindow extends UIInnerWindow {
     } else {
       element = elementOrId;
     }
-    super(element);
+    super(element, {
+      canClose: true,
+      canResize: true,
+      canMinimize: false,
+      dimensions: new WindowDimensions({
+          x: 0,
+          y: 0,
+          width: 800,
+          height: 600
+        },
+        {
+          width: 400,
+          height: 300
+        }),
+      anchor: Anchor.CENTER
+    });
   }
 
   /** @override */
@@ -60,11 +76,7 @@ export default class ImageEditorWindow extends UIInnerWindow {
     this.menuBar.addItem(this.undoIcon);
     this.menuBar.addItem(this.redoIcon);
 
-    // this.uiImageEditorElement = document.createElement('div');
-    // this.uiImageEditorElement.classList.add('ui-image-editor');
-    // this.content.appendChild(this.uiImageEditorElement);
     this.imageEditor = new ImageEditor(this.content);
-    this.imageEditor.init();
 
     this.openIcon.addEventListener((event: UIMenuBarItemEvent) => {
       // TODO: Implement open image dialog. -Jab
@@ -73,7 +85,7 @@ export default class ImageEditorWindow extends UIInnerWindow {
     this.saveIcon.addEventListener((event: UIMenuBarItemEvent) => {
       if (event.action === UIMenuBarItemAction.CLICK) {
         this.imageEditor.save();
-        this.close();
+        this.close(false);
       }
     });
 
@@ -112,15 +124,36 @@ export default class ImageEditorWindow extends UIInnerWindow {
         }
       }
     });
+
+    // Keep the resize pane sized for the editor window.
+    this.resizePane.style.height = 'calc(100% + 4px)';
+  }
+
+  loop(): void {
+    let f: () => void;
+    f = () => {
+      setTimeout(() => {
+        if (this.enabled) {
+          this.imageEditor.updateFrame();
+          f();
+        }
+      }, 20);
+    };
+    f();
   }
 
   /** @override */
   onOpen(): void {
+    this.loop();
   }
 
   /** @override */
-  onClose(): void {
+  onClose(buttonPressed: boolean): void {
     this._checkUndoRedo();
+    if (buttonPressed) {
+      this.imageEditor.cancel();
+      this.imageEditor.editManager.clear();
+    }
   }
 
   private _checkUndoRedo() {
@@ -144,30 +177,84 @@ export default class ImageEditorWindow extends UIInnerWindow {
     }
   }
 
+  /** @override */
+  onMaximize(width: number, height: number): void {
+    this.imageEditor.updateFrame(width, height);
+  }
+
+  /** @override */
+  onRestore(width: number, height: number): void {
+    this.imageEditor.updateFrame(width, height);
+  }
+
   editImage(
-    source: HTMLCanvasElement, dim: number[], onSave: (source: HTMLCanvasElement) => void, onCancel: () => void) {
+    source: HTMLCanvasElement,
+    dim: { x: number, y: number, w: number, h: number },
+    onSave: (source: HTMLCanvasElement) => void,
+    onCancel: () => void
+  ) {
     this.imageEditor.editImage(source, dim, onSave, onCancel);
     this.open();
   }
 
   private static createWindow(id: string, title: string): HTMLElement {
     // Window title.
-    const windowTitle = document.createElement('div');
-    windowTitle.classList.add('window-title');
     const titleLabel = document.createElement('label');
     titleLabel.innerText = title;
+
+    const minimizeButton = document.createElement('div');
+    minimizeButton.classList.add('window-title-button', 'window-title-minimize-button');
+
+    let i = document.createElement('i');
+    i.classList.add('fas', 'fa-minus');
+    minimizeButton.appendChild(i);
+
+    const resizeButton = document.createElement('div');
+    resizeButton.classList.add('window-title-button', 'window-title-resize-button');
+
+    i = document.createElement('i');
+    i.classList.add('far', 'fa-window-restore');
+    resizeButton.appendChild(i);
+
+    const closeButton = document.createElement('div');
+    closeButton.classList.add('window-title-button', 'window-title-close-button');
+
+    i = document.createElement('i');
+    i.classList.add('fas', 'fa-times');
+    closeButton.appendChild(i);
+
+    const titleButtons = document.createElement('div');
+    titleButtons.classList.add('window-title-buttons');
+    titleButtons.appendChild(minimizeButton);
+    titleButtons.appendChild(resizeButton);
+    titleButtons.appendChild(closeButton);
+
+    $(titleButtons).on('click mousedown mousemove mouseup', (event) => {
+      event.stopPropagation();
+    });
+
+    const windowTitle = document.createElement('div');
+    windowTitle.classList.add('window-title');
     windowTitle.appendChild(titleLabel);
+    windowTitle.appendChild(titleButtons);
+
     // Menu bar.
     const menuBar = document.createElement('div');
     menuBar.classList.add('menu-bar');
     // Content.
     const content = document.createElement('div');
     content.classList.add('content');
+    content.style.width = '100%';
     content.style.padding = '0 0 0 0';
+
+    const resizePane = document.createElement('div');
+    resizePane.classList.add('resize-pane');
+
     // Main window.
     const innerWindow = document.createElement('div');
     innerWindow.id = id;
     innerWindow.classList.add('ui-inner-window');
+    innerWindow.appendChild(resizePane);
     innerWindow.appendChild(windowTitle);
     innerWindow.appendChild(menuBar);
     innerWindow.appendChild(content);

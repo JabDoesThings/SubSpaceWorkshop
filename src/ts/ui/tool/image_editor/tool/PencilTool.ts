@@ -1,22 +1,17 @@
-import CircleBrush from '../brush/CircleBrush';
-import CircleBrushOptions from '../brush/CircleBrushOptions';
 import ImageTool from './ImageTool';
 import ImageEditor from '../ImageEditor';
-import ImageEdit from '../ImageEdit';
 import ImageEditorInputEvent from '../ImageEditorInputEvent';
+import ImageEdit from '../ImageEdit';
+import PencilBrush from '../brush/PencilBrush';
+import PencilBrushOptions from '../brush/PencilBrushOptions';
 
-/**
- * The <i>BrushTool</i> class. TODO: Document.
- *
- * @author Jab
- */
-export default class BrushTool extends ImageTool {
-  brush: CircleBrush = new CircleBrush();
+export default class PencilTool extends ImageTool {
   private readonly _pressures: number[] = [];
+  brush: PencilBrush = new PencilBrush();
   private middleDown: boolean = false;
-  private down: { x: number, y: number };
-  private last: { x: number, y: number };
-  private penDown: boolean = false;
+  private last: {x: number, y: number};
+  private down: {x: number, y: number};
+  private penDown: {x: number, y: number};
 
   /** @override */
   onActivate(editor: ImageEditor): void {
@@ -104,7 +99,7 @@ export default class BrushTool extends ImageTool {
     this.last = {x: c.x, y: c.y};
 
     let pressure = event.data.pressure;
-    const options = <CircleBrushOptions> this.brush.options;
+    const options = <PencilBrushOptions> this.brush.options;
     if (options.smoothPressure) {
       pressure = this.pushAveragePressure(pressure, options.smoothAverageCount);
     } else {

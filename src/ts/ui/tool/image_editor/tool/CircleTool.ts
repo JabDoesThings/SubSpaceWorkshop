@@ -3,8 +3,7 @@ import ImageEditor from '../ImageEditor';
 import ImageEditorInputEvent from '../ImageEditorInputEvent';
 import ImageEdit from '../ImageEdit';
 
-export default class LineTool extends ImageTool {
-
+export default class CircleTool extends ImageTool {
   /** @override */
   onActivate(editor: ImageEditor): void {
   }

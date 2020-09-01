@@ -1,4 +1,4 @@
-import LayerLoader from './LayerLoader';
+import LayerLoader, { setLayerLoader } from './LayerLoader';
 import { Zip } from '../../io/Zip';
 import Layer from './Layer';
 
@@ -7,7 +7,7 @@ import Layer from './Layer';
  *
  * @author Jab
  */
-export default class DefaultLayerLoader extends LayerLoader {
+export default class DefaultLayerLoader implements LayerLoader {
 
   /** @override */
   onLoad(id: string, json: { [p: string]: any }, projectZip: Zip): Layer {
@@ -17,5 +17,3 @@ export default class DefaultLayerLoader extends LayerLoader {
     return layer;
   }
 }
-
-LayerLoader.set('default', new DefaultLayerLoader());

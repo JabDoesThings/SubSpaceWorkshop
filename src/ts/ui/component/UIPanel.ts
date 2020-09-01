@@ -103,6 +103,12 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
       this.slidePane.style.left = offset + 'px';
       if (!this.element.classList.contains('open')) {
         this.element.classList.add('open');
+        this.dispatch(<UIPanelEvent> {
+          forced: true,
+          eventType: 'UIPanelEvent',
+          tabPanel: null,
+          action: TabPanelAction.OPEN
+        });
       }
       this.tabMenu.select(tabPanel.tab);
     }
@@ -136,6 +142,12 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
 
     if (this.element.classList.contains('open')) {
       this.element.classList.remove('open');
+      this.dispatch(<UIPanelEvent> {
+        forced: true,
+        eventType: 'UIPanelEvent',
+        tabPanel: null,
+        action: TabPanelAction.CLOSE
+      });
     }
 
     this.element.style.width = '0';
@@ -346,15 +358,14 @@ export class UIPanel extends CustomEventListener<UIPanelEvent> {
     }
     if (!this.element.classList.contains('open')) {
       this.element.classList.add('open');
+      this.dispatch(<UIPanelEvent> {
+        forced: true,
+        eventType: 'UIPanelEvent',
+        tabPanel: null,
+        action: TabPanelAction.OPEN
+      });
     }
     this.element.style.width = `${this.width}px`;
-
-    this.dispatch(<UIPanelEvent> {
-      forced: true,
-      eventType: 'UIPanelEvent',
-      tabPanel: null,
-      action: TabPanelAction.OPEN
-    });
   }
 
   close(): void {

@@ -4,6 +4,8 @@ import { DEFAULT_ATLAS, DEFAULT_TEXTURES } from './editor/render/SubSpaceAtlas';
 import UIPopup from './ui/component/frame/UIPopup';
 import { colorPicker } from './ui/tool/color_picker/ColorPicker';
 import UIPanelFrame from './ui/component/frame/UIPanelFrame';
+import { setLayerLoader } from './editor/layers/LayerLoader';
+import DefaultLayerLoader from './editor/layers/DefaultLayerLoader';
 
 // Entry Point from HTML.
 export let start = function () {
@@ -18,20 +20,21 @@ export let start = function () {
   loader.add(DEFAULT_TEXTURES);
 
   const init = () => {
-  setTimeout(() => {
-  console.debug('Starting Editor');
-  const editor = new Editor();
-  editor.new();
-  setTimeout(() => {
-    editor.tilesetEditor.open();
+
+    setLayerLoader('default', new DefaultLayerLoader());
+
     setTimeout(() => {
-      editor.tilesetEditor.editTiles();
-
+      console.debug('Starting Editor');
+      const editor = new Editor();
+      // editor.new();
+      // setTimeout(() => {
+      // editor.tilesetEditor.open();
+      // setTimeout(() => {
+      //   editor.tilesetEditor.editTiles();
       // colorPicker.open({top: 256, left: 256}, 'top', 200);
-
+      // }, 10);
+      // }, 1000);
     }, 10);
-  }, 1000);
-  }, 10);
   };
 
   console.debug('Loading textures..');

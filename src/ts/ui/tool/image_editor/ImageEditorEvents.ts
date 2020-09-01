@@ -10,7 +10,7 @@ import TriggeredEvent = JQuery.TriggeredEvent;
  * @author Jab
  */
 export default class ImageEditorEvents {
-  readonly mouseListeners: ((event: ImageEditorInputEvent) => void)[];
+  readonly mouseListeners: ((event: ImageEditorInputEvent) => void)[] = [];
   pressureDeadZone: number[] = [0.05, 1];
 
   /** @param {TileEditor} imageEditor */
@@ -18,8 +18,6 @@ export default class ImageEditorEvents {
     const paneContainer = imageEditor.content;
     const canvas = imageEditor.projectedDrawCanvas;
     const $paneContainer = $(paneContainer);
-    // const $canvas = $(canvas);
-    this.mouseListeners = [];
 
     let penDown = false;
     let down = false;
@@ -98,19 +96,12 @@ export default class ImageEditorEvents {
         coords = imageEditor.camera.canvasToPaneCoordinates(coords.x, coords.y);
       }
 
-      // console.log(`from: {x: ${e.offsetX}, y: ${e.offsetY}} to: {x: ${coords.x}, y: ${coords.y}}`);
-
       let type = ImageEditorEventType.DOWN;
       const origEvent = e.originalEvent;
       let pressure = origEvent.pressure;
       if (origEvent.pointerType === 'pen') {
         pressure = clampPressure(pressure);
-        // if (pressure < this.pressureDeadZone[0]) {
-        //   pressure = 0;
-        //   type = TileEditorEventType.PEN_HOVER;
-        // } else {
         type = ImageEditorEventType.PEN_DOWN;
-        // }
       }
 
       down = true;
@@ -170,8 +161,6 @@ export default class ImageEditorEvents {
       if (e.target === paneContainer) {
         coords = imageEditor.camera.canvasToPaneCoordinates(coords.x, coords.y);
       }
-      // console.log(`from: {x: ${e.offsetX}, y: ${e.offsetY}} to: {x: ${coords.x}, y: ${coords.y}}`);
-
 
       let type = down ? ImageEditorEventType.DRAG : ImageEditorEventType.HOVER;
       const origEvent = e.originalEvent;
@@ -241,32 +230,7 @@ export default class ImageEditorEvents {
       return false;
     };
 
-    // const touchstart = (e: TouchStartEvent) => {
-    //   console.log(e);
-    // };
-    // const touchmove = (e: TouchMoveEvent) => {
-    //   console.log(e);
-    // };
-    // const touchend = (e: TouchEndEvent) => {
-    //   console.log(e);
-    // };
-    //
-    // $canvas.on('touchstart', touchstart);
-    // $canvas.on('touchmove', touchmove);
-    // $canvas.on('touchend', touchend);
-
     window.addEventListener('pointerup', pointerup);
-    // $canvas.on('pointermove', pointermove);
-    // $canvas.on('mousewheel', wheel);
-    // $canvas.on('pointerleave', pointerLeave);
-    // $canvas.on('pointerenter', pointerEnter);
-    // $canvas.on('pointerdown', pointerDown);
-    // $canvas.on('pointerup', pointerUp);
-    // $paneContainer.on('pointerdown', pointerDown);
-    // $paneContainer.on('pointermove', pointermove);
-    // $paneContainer.on('pointerup', pointerUp);
-    // $paneContainer.on('mousewheel', wheel);
-
     $paneContainer.on('pointermove', pointermove);
     $paneContainer.on('mousewheel', wheel);
     $paneContainer.on('pointerleave', pointerLeave);

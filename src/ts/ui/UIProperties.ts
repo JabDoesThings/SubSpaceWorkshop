@@ -88,3 +88,20 @@ export enum PanelOrientation {
   LEFT = 'left',
   RIGHT = 'right'
 }
+
+/**
+ * The <i>Anchor</i> enum. TODO: Document.
+ *
+ * @author Jab
+ */
+export enum Anchor {
+  TOP_LEFT = 'top_left',
+  TOP = 'top',
+  TOP_RIGHT = 'top_right',
+  RIGHT = 'right',
+  BOTTOM_RIGHT = 'bottom_right',
+  BOTTOM = 'bottom',
+  BOTTOM_LEFT = 'bottom_left',
+  LEFT = 'left',
+  CENTER = 'center'
+}

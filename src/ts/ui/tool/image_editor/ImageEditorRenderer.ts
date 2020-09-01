@@ -1,99 +1,83 @@
+import { clearCanvas, projectCanvasToCanvas, renderGrid } from '../../../util/DrawUtils';
 import ImageEditor from './ImageEditor';
+import ImageEdit from './ImageEdit';
+import ImageEditSection from './edit/ImageEditSection';
 
 /**
- * The <i>ImageEditorRenderer</i> class. TODO: Document.
+ * The <i>ImageEditorRenderer</i> class. The renderer handles all rendering for the ImageEditor.
  *
  * @author Jab
  */
 export default class ImageEditorRenderer {
   editor: ImageEditor;
   grid: boolean = true;
+  private _bufferCanvas: HTMLCanvasElement = document.createElement('canvas');
+  private _bufferCtx = this._bufferCanvas.getContext('2d');
 
-
+  /** @param {ImageEditor} editor */
   constructor(editor: ImageEditor) {
     this.editor = editor;
   }
 
-  drawSourceToModified() {
+  /**
+   * Applies the drawing buffer to the modified canvas to store the result.
+   *
+   * @param {boolean} antialias Set to true to enable HTMLCanvasElement's high image smoothing utility.
+   */
+  pushDrawing(antialias: boolean = false): ImageEdit {
     const modCanvas = this.editor.modifiedCanvas;
-    const modCtx = this.editor.modifiedCtx;
-    const dim = this.editor.sourceDim;
-    const drawSourceCanvas = this.editor.drawSourceCanvas;
-    const sourceCanvas = this.editor.sourceCanvas;
+    const canvas = this._bufferCanvas;
+    const ctx = this._bufferCtx;
+    const w = modCanvas.width;
+    const h = modCanvas.height;
+    canvas.width = w;
+    canvas.height = h;
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(modCanvas, 0, 0);
 
-    modCanvas.width = dim[2];
-    modCanvas.height = dim[3];
-    drawSourceCanvas.width = dim[2];
-    drawSourceCanvas.height = dim[3];
-    // Clear.
-    modCtx.imageSmoothingEnabled = false;
-    modCtx.fillStyle = 'black';
-    modCtx.fillRect(0, 0, dim[2], dim[3]);
-    modCtx.imageSmoothingEnabled = false;
-    modCtx.imageSmoothingQuality = 'low';
-    // Project.
-    modCtx.drawImage(sourceCanvas, dim[0], dim[1], dim[2], dim[3], 0, 0, dim[2], dim[3],);
+    if (antialias) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+    } else {
+      ctx.imageSmoothingEnabled = false;
+      ctx.imageSmoothingQuality = 'low';
+    }
+
+    const before: ImageData = ctx.getImageData(0, 0, w, h);
+    ctx.drawImage(this.editor.drawSourceCanvas, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingQuality = 'low';
+
+    const after: ImageData = ctx.getImageData(0, 0, w, h);
+    return new ImageEditSection(before, after);
   }
 
+  /**
+   * Projects the incoming source image data to the modifiedCanvas, which stores the modified image data to send back
+   *   when saved.
+   *
+   * @param {x: number, y: number, w: number, h: number} srcDims The dimensions of the source canvas to edit.
+   */
+  drawSourceToModified(srcDims: { x: number, y: number, w: number, h: number }) {
+    clearCanvas(this.editor.modifiedCanvas, 'black', srcDims);
+    clearCanvas(this.editor.drawSourceCanvas, 'transparent', srcDims);
+    clearCanvas(this.editor.projectedCanvas, 'transparent', srcDims);
+    projectCanvasToCanvas(this.editor.sourceCanvas, this.editor.modifiedCanvas, srcDims);
+  }
+
+  /** Renders the modified image data to the projection canvas in the ImageEditor, along with a grid. */
   render(): void {
-    const projCanvas = this.editor.projectedCanvas;
-    const projCtx = this.editor.projectedCtx;
-    const modCanvas = this.editor.modifiedCanvas;
-    // Clear.
-    projCtx.fillStyle = 'black';
-    projCtx.fillRect(0, 0, projCanvas.width, projCanvas.height);
-    projCtx.imageSmoothingEnabled = false;
-    projCtx.imageSmoothingQuality = 'low';
-
-    // Project modified canvas onto the visual canvas.
-    projCtx.drawImage(
-      modCanvas, 0, 0, modCanvas.width, modCanvas.height, 0, 0, projCanvas.width, projCanvas.height);
-
+    clearCanvas(this.editor.projectedCanvas);
+    projectCanvasToCanvas(this.editor.modifiedCanvas, this.editor.projectedCanvas);
     const scale = this.editor.camera.getScale();
-
     if (this.grid && scale >= 8) {
-      this.renderGrid();
+      renderGrid(this.editor.projectedCanvas, scale);
     }
   }
 
-  renderGrid(): void {
-    const scale = this.editor.camera.getScale();
-    const projCtx = this.editor.projectedCtx;
-    const projCanvas = this.editor.projectedCanvas;
-    projCtx.strokeStyle = 'rgba(127,127,127,0.5)';
-    projCtx.lineWidth = 1;
-    projCtx.beginPath();
-    for (let y = 0; y < projCanvas.height; y += scale) {
-      projCtx.moveTo(-0.5, y - 0.5);
-      projCtx.lineTo(projCanvas.width - 0.5, y - 0.5);
-    }
-    for (let x = 0; x < projCanvas.width; x += scale) {
-      projCtx.moveTo(x - 0.5, -0.5);
-      projCtx.lineTo(x - 0.5, projCanvas.height - 0.5);
-    }
-    projCtx.stroke();
-
-    projCtx.lineWidth = 1;
-    projCtx.beginPath();
-    projCtx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
-    for (let y = 0; y < projCanvas.height; y += scale * 16) {
-      projCtx.moveTo(-0.5, y - 0.5);
-      projCtx.lineTo(projCanvas.width - 0.5, y - 0.5);
-    }
-    for (let x = 0; x < projCanvas.width; x += scale * 16) {
-      projCtx.moveTo(x - 0.5, -0.5);
-      projCtx.lineTo(x - 0.5, projCanvas.height - 0.5);
-    }
-    projCtx.stroke();
-  }
-
+  /** Clears the current drawing on the drawing canvas. */
   clearDraw(): void {
-    this.editor.drawSourceCtx.clearRect(
-      0,
-      0,
-      this.editor.drawSourceCanvas.width,
-      this.editor.drawSourceCanvas.height
-    );
+    clearCanvas(this.editor.drawSourceCanvas);
     this.editor.camera.projectDraw();
   }
 }

@@ -22,7 +22,7 @@ import SelectionGroup from './ui/SelectionGroup';
 import Selection from './ui/Selection';
 import SelectionSlot from './ui/SelectionSlot';
 import SelectionType from './ui/SelectionType';
-import LayerLoader from './layers/LayerLoader';
+import LayerLoader, { getLayerLoader } from './layers/LayerLoader';
 import MapSections from '../util/map/MapSections';
 import MapSection from '../util/map/MapSection';
 
@@ -333,7 +333,7 @@ export default class Project extends CustomEventListener<CustomEvent> {
           if (type == null) {
             type = 'default';
           }
-          const layer = LayerLoader.get(type).onLoad(id, next, zip);
+          const layer = getLayerLoader(type).onLoad(id, next, zip);
           layers.add(layer, false, false);
         }
         // await layers.combineTileLayers(true);

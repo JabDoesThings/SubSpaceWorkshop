@@ -60,7 +60,7 @@ class Editor extends CustomEventListener<EditorEvent> {
     vc.appendChild(this.tabMenu.element);
 
     let container = <HTMLDivElement> document.getElementsByClassName("viewport").item(0);
-    this.renderer.init(container, 'viewport', true);
+    this.renderer.init(container, 'viewport', false);
 
     // Screenshot button.
     new KeyListener("F12", () => {

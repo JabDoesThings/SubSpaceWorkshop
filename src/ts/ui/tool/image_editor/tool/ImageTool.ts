@@ -12,68 +12,68 @@ import ImageEdit from '../ImageEdit';
  */
 export default abstract class ImageTool {
   isSelector: boolean = false;
-  private _tileEditor: UIImageEditor;
+  private editor: UIImageEditor;
   private _event: ImageEditorInputEvent;
   private _type: string;
   private _penDown: boolean = false;
 
-  penStart(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
-    this._tileEditor = tileEditor;
+  penStart(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    this.editor = editor;
     this._event = event;
     this._type = 'penStart';
 
     let edits;
     if (event.e.originalEvent.pointerType === 'pen') {
       this._penDown = true;
-      edits = this.onPenStart(tileEditor, event);
+      edits = this.onPenStart(editor, event);
     } else {
-      edits = this.onStart(tileEditor, event);
+      edits = this.onStart(editor, event);
     }
 
-    this._tileEditor = null;
+    this.editor = null;
     this._event = null;
     this._type = null;
     return edits;
   }
 
-  penDrag(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
-    this._tileEditor = tileEditor;
+  penDrag(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    this.editor = editor;
     this._event = event;
     this._type = 'penDrag';
-    const edits = this.onPenDrag(tileEditor, event);
-    this._tileEditor = null;
+    const edits = this.onPenDrag(editor, event);
+    this.editor = null;
     this._event = null;
     this._type = null;
     return edits;
   }
 
-  penStop(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
-    this._tileEditor = tileEditor;
+  penStop(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    this.editor = editor;
     this._event = event;
     this._type = 'penStop';
     this._penDown = false;
-    const edits = this.onPenStop(tileEditor, event);
-    this._tileEditor = null;
+    const edits = this.onPenStop(editor, event);
+    this.editor = null;
     this._event = null;
     this._type = null;
     return edits;
   }
 
-  start(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  start(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     // console.log('start');
-    this._tileEditor = tileEditor;
+    this.editor = editor;
     this._event = event;
     this._type = 'start';
-    const edits = this.onStart(tileEditor, event);
-    this._tileEditor = null;
+    const edits = this.onStart(editor, event);
+    this.editor = null;
     this._event = null;
     this._type = null;
     return edits;
   }
 
-  drag(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  drag(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     // console.log('drag');
-    this._tileEditor = tileEditor;
+    this.editor = editor;
     this._event = event;
     this._type = 'drag';
 
@@ -83,73 +83,73 @@ export default abstract class ImageTool {
     if (this._penDown) {
       if (origEvent.pressure === 0) {
         this._penDown = false;
-        edits = this.onPenStop(tileEditor, event);
+        edits = this.onPenStop(editor, event);
       } else {
-        edits = this.onPenDrag(tileEditor, event);
+        edits = this.onPenDrag(editor, event);
       }
     } else {
       if (origEvent.pointerType === 'pen' && origEvent.pressure !== 0) {
         this._penDown = true;
-        edits = this.onPenStart(tileEditor, event);
+        edits = this.onPenStart(editor, event);
       } else {
-        edits = this.onDrag(tileEditor, event);
+        edits = this.onDrag(editor, event);
       }
     }
 
-    this._tileEditor = null;
+    this.editor = null;
     this._event = null;
     this._type = null;
     return edits;
   }
 
-  stop(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+  stop(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
     // console.log('stop');
-    this._tileEditor = tileEditor;
+    this.editor = editor;
     this._event = event;
     this._type = 'stop';
 
     let edits;
     if (this._penDown) {
       this._penDown = false;
-      edits = this.onPenStop(tileEditor, event);
+      edits = this.onPenStop(editor, event);
     } else {
-      edits = this.onStop(tileEditor, event);
+      edits = this.onStop(editor, event);
     }
 
-    this._tileEditor = null;
+    this.editor = null;
     this._event = null;
     this._type = null;
     return edits;
   }
 
-  enter(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
-    this._tileEditor = tileEditor;
+  enter(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    this.editor = editor;
     this._event = event;
     this._type = 'enter';
-    const edits = this.onEnter(tileEditor, event);
-    this._tileEditor = null;
+    const edits = this.onEnter(editor, event);
+    this.editor = null;
     this._event = null;
     this._type = null;
     return edits;
   }
 
-  exit(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
-    this._tileEditor = tileEditor;
+  exit(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    this.editor = editor;
     this._event = event;
     this._type = 'exit';
-    const edits = this.onExit(tileEditor, event);
-    this._tileEditor = null;
+    const edits = this.onExit(editor, event);
+    this.editor = null;
     this._event = null;
     this._type = null;
     return edits;
   }
 
-  wheel(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
-    this._tileEditor = tileEditor;
+  wheel(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[] {
+    this.editor = editor;
     this._event = event;
     this._type = 'wheel';
-    const edits = this.onWheel(tileEditor, event);
-    this._tileEditor = null;
+    const edits = this.onWheel(editor, event);
+    this.editor = null;
     this._event = null;
     this._type = null;
     return edits;
@@ -159,38 +159,38 @@ export default abstract class ImageTool {
     if (!this._type) {
       return;
     }
-    const toolManager = this._tileEditor.toolManager;
+    const toolManager = this.editor.toolManager;
     const fallback = toolManager.getFallback();
     if (!fallback || fallback === this) {
       return;
     }
     switch (this._type) {
       case 'start':
-        fallback.start(this._tileEditor, this._event);
+        fallback.start(this.editor, this._event);
         break;
       case 'drag':
-        fallback.drag(this._tileEditor, this._event);
+        fallback.drag(this.editor, this._event);
         break;
       case 'stop':
-        fallback.stop(this._tileEditor, this._event);
+        fallback.stop(this.editor, this._event);
         break;
       case 'enter':
-        fallback.enter(this._tileEditor, this._event);
+        fallback.enter(this.editor, this._event);
         break;
       case 'exit':
-        fallback.exit(this._tileEditor, this._event);
+        fallback.exit(this.editor, this._event);
         break;
       case 'wheel':
-        fallback.wheel(this._tileEditor, this._event);
+        fallback.wheel(this.editor, this._event);
         break;
       case 'penStart':
-        fallback.penStart(this._tileEditor, this._event);
+        fallback.penStart(this.editor, this._event);
         break;
       case 'penDrag':
-        fallback.penDrag(this._tileEditor, this._event);
+        fallback.penDrag(this.editor, this._event);
         break;
       case 'penStop':
-        fallback.penStop(this._tileEditor, this._event);
+        fallback.penStop(this.editor, this._event);
         break;
     }
   }
@@ -213,10 +213,9 @@ export default abstract class ImageTool {
       this.draw(editor, x1, y1);
       return;
     }
-    const scale = editor.camera.getScale();
     const a = x1 - x2;
     const b = y1 - y2;
-    const distance = Math.ceil(Math.sqrt(a * a + b * b) / (scale / 2));
+    const distance = Math.ceil(Math.sqrt(a * a + b * b));
     if (distance <= 1) {
       this.draw(editor, x2, y2);
       return;
@@ -229,32 +228,32 @@ export default abstract class ImageTool {
     }
   }
 
-  draw(tileEditor: UIImageEditor, x: number, y: number): void {
-    const bx = x - Math.floor(tileEditor.brush.options.size / 2);
-    const by = y - Math.floor(tileEditor.brush.options.size / 2);
-    const ctx = tileEditor.drawSourceCanvas.getContext('2d');
+  draw(editor: UIImageEditor, x: number, y: number): void {
+    const bx = x - Math.floor(editor.brush.options.size / 2);
+    const by = y - Math.floor(editor.brush.options.size / 2);
+    const ctx = editor.drawSourceCanvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.imageSmoothingQuality = 'low';
-    ctx.drawImage(tileEditor.brushSourceCanvas, bx, by);
+    ctx.drawImage(editor.brushSourceCanvas, bx, by);
   }
 
-  protected abstract onStart(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
+  protected abstract onStart(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onDrag(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
+  protected abstract onDrag(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onEnter(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
+  protected abstract onEnter(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onExit(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
+  protected abstract onExit(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onStop(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
+  protected abstract onStop(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onWheel(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
+  protected abstract onWheel(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onPenStart(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
+  protected abstract onPenStart(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onPenDrag(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
+  protected abstract onPenDrag(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  protected abstract onPenStop(tileEditor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
+  protected abstract onPenStop(editor: UIImageEditor, event: ImageEditorInputEvent): ImageEdit[];
 
-  abstract onActivate(tileEditor: UIImageEditor): void;
+  abstract onActivate(editor: UIImageEditor): void;
 }

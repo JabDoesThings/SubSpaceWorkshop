@@ -3,12 +3,6 @@
 
 .ui-image-editor {
   position: relative;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
 
   .pane {
     z-index: 0;
@@ -22,39 +16,28 @@
     height: 2px;
     transform: translate(-50%, -50%);
 
-    background-color: $color1;
+    background-color: transparent;
     touch-action: none;
     -webkit-user-drag: none;
     pointer-events: none;
 
-    //.box-shadow {
-    //  position: absolute;
-    //  z-index: 6;
-    //  top: 0;
-    //  left: 32px;
-    //  width: calc(100% - 64px);
-    //  height: 100%;
-    //  pointer-events: none;
-    //  touch-action: none;
-    //  -webkit-user-drag: none;
-    //}
-
     .pane-cursor {
-      //z-index: -1;
       position: absolute;
       width: 1px;
       height: 1px;
       touch-action: none;
       -webkit-user-drag: none;
       pointer-events: none;
+      background-color: transparent;
 
       .view {
-        //z-index: -1;
         position: relative;
         display: inline-block;
         touch-action: none;
         -webkit-user-drag: none;
         pointer-events: none;
+
+        box-shadow: 0 0 1px 1px $color8;
       }
 
       .draw {

@@ -20,23 +20,15 @@ export default class ToolManager {
     this.editor = editor;
     let downTool: ImageTool;
 
-    const test = (target: HTMLElement): boolean => {
-      return target === editor.projectedCanvas || target === editor.content;
-    };
-
     editor.events.addMouseListener((event: ImageEditorInputEvent) => {
       let edits: ImageEdit[];
       let push = false;
       let reset = false;
 
       downTool = this.getActive();
-      // const target = event.e ? event.e.target : null;
-      // if (event.type !== ImageEditorEventType.EXIT && event.type !== ImageEditorEventType.ENTER /*&& target !==
-      // editor.projectedCanvas*/) { downTool = this.tools[this.fallback]; }
       if (downTool == null) {
         return;
       }
-
       switch (event.type) {
         // Pen events.
         case ImageEditorEventType.PEN_HOVER:

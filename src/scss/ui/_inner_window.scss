@@ -1,5 +1,25 @@
 @import '../color';
 
+.ui-inner-window.maximized {
+  top: 50%;
+  left: 50%;
+  width: floor(100%);
+  height: floor(100%);
+
+  .window-title {
+    cursor: default;
+
+    &:hover, &:active {
+      cursor: default;
+    }
+  }
+}
+
+.ui-inner-window.maximized.translucent-on-unfocus {
+  opacity: 1 !important;
+  transition: opacity 0s !important;
+}
+
 .ui-inner-window.translucent-on-unfocus {
   opacity: 0.75;
   transition: opacity 200ms ease-in;
@@ -11,32 +31,115 @@
 }
 
 .ui-inner-window {
-  position: absolute;
   z-index: 5;
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 
+  .resize-pane {
+    z-index: -1;
+    display: inline-block;
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    width: calc(100% + 16px);
+    height: calc(100% + 16px);
+    background-color: transparent;
+    cursor: default;
+  }
+
   .window-title {
     display: block;
     width: 100%;
-    height: 20px;
+    height: 24px;
     user-select: none;
     background-color: $color4;
     cursor: grab;
 
+    &:active {
+      cursor: grabbing;
+    }
+
     label {
       display: inline-block;
       margin-left: 5px;
-      line-height: 20px;
+      line-height: 24px;
       color: #eee;
       font-size: 12px;
       pointer-events: none;
       user-select: none;
     }
 
-    &:active {
-      cursor: grabbing;
+    .window-title-buttons {
+      position: relative;
+      float: right;
+      height: 100%;
+      cursor: default;
+
+      .window-title-button {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 100%;
+        line-height: 5px;
+        cursor: pointer;
+        background-color: $color4;
+
+        i {
+          position: absolute;
+          display: inline-block;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-size: 12px;
+          pointer-events: none;
+          touch-action: none;
+          -webkit-user-drag: none;
+          color: $color8;
+          transition: color 200ms;
+        }
+
+        transition: color 200ms, background-color 200ms;
+
+        &:hover {
+          background-color: $color5;
+          transition: color 0ms, background-color 0ms;
+
+          i {
+            color: $color6;
+            transition: color 200ms;
+          }
+        }
+
+        &:active {
+          i {
+            color: $color7;
+            transition: color 0ms;
+          }
+        }
+      }
+
+      .window-title-close-button {
+        i {
+          color: $color8;
+          transition: color 200ms;
+        }
+
+        &:hover {
+          background-color: #b00000;
+
+          i {
+            color: white;
+          }
+        }
+
+        &:active {
+          i {
+            color: black;
+          }
+        }
+      }
     }
   }
 
@@ -129,9 +232,6 @@
         transition: color 0ms;
       }
     }
-
-    .text-menu {
-    }
   }
 
   .content {
@@ -143,6 +243,13 @@
     padding: 16px;
     background-color: $color3;
     overflow: hidden;
+    touch-action: none;
+    -webkit-user-drag: none;
+
+    .ui-panel {
+      top: 2px;
+      height: calc(100% - 3px);
+    }
   }
 }
 
