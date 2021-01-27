@@ -1,8 +1,11 @@
 import MapRenderer from './MapRenderer';
 import * as PIXI from "pixi.js";
 import MapSprite from './MapSprite';
+import ChromaFilter from './ChromaFilter';
 
 export default class ToolCursor {
+
+  chromaFilter: ChromaFilter;
 
   private renderer: MapRenderer;
   private dirty: boolean = true;
@@ -15,6 +18,8 @@ export default class ToolCursor {
     this.sprite.y = 200;
     this.sprite.roundPixels = true;
     this.sprite.blendMode = PIXI.BLEND_MODES.OVERLAY;
+    this.chromaFilter = new ChromaFilter(0,0,0, 0, 0);
+    this.sprite.filters = [this.chromaFilter];
   }
 
   set(): void {
@@ -34,6 +39,53 @@ export default class ToolCursor {
   }
 
   draw(): void {
+
+    const texture: PIXI.Texture = this.getTexture();
+    if (texture == null) {
+      return;
+    }
+
+    const camera = this.renderer.camera;
+    const screen = this.renderer.app.screen;
+    const mouse = this.renderer.mouse;
+    const mapSpace = camera.toMapSpace(mouse[0], mouse[1], screen.width, screen.height);
+
+    let tx = mapSpace.tileX;
+    let ty = mapSpace.tileY;
+
+    if (tx < 0) {
+      tx = 0;
+    } else if (tx > 1023) {
+      tx = 1023;
+    }
+
+    if (ty < 0) {
+      ty = 0;
+    } else if (ty > 1023) {
+      ty = 1023;
+    }
+
+    const cx = camera.position.x;
+    const cy = camera.position.y;
+    const cs = camera.position.scale;
+    const tileWidth = 16 * cs;
+
+    this.sprite.x = ((tx * tileWidth) - (cx * tileWidth)) + (screen.width / 2.0);
+    this.sprite.y = ((ty * tileWidth) - (cy * tileWidth)) + (screen.height / 2.0);
+    this.sprite.scale.x = cs;
+    this.sprite.scale.y = cs;
+
+    // FIX: This is a fix for magnifying above a 1:1 scale and having offset artifacts.
+    if (tileWidth > 16) {
+      this.sprite.x -= 1;
+      this.sprite.y -= 1;
+    }
+
+    this.sprite.texture = texture;
+    this.dirty = false;
+  }
+
+  getTexture(): PIXI.Texture {
     const project = this.renderer.project;
     if (project == null) {
       return;
@@ -98,53 +150,12 @@ export default class ToolCursor {
       }
     }
 
-    if (mapSprite == null && texture == null) {
-      console.log(`mapSprite: texture: null`);
-      return;
-    }
-
-    const camera = this.renderer.camera;
-    const screen = this.renderer.app.screen;
-    const mouse = this.renderer.mouse;
-    const mapSpace = camera.toMapSpace(mouse[0], mouse[1], screen.width, screen.height);
-
-    let tx = mapSpace.tileX;
-    let ty = mapSpace.tileY;
-
-    if (tx < 0) {
-      tx = 0;
-    } else if (tx > 1023) {
-      tx = 1023;
-    }
-
-    if (ty < 0) {
-      ty = 0;
-    } else if (ty > 1023) {
-      ty = 1023;
-    }
-
-    const cx = camera.position.x;
-    const cy = camera.position.y;
-    const cs = camera.position.scale;
-    const tileWidth = 16 * cs;
-
-    this.sprite.x = ((tx * tileWidth) - (cx * tileWidth)) + (screen.width / 2.0);
-    this.sprite.y = ((ty * tileWidth) - (cy * tileWidth)) + (screen.height / 2.0);
-    this.sprite.scale.x = cs;
-    this.sprite.scale.y = cs;
-
-    // FIX: This is a fix for magnifying above a 1:1 scale and having offset artifacts.
-    if (tileWidth > 16) {
-      this.sprite.x -= 1;
-      this.sprite.y -= 1;
-    }
-
     if (mapSprite != null) {
-      mapSprite.draw(this.sprite);
+      return mapSprite.getCurrentTexture();
+    } else if (texture != null) {
+      return texture;
     } else {
-      this.sprite.texture = texture;
+      return null;
     }
-
-    this.dirty = false;
   }
 }

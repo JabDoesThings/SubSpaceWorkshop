@@ -294,4 +294,8 @@ export default class MapSprite implements Validatable {
   setDirty(flag: boolean): void {
     this.dirty = flag;
   }
+
+  getCurrentTexture(): PIXI.Texture {
+    return this.sequence[this.offset];
+  }
 }

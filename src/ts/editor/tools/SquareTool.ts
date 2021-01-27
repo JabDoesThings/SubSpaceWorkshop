@@ -1,6 +1,5 @@
 import Project from '../Project';
 import Tool from './Tool';
-import SelectionType from '../ui/Selection';
 import Edit from '../edits/Edit';
 import EditTiles from '../edits/EditTiles';
 import TileData from '../../util/map/TileData';
@@ -45,7 +44,7 @@ export default class SquareTool extends Tool {
       return;
     }
 
-    if (selection.type !== SelectionType.TILE) {
+    if (selection.type !== 'tile') {
       return;
     }
 
