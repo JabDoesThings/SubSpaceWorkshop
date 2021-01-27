@@ -14,7 +14,7 @@ import MapMouseEvent from '../../common/MapMouseEvent';
  * @author Jab
  */
 export default class LineTool extends DrawTool {
-  
+
   constructor() {
     super(true);
   }
@@ -120,5 +120,9 @@ export default class LineTool extends DrawTool {
   protected drawRegion(project: Project, selection: Selection, event: MapMouseEvent): Edit[] {
     // TODO: Implement.
     return null;
+  }
+
+  /** @override */
+  protected onDrawCursor(container: PIXI.Container): void {
   }
 }

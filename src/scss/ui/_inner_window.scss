@@ -22,11 +22,21 @@
 
 .ui-inner-window.translucent-on-unfocus {
   opacity: 0.75;
-  transition: opacity 200ms ease-in;
+  backdrop-filter: blur(8px);
+  transition: opacity 100ms ease-in;
+
+  //.content {
+  //  background-color: transparent;
+  //}
 
   &:hover, &:active {
     opacity: 1;
+    backdrop-filter: unset;
     transition: opacity 0s;
+
+    //.content {
+    //  background-color: transparent;
+    //}
   }
 }
 
@@ -36,6 +46,16 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+
+  .focus-shadow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 12px);
+    z-index: -2;
+    box-shadow: rgba(0, 0, 0, 0.33) 0 0 4px 3px;
+  }
 
   .resize-pane {
     z-index: -1;
@@ -238,13 +258,17 @@
     position: relative;
     top: 0;
     left: 0;
-    width: calc(100% - 32px);
-    height: calc(100% - 32px - 24px);
+    width: calc(100% - 34px);
+    height: calc(100% - 32px - 25px);
     padding: 16px;
     background-color: $color3;
     overflow: hidden;
     touch-action: none;
     -webkit-user-drag: none;
+
+    border-right: 1px solid $color4;
+    border-bottom: 1px solid $color4;
+    border-left: 1px solid $color4;
 
     .ui-panel {
       top: 2px;

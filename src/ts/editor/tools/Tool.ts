@@ -67,6 +67,10 @@ export default abstract class Tool {
     return edits;
   }
 
+  drawCursor(container: PIXI.Container): void {
+    this.onDrawCursor(container);
+  }
+
   protected abstract onStart(project: Project, event: MapMouseEvent): Edit[];
 
   protected abstract onDrag(project: Project, event: MapMouseEvent): Edit[];
@@ -76,4 +80,6 @@ export default abstract class Tool {
   protected abstract onExit(project: Project, event: MapMouseEvent): Edit[];
 
   protected abstract onStop(project: Project, event: MapMouseEvent): Edit[];
+
+  protected abstract onDrawCursor(container: PIXI.Container): void;
 }

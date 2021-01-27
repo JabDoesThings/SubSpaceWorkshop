@@ -13,9 +13,9 @@ import AtlasAction from './AtlasAction';
  * @author Jab
  */
 export default class ProjectAtlas extends CustomEventListener<CustomEvent> implements Dirtable {
-  private readonly textures: { [id: string]: TextureAtlas } = {};
-  private readonly tListener: (event: TextureAtlasEvent) => void | boolean;
-  private readonly project: Project;
+  protected readonly textures: { [id: string]: TextureAtlas } = {};
+  protected readonly tListener: (event: TextureAtlasEvent) => void | boolean;
+  protected readonly project: Project;
   private dirty: boolean = true;
 
   /**

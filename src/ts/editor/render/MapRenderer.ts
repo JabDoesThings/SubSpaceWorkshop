@@ -27,6 +27,7 @@ import {
   UITool,
   UITooltip
 } from '../../ui/UI';
+import ToolCursor from './ToolCursor';
 
 /**
  * The <i>MapRenderer</i> class. TODO: Document.
@@ -53,6 +54,11 @@ export default class MapRenderer extends Renderer {
   toolManager: ToolManager;
   editor: Editor;
   glassBlur: GlassBlur;
+  screenContainer: PIXI.Container;
+
+  toolCursor: ToolCursor;
+
+  mouse: number[];
 
   /**
    * @param {Editor} editor
@@ -65,6 +71,9 @@ export default class MapRenderer extends Renderer {
     this.mapLayers = new LayerCluster();
     this.screenLayers = new LayerCluster();
     this.screen = new ScreenManager(this);
+    this.toolCursor = new ToolCursor(this);
+    this.mouse = [0, 0];
+    this.screenContainer = new PIXI.Container();
 
     let leftOpen = false;
     let rightOpen = true;
@@ -193,7 +202,7 @@ export default class MapRenderer extends Renderer {
     vp.appendChild(this.toolbarLeft.element);
     updateViewport();
 
-    this.glassBlur = new GlassBlur(this);
+    this.glassBlur = new GlassBlur();
   }
 
   /** @override */
@@ -202,6 +211,12 @@ export default class MapRenderer extends Renderer {
     this.grid = new MapGrid(this);
     this.grid.filters = [];
     this.grid.filterArea = this.app.renderer.screen;
+
+    this.app.stage.on("pointermove", (e: any) => {
+      this.mouse[0] = e.data.global.x;
+      this.mouse[1] = e.data.global.y;
+      this.toolCursor.update(0);
+    });
 
     const scales = [2, 1, 0.5, 0.25, 0.1];
     let scaleIndex = 1;
@@ -268,7 +283,6 @@ export default class MapRenderer extends Renderer {
       return;
     }
 
-    this.glassBlur.onUpdate();
     this.project.update(delta);
     const background = this.project.background;
 
@@ -279,10 +293,13 @@ export default class MapRenderer extends Renderer {
       if (this.grid.visible) {
         this.grid.draw();
       }
+      // this.screenContainer.x = -this.camera.position.x * this.camera.position.scale;
+      // this.screenContainer.y = -this.camera.position.y * this.camera.position.scale;
     }
 
     this.radar.update();
     this.paletteTab.update();
+    this.toolCursor.update(delta);
     this.screen.update();
     return true;
   }
@@ -313,6 +330,8 @@ export default class MapRenderer extends Renderer {
         this.app.stage.addChild(this.mapLayers.layers[index]);
         this.app.stage.addChild(this.screenLayers.layers[index]);
       }
+
+      this.app.stage.addChild(this.screenContainer);
     }
 
     if (this.project == null) {
@@ -335,16 +354,19 @@ export default class MapRenderer extends Renderer {
       this.radar.apply();
     });
 
-    this.glassBlur.apply(this.mapLayers.layers[2]);
+    this.toolCursor.set();
 
     this.camera.setDirty(true);
   }
 
   setGlassBlur(flag: boolean) {
     if (flag) {
-      this.glassBlur.enable();
+      this.glassBlur.enable(200, () => {
+        this.project.background.visible = false;
+      });
     } else {
       this.glassBlur.disable();
+      this.project.background.visible = true;
     }
   }
 }

@@ -35,6 +35,7 @@ abstract class Renderer extends UpdatedObject {
   /**
    * Initializes the renderer apart from the constructor so that the variable assignment is accessible during the
    * initialization process.
+   *
    * @param {HTMLElement} container
    * @param {string} id
    * @param {boolean} stats

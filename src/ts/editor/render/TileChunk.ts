@@ -4,6 +4,7 @@ import MapArea from '../../util/map/MapArea';
 import TileData from '../../util/map/TileData';
 import CoordinateType from '../../util/map/CoordinateType';
 import TileChunkEntry from './TileChunkEntry';
+import TilesetTextureAtlas from './TilesetTextureAtlas';
 
 /**
  * The <i>TileChunk</i> class. TODO: Document.
@@ -101,8 +102,8 @@ export default class TileChunk extends UpdatedObject {
       const screen = renderer.app.screen;
       const sw = screen.width * invScale;
       const sh = screen.height * invScale;
-      const x = Math.floor((-1 + ((this.x * 64) - (cameraPosition.x * 16) + sw / 2)) - (this.x * 64));
-      const y = 1 + Math.floor(((this.y * 64) - (cameraPosition.y * 16) + sh / 2) - (this.y * 64));
+      let x = Math.floor((((this.x * 64) - (cameraPosition.x * 16) + sw / 2)) - (this.x * 64));
+      let y = Math.floor(((this.y * 64) - (cameraPosition.y * 16) + sh / 2) - (this.y * 64));
       this.tileMap.x = this.tileMapAnim.x = x * scale;
       this.tileMap.y = this.tileMapAnim.y = y * scale;
       this.tileMap.scale.x = this.tileMap.scale.y = cameraPosition.scale;
@@ -187,13 +188,16 @@ export default class TileChunk extends UpdatedObject {
           const tu = tileCoordinates[0];
           const tv = tileCoordinates[1];
 
+          const tilesetAtlas: TilesetTextureAtlas = <TilesetTextureAtlas> atlas.getTextureAtlas('tiles');
+
           if (tileId >= 162 && tileId <= 165) {
             this.tilesAnim.push({
               id: tileId,
               x: x * 16,
               y: y * 16,
               texture: 0,
-              current: atlas.getTextureAtlas('tiles').getSpriteById('door01').current
+              current: tilesetAtlas.getDoorTile(1).current
+              // atlas.getTextureAtlas('tiles').getSpriteById('door01').current
             });
           } else if (tileId >= 166 && tileId <= 169) {
             this.tilesAnim.push({
@@ -201,7 +205,8 @@ export default class TileChunk extends UpdatedObject {
               x: x * 16,
               y: y * 16,
               texture: 0,
-              current: atlas.getTextureAtlas('tiles').getSpriteById('door02').current
+              current: tilesetAtlas.getDoorTile(2).current
+              // atlas.getTextureAtlas('tiles').getSpriteById('door02').current
             });
           } else if (tileId == 170) {
             this.tilesAnim.push({

@@ -134,4 +134,8 @@ export default class PencilTool extends DrawTool {
     // TODO: Implement.
     return null;
   }
+
+  /** @override */
+  protected onDrawCursor(container: PIXI.Container): void {
+  }
 }

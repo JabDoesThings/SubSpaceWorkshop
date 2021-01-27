@@ -61,12 +61,14 @@ export default class TilesetEditor extends UIInnerWindow {
       h: (this.selection[3] + 1 - this.selection[1]) * 16
     };
 
+    this.options.canClose = false;
     this.tileEditor.editImage(this.sourceCanvas, dim, (source => {
       this.sourceCtx.imageSmoothingEnabled = false;
       this.sourceCtx.drawImage(source, dim.x, dim.y);
       this.draw();
+      this.options.canClose = true;
     }), () => {
-
+      this.options.canClose = true;
     });
 
     this.tileEditor.open();
@@ -107,10 +109,12 @@ export default class TilesetEditor extends UIInnerWindow {
     this.tileset = activeProject.tileset;
     this.revert();
     this.draw();
+    this.editor.renderer.setGlassBlur(true);
   }
 
   /** @override */
   onClose(buttonPressed: boolean) {
+    this.editor.renderer.setGlassBlur(false);
   }
 
   revert() {

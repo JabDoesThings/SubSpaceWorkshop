@@ -89,14 +89,13 @@ body {
     opacity: 1;
 
     &::-webkit-slider-thumb {
-      //width: 16px;
-      //height: 16px;
       background-color: $color6;
-      box-shadow: 0 0 2px 2px rgba(0,0,0,0.25);
+      box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.25);
 
       &:active {
-        box-shadow: 0 0 2px 1px rgba(255,255,255,1);
+        box-shadow: 0 0 2px 1px rgba(255, 255, 255, 1);
       }
+
       transition: all 0s;
     }
 
@@ -104,6 +103,10 @@ body {
   }
 }
 
+.frosted {
+  background: rgba(21, 21, 21, 0.1);
+  backdrop-filter: blur(4px);
+}
 
 .center {
   top: 50%;

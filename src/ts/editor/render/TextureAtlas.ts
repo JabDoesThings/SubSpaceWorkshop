@@ -2,8 +2,8 @@ import { Texture } from "pixi.js";
 import { CustomEventListener } from '../../ui/UI';
 import Dirtable from '../../util/Dirtable';
 import MapSprite from './MapSprite';
-import  TextureAtlasEvent from './TextureAtlasEvent';
-import  TextureAtlasAction from './ProjectAtlasAction';
+import TextureAtlasEvent from './TextureAtlasEvent';
+import TextureAtlasAction from './ProjectAtlasAction';
 
 /**
  * The <i>TextureAtlas</i> class. TODO: Document.
@@ -54,6 +54,10 @@ export default class TextureAtlas extends CustomEventListener<TextureAtlasEvent>
   }
 
   addSprite(id: string, sprite: MapSprite): void {
+    if (sprite == null) {
+      throw new Error(`The sprite given is null: ${id}`);
+    }
+
     id = id.toLowerCase();
     sprite.id = id;
     this.sprites[id] = sprite;
@@ -114,6 +118,10 @@ export default class TextureAtlas extends CustomEventListener<TextureAtlasEvent>
 
     const apply = (): void => {
       for (let id in this.sprites) {
+        if (!this.sprites[id]) {
+          console.warn(`The sprite ID ${id} is null.`);
+          continue;
+        }
         const sprite = this.sprites[id];
         this.applySprite(sprite);
       }

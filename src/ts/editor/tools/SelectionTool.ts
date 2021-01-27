@@ -116,4 +116,8 @@ export default class SelectionTool extends Tool {
       ])
     ];
   }
+
+  /** @override */
+  protected onDrawCursor(container: PIXI.Container): void {
+  }
 }

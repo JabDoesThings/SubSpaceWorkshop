@@ -88,4 +88,8 @@ export default class SquareTool extends Tool {
       return [new EditTiles(activeLayer, apply)];
     }
   }
+
+  /** @override */
+  protected onDrawCursor(container: PIXI.Container): void {
+  }
 }

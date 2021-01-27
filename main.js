@@ -30,41 +30,40 @@ app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
 let mainWindow;
 
 function createWindow() {
-    // Create the browser window.
-    mainWindow = new BrowserWindow({
-        width: 1024,
-        height: 768,
-        minWidth: 800,
-        minHeight: 600,
-        autoHideMenuBar: true,
-        // frame: false,
-        webPreferences: {
-            nodeIntegration: true,
+  // Create the browser window.
+  mainWindow = new BrowserWindow({
+    width: 1024,
+    height: 768,
+    minWidth: 800,
+    minHeight: 600,
+    autoHideMenuBar: true,
+    // frame: false,
+    webPreferences: {
+      nodeIntegration: true,
+      experimentalFeatures: true,
+      preload: path.join(__dirname, 'preload.js'),
+    },
+    icon: 'icon.png',
+  });
 
-            // experimentalFeatures: true,
-            preload: path.join(__dirname, 'preload.js')
-        },
-        icon: 'icon.png'
-    });
+  mainWindow.setMenuBarVisibility(false);
+  mainWindow.setAutoHideMenuBar(true);
+  mainWindow.setMenu(null);
 
-    mainWindow.setMenuBarVisibility(false);
-    mainWindow.setAutoHideMenuBar(true);
-    mainWindow.setMenu(null);
+  mainWindow.webContents.openDevTools({
+    mode: 'right',
+  });
 
-    mainWindow.webContents.openDevTools({
-        mode: 'detach'
-    });
+  // and load the index.html of the app.
+  mainWindow.loadFile('index.html');
 
-    // and load the index.html of the app.
-    mainWindow.loadFile('index.html');
-
-    // Emitted when the window is closed.
-    mainWindow.on('closed', function () {
-        // Dereference the window object, usually you would store windows
-        // in an array if your app supports multi windows, this is the time
-        // when you should delete the corresponding element.
-        mainWindow = null
-    });
+  // Emitted when the window is closed.
+  mainWindow.on('closed', function() {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    mainWindow = null;
+  });
 
 
 }
@@ -75,16 +74,16 @@ function createWindow() {
 app.on('ready', createWindow);
 
 // Quit when all windows are closed.
-app.on('window-all-closed', function () {
-    // On macOS it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== 'darwin') app.quit();
+app.on('window-all-closed', function() {
+  // On macOS it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
+  if (process.platform !== 'darwin') app.quit();
 });
 
-app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (mainWindow === null) createWindow();
+app.on('activate', function() {
+  // On macOS it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (mainWindow === null) createWindow();
 });
 
 

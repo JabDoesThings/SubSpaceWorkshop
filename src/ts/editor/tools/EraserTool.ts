@@ -77,4 +77,8 @@ export default class EraserTool extends DrawTool {
     // TODO: Implement.
     return null;
   }
+
+  /** @override */
+  protected onDrawCursor(container: PIXI.Container): void {
+  }
 }

@@ -7,6 +7,7 @@ import PathMode from '../../util/PathMode';
 import { MAP_LENGTH } from '../../io/LVL';
 import Renderer from './Renderer';
 import MapSpace from '../MapSpace';
+import ScreenSpace from '../ScreenSpace';
 
 /**
  * The <i>Camera</i> class. TODO: Document.
@@ -169,6 +170,29 @@ class Camera extends UpdatedObject {
       y: Math.floor(my * invScale),
       tileX: tx,
       tileY: ty,
+    };
+  }
+
+  toScreenSpace(x: number, y: number, sw: number, sh: number, scale: number = null): ScreenSpace {
+    if (scale == null) {
+      scale = this.position.scale;
+    }
+
+    const cx = this.position.x;
+    const cy = this.position.y;
+    const mx = Math.floor(x);
+    const my = Math.floor(y);
+    const ox = sw / 2.0;
+    const oy = sh / 2.0;
+
+    const sx = Math.floor((mx) * scale) + ox;
+    const sy = Math.floor((my) * scale) + oy;
+
+    return {
+      x: sx,
+      y: sy,
+      tileX: -1,
+      tileY: -1,
     };
   }
 

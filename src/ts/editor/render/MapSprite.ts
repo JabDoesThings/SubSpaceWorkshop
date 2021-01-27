@@ -234,13 +234,13 @@ export default class MapSprite implements Validatable {
             this.sequence[index].destroy(false);
           }
         }
-        // If the texture does not animate, set the only sequenced texture as the one assigned
-        //   to the sprite.
-        if (this.startX === this.endX && this.startY === this.endY) {
-          this.sequence = [texture];
-          this.reset();
-          return;
-        }
+        // // If the texture does not animate, set the only sequenced texture as the one assigned
+        // //   to the sprite.
+        // if (this.startX === this.endX && this.startY === this.endY) {
+        //   this.sequence = [texture];
+        //   this.reset();
+        //   return;
+        // }
 
         this.sequence = [];
         const w = this.frameWidth;

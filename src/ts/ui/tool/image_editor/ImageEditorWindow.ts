@@ -244,16 +244,21 @@ export default class ImageEditorWindow extends UIInnerWindow {
     // Content.
     const content = document.createElement('div');
     content.classList.add('content');
-    content.style.width = '100%';
+    content.style.width = 'calc(100% - 2px)';
     content.style.padding = '0 0 0 0';
 
     const resizePane = document.createElement('div');
     resizePane.classList.add('resize-pane');
 
+    // Focus shadow
+    const focusShadow = document.createElement('div');
+    focusShadow.classList.add('focus-shadow');
+
     // Main window.
     const innerWindow = document.createElement('div');
     innerWindow.id = id;
     innerWindow.classList.add('ui-inner-window');
+    innerWindow.appendChild(focusShadow);
     innerWindow.appendChild(resizePane);
     innerWindow.appendChild(windowTitle);
     innerWindow.appendChild(menuBar);

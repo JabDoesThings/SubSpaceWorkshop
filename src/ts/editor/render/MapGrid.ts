@@ -61,7 +61,7 @@ export default class MapGrid extends PIXI.Container {
       }
       this.baseGrid.alpha = alpha;
       if (alpha > 0) {
-        this.baseGrid.lineStyle(1, 0x444444, 0.1, 0.5, true);
+        this.baseGrid.lineStyle(1, 0x666666 , 0.1, 0.5, true);
         for (let index = 0; index < 1025; index++) {
           const x1 = index * tileLength;
           const y1 = 0;

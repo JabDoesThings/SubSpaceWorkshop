@@ -1,16 +1,20 @@
 import * as PIXI from "pixi.js";
 import ProjectAtlas from './ProjectAtlas';
-import  MapSprite  from './MapSprite';
+import MapSprite from './MapSprite';
 import Loader = PIXI.Loader;
-import  TextureAtlas  from './TextureAtlas';
+import TextureAtlas from './TextureAtlas';
+import TilesetTextureAtlas from './TilesetTextureAtlas';
+import Project from '../Project';
 
 const texFolder = 'assets/media';
 
 export default class SubSpaceAtlas extends ProjectAtlas {
+  tileset: TilesetTextureAtlas;
 
   load(loader: Loader, onComplete: () => void): void {
     this.clear();
-    const tiles = new TextureAtlas('tiles', loader.resources[`${texFolder}/tiles.png`].texture);
+    this.tileset = new TilesetTextureAtlas(loader.resources[`${texFolder}/tiles.png`].texture);
+    // const tiles = new TextureAtlas('tiles', loader.resources[`${texFolder}/tiles.png`].texture);
     const flag = new TextureAtlas('flag', loader.resources[`${texFolder}/flag.png`].texture);
     const goal = new TextureAtlas('goal', loader.resources[`${texFolder}/goal.png`].texture);
     const prizes = new TextureAtlas('prizes', loader.resources[`${texFolder}/prizes.png`].texture);
@@ -27,7 +31,7 @@ export default class SubSpaceAtlas extends ProjectAtlas {
     const tileNoThor = new TextureAtlas('tilenothor', loader.resources[`${texFolder}/tilenothor.png`].texture);
     const tileNoWeapon = new TextureAtlas('tilenoweapon', loader.resources[`${texFolder}/tilenoweapon.png`].texture);
 
-    this.setTextureAtlas(tiles);
+    this.setTextureAtlas(this.tileset);
     this.setTextureAtlas(flag);
     this.setTextureAtlas(goal);
     this.setTextureAtlas(prizes);
@@ -70,8 +74,8 @@ export default class SubSpaceAtlas extends ProjectAtlas {
     const spriteOver4 = new MapSprite(96, 96, 5, 2, 80);
     const spriteOver5 = new MapSprite(80, 80, 4, 6, 80);
     const spritePrizes = new MapSprite(16, 16, 10, 1, 80);
-    const spriteDoor01 = new MapSprite(16, 16, 19, 10, 80, 9, 8, 12, 8);
-    const spriteDoor02 = new MapSprite(16, 16, 19, 10, 80, 13, 8, 16, 8);
+    // const spriteDoor01 = new MapSprite(16, 16, 19, 10, 80, 9, 8, 12, 8);
+    // const spriteDoor02 = new MapSprite(16, 16, 19, 10, 80, 13, 8, 16, 8);
     const spriteWallBlue = new MapSprite(16, 16, 10, 2, 100, 0, 0, 9, 0);
     const spriteWallYellow = new MapSprite(16, 16, 10, 2, 100, 0, 1, 9, 1);
 
@@ -81,8 +85,8 @@ export default class SubSpaceAtlas extends ProjectAtlas {
     tileNoWeapon.addSprite('tilenoweapon', new MapSprite(16, 16));
     tileNoThor.addSprite('tilenothor', new MapSprite(16, 16));
     tileNoBrick.addSprite('tilenobrick', new MapSprite(16, 16));
-    tiles.addSprite('door01', spriteDoor01);
-    tiles.addSprite('door02', spriteDoor02);
+    // tiles.addSprite('door01', spriteDoor01);
+    // tiles.addSprite('door02', spriteDoor02);
     flag.addSprite('flagblue', spriteFlagBlue);
     flag.addSprite('flagyellow', spriteFlagYellow);
     goal.addSprite('goalblue', spriteGoalBlue);
@@ -97,6 +101,26 @@ export default class SubSpaceAtlas extends ProjectAtlas {
     prizes.addSprite('prizes', spritePrizes);
 
     onComplete();
+  }
+
+  /** @override */
+  clone(project?: Project): SubSpaceAtlas {
+    if (project == null) {
+      project = this.project;
+    }
+    const projectAtlas = new SubSpaceAtlas(project);
+    for (let id in this.textures) {
+      projectAtlas.textures[id] = this.textures[id].clone();
+      projectAtlas.textures[id].addEventListener(projectAtlas.tListener);
+    }
+
+    // Set the cloned tileset.
+    projectAtlas.tileset = this.tileset.clone();
+    projectAtlas.removeTexture('tiles');
+    projectAtlas.setTextureAtlas(projectAtlas.tileset);
+
+    projectAtlas.setDirty(true);
+    return projectAtlas;
   }
 }
 

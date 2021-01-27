@@ -24,7 +24,7 @@ abstract class UIInnerWindow {
   private resizeButton: HTMLElement;
   private closeButton: HTMLElement;
   protected resizePane: HTMLElement;
-  private options: UIInnerWindowOptions;
+  protected options: UIInnerWindowOptions;
   private $parent: JQuery;
   private dimensions: Dimensions;
   isMaximized: boolean = false;

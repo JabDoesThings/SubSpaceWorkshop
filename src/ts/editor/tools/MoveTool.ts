@@ -97,4 +97,8 @@ export default class MoveTool extends Tool {
     }
     return edits;
   }
+
+  /** @override */
+  protected onDrawCursor(container: PIXI.Container): void {
+  }
 }

@@ -1,7 +1,7 @@
 import { Zip } from '../io/Zip';
 import { Bitmap } from '../io/Bitmap';
 import { DEFAULT_TILESET, LVLMap, LVLTileSet, readTileset, writeLVL } from '../io/LVL';
-import { DEFAULT_ATLAS } from './render/SubSpaceAtlas';
+import SubSpaceAtlas, { DEFAULT_ATLAS } from './render/SubSpaceAtlas';
 import { CustomEvent, CustomEventListener, UITab } from '../ui/UI';
 import Editor from './Editor';
 import EditManager from './EditManager';
@@ -38,7 +38,7 @@ export default class Project extends CustomEventListener<CustomEvent> {
   selectionGroup: SelectionGroup;
   layers: LayerManager;
   selections: MapSections;
-  atlas: ProjectAtlas;
+  atlas: SubSpaceAtlas;
   tileset: LVLTileSet;
   tab: UITab;
   background: Background;
